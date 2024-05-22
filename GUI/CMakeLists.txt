@@ -22,7 +22,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 # Executable
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/../external/stb)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../external/stb)
 add_executable(zappy_gui ${SOURCES} ${IMGUI_SOURCES})
 target_link_libraries(zappy_gui glfw glm glad)
 

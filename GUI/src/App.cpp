@@ -10,6 +10,9 @@
 #include "ShaderProgram.hpp"
 #include "Window.hpp"
 
+#include "glm/fwd.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 #include <chrono>
 #include <memory>
 #include <iostream>
@@ -53,8 +56,10 @@ void App::updateDeltaTime() noexcept {
 }
 
 void App::run() {
-    Model cube("../assets/cube.obj");
-    Model lapin("../assets/lapin.obj");
+    Model sponza("../assets/SponzaPBR/Sponza.gltf");
+
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f, 0.01f, 0.01f));
 
     while (!m_window->shouldClose()) {
         updateDeltaTime();
@@ -62,9 +67,10 @@ void App::run() {
 
         m_window->clear();
         m_shaderProgram->use();
+        m_shaderProgram->setMat4("model", modelMatrix);
         m_shaderProgram->setMat4("view", m_camera->getViewMatrix());
         m_shaderProgram->setMat4("proj", m_camera->getProjectionMatrix());
-        lapin.draw();
+        sponza.draw();
 
         m_window->swapBuffers();
     }

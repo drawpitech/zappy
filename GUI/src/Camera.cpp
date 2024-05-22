@@ -22,15 +22,9 @@ static float lastY = 0;
 static float yaw = 0;
 static float pitch = 0;
 static bool cursorLocked = false;
+static float cameraSpeed = 4.f;
 
-// the famous mouse callback
-static void mouseCallback(GLFWwindow* window, double xpos, double ypos);
-
-Camera::Camera(std::shared_ptr<Window> window) : m_window(window) {
-    glfwSetCursorPosCallback(m_window->getHandle(), mouseCallback);
-}
-
-void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+static void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     (void) window;
     if (cursorLocked)
         return;
@@ -66,6 +60,21 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     front = glm::normalize(direction);
 }
 
+static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    (void) window;
+    (void) xoffset;
+    cameraSpeed += yoffset;
+    if (cameraSpeed < 1)
+        cameraSpeed = 1;
+    if (cameraSpeed > 10)
+        cameraSpeed = 10;
+}
+
+Camera::Camera(std::shared_ptr<Window>& window) : m_window(window) {
+    glfwSetCursorPosCallback(m_window->getHandle(), mouseCallback);
+    glfwSetScrollCallback(m_window->getHandle(), scrollCallback);
+}
+
 void Camera::disableCursorCallback(bool lock) noexcept {
     cursorLocked = lock;
 }
@@ -80,20 +89,20 @@ void Camera::setPerspective(float fov, float aspect, float near, float far) noex
 }
 
 void Camera::update(float deltaTime) noexcept {
-    float cameraSpeed = deltaTime * 10;
+    float offset = deltaTime * cameraSpeed;
 
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_W) == GLFW_PRESS)
-        m_position += cameraSpeed * front;
+        m_position += offset * front;
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_S) == GLFW_PRESS)
-        m_position -= cameraSpeed * front;
+        m_position -= offset * front;
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_A) == GLFW_PRESS)
-        m_position -= glm::normalize(glm::cross(front, m_upVector)) * cameraSpeed;
+        m_position -= glm::normalize(glm::cross(front, m_upVector)) * offset;
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_D) == GLFW_PRESS)
-        m_position += glm::normalize(glm::cross(front, m_upVector)) * cameraSpeed;
+        m_position += glm::normalize(glm::cross(front, m_upVector)) * offset;
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_SPACE) == GLFW_PRESS)
-        m_position += cameraSpeed * m_upVector;
+        m_position += offset * m_upVector;
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_C) == GLFW_PRESS)
-        m_position -= cameraSpeed * m_upVector;
+        m_position -= offset * m_upVector;
 
     m_viewMatrix = glm::lookAt(m_position, m_position + front, m_upVector);
 }

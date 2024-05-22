@@ -7,10 +7,16 @@ layout(location = 2) in vec2 inTexCoords;
 layout(location = 0) out vec3 outFragPos;
 layout(location = 1) out vec3 outNormal;
 layout(location = 2) out vec2 outTexCoords;
+layout(location = 3) out float outDistance;
 
+uniform mat4 model;
 uniform mat4 view;
 uniform mat4 proj;
 
 void main() {
-    gl_Position = proj * view * vec4(inPos, 1.0);
+    gl_Position = proj * view * model * vec4(inPos, 1.0);
+    outFragPos = vec3(model * vec4(inPos, 1.0));
+    outNormal = mat3(transpose(inverse(model))) * inNormal;
+    outTexCoords = inTexCoords;
+    outDistance = length(outFragPos - vec3(view[3])) / 100;
 }

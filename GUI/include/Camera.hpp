@@ -15,7 +15,7 @@
 
 class Camera {
     public:
-        explicit Camera(std::shared_ptr<Window> window);
+        explicit Camera(std::shared_ptr<Window>& window);
         ~Camera() = default;
 
         Camera(const Camera&) = delete;
@@ -60,7 +60,7 @@ class Camera {
         [[nodiscard]] const glm::vec3& getPosition() const noexcept { return m_position; }
 
     private:
-        std::shared_ptr<Window> m_window;
+        std::shared_ptr<Window>& m_window;
 
         glm::vec3 m_position {0, 0, 0};
         glm::vec3 m_upVector {0, 1, 0};

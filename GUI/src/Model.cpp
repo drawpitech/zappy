@@ -64,6 +64,9 @@ void Model::processMesh(const aiMesh *mesh) noexcept {
     }
 
     Submesh submesh = {
+        .vao = 0,
+        .vbo = 0,
+        .ibo = 0,
         .indexCount = static_cast<uint32_t>(indices.size())
     };
 

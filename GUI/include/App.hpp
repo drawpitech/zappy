@@ -26,6 +26,7 @@ class App {
     private:
         void handleUserInput() noexcept;
         void updateDeltaTime() noexcept;
+        void drawUi() const noexcept;
 
     private:
         std::shared_ptr<Window> m_window;

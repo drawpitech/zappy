@@ -19,7 +19,7 @@
 
 App::App() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
-    m_camera = std::make_shared<Camera>(m_window);
+    m_camera = std::make_unique<Camera>(m_window);
     m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
     m_shaderProgram = std::make_shared<ShaderProgram>("../GUI/shaders/vertex.glsl", "../GUI/shaders/fragment.glsl");
 }
@@ -58,19 +58,15 @@ void App::updateDeltaTime() noexcept {
 void App::run() {
     Model sponza("../assets/SponzaPBR/Sponza.gltf");
 
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.01f, 0.01f, 0.01f));
-
     while (!m_window->shouldClose()) {
         updateDeltaTime();
         handleUserInput();
 
         m_window->clear();
         m_shaderProgram->use();
-        m_shaderProgram->setMat4("model", modelMatrix);
         m_shaderProgram->setMat4("view", m_camera->getViewMatrix());
         m_shaderProgram->setMat4("proj", m_camera->getProjectionMatrix());
-        sponza.draw();
+        sponza.draw(m_shaderProgram);
 
         m_window->swapBuffers();
     }

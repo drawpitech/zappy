@@ -7,10 +7,14 @@
 
 #include "Model.hpp"
 
+#include "ShaderProgram.hpp"
 #include "assimp/Importer.hpp"
+#include "assimp/matrix4x4.h"
+#include "assimp/mesh.h"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "glad/glad.h"
+#include "glm/gtc/type_ptr.hpp"
 
 Model::Model(const std::string& filePath) {
     Assimp::Importer importer;
@@ -28,22 +32,26 @@ Model::Model(const std::string& filePath) {
 Model::~Model() {
 }
 
-void Model::draw() const noexcept {
+void Model::draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept {
     for (const auto& submesh : m_submeshes) {
+        shaderProgram->setMat4("model", submesh->transform);
         glBindVertexArray(submesh->vao);
         glDrawElements(GL_TRIANGLES, submesh->indexCount, GL_UNSIGNED_INT, nullptr);
     }
 }
 
 void Model::processNode(const aiNode *node, const aiScene *scene) noexcept {
-    for (std::size_t i = 0; i < node->mNumMeshes; ++i)
-        processMesh(scene->mMeshes[node->mMeshes[i]]);
+    for (std::size_t i = 0; i < node->mNumMeshes; ++i) {
+        const aiMatrix4x4 transform = node->mTransformation;
+        const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
+        processMesh(mesh, glm::make_mat4(&transform.a1));
+    }
 
     for (std::size_t i = 0; i < node->mNumChildren; ++i)
         processNode(node->mChildren[i], scene);
 }
 
-void Model::processMesh(const aiMesh *mesh) noexcept {
+void Model::processMesh(const aiMesh *mesh, const glm::mat4& transform) noexcept {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 
@@ -67,7 +75,8 @@ void Model::processMesh(const aiMesh *mesh) noexcept {
         .vao = 0,
         .vbo = 0,
         .ibo = 0,
-        .indexCount = static_cast<uint32_t>(indices.size())
+        .indexCount = static_cast<uint32_t>(indices.size()),
+        .transform = transform
     };
 
     glGenVertexArrays(1, &submesh.vao);

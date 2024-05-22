@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "ShaderProgram.hpp"
+
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "glm/glm.hpp"
@@ -23,7 +25,7 @@ class Model {
         Model(const Model&) = delete;
         Model& operator=(const Model&) = delete;
 
-        void draw() const noexcept;
+        void draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept;
 
     private:
         struct Vertex {
@@ -37,11 +39,12 @@ class Model {
             uint32_t vbo;
             uint32_t ibo;
             uint32_t indexCount;
+            glm::mat4 transform;
         };
 
     private:
         std::vector<std::unique_ptr<Submesh>> m_submeshes;
 
         void processNode(const aiNode *node, const aiScene *scene) noexcept;
-        void processMesh(const aiMesh *mesh) noexcept;
+        void processMesh(const aiMesh *mesh, const glm::mat4& transform) noexcept;
 };

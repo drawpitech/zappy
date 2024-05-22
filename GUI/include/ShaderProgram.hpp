@@ -25,9 +25,10 @@ class ShaderProgram {
         void setMat4(const std::string &name, const glm::mat4 &value) noexcept;
 
     private:
-        GLuint programID;
-
         void loadShader(const std::string &shaderPath, GLuint shaderID);
         void checkShader(GLuint shaderID);
         void checkProgram();
+
+    private:
+        GLuint m_program;
 };

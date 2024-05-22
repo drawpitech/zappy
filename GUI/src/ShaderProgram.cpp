@@ -86,3 +86,15 @@ void ShaderProgram::checkProgram() {
 void ShaderProgram::setMat4(const std::string &name, const glm::mat4 &value) noexcept {
     glUniformMatrix4fv(glGetUniformLocation(m_program, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
+
+void ShaderProgram::setBool(const std::string &name, bool value) noexcept {
+    glUniform1i(glGetUniformLocation(m_program, name.c_str()), static_cast<int>(value));
+}
+
+void ShaderProgram::setInt(const std::string &name, int value) noexcept {
+    glUniform1i(glGetUniformLocation(m_program, name.c_str()), value);
+}
+
+void ShaderProgram::setVec3(const std::string &name, glm::vec3 value) noexcept {
+    glUniform3fv(glGetUniformLocation(m_program, name.c_str()), 1, glm::value_ptr(value));
+}

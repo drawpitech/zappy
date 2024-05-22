@@ -91,6 +91,7 @@ void App::run() {
         m_shaderProgram->use();
         m_shaderProgram->setMat4("view", m_camera->getViewMatrix());
         m_shaderProgram->setMat4("proj", m_camera->getProjectionMatrix());
+        m_shaderProgram->setVec3("camPos", m_camera->getPosition());
         sponza.draw(m_shaderProgram);
 
         drawUi();

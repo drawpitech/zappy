@@ -23,6 +23,9 @@ class ShaderProgram {
         void use() noexcept;
 
         void setMat4(const std::string &name, const glm::mat4 &value) noexcept;
+        void setBool(const std::string &name, bool value) noexcept;
+        void setInt(const std::string &name, int value) noexcept;
+        void setVec3(const std::string &name, glm::vec3 value) noexcept;
 
     private:
         void loadShader(const std::string &shaderPath, GLuint shaderID);

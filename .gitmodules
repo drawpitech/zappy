@@ -1,7 +1,3 @@
-[submodule "external/glfw"]
-	path = external/glfw
-	url = https://github.com/glfw/glfw.git
-	branch = 3.3-stable
 [submodule "external/glm"]
 	path = external/glm
 	url = https://github.com/g-truc/glm.git

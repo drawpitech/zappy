@@ -12,6 +12,7 @@
 
 #include "glm/fwd.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "imgui.h"
 
 #include <chrono>
 #include <memory>
@@ -68,6 +69,9 @@ void App::run() {
         m_shaderProgram->setMat4("proj", m_camera->getProjectionMatrix());
         sponza.draw(m_shaderProgram);
 
+        ImGui::ShowDemoWindow();
+
         m_window->swapBuffers();
     }
 }
+s

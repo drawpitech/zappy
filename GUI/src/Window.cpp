@@ -7,7 +7,10 @@
 
 #include "Window.hpp"
 
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
 #include <stdexcept>
 #include <iostream>
@@ -116,6 +119,21 @@ Window::Window(int width, int height, const std::string& title) : m_width(width)
             glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
         }
     #endif
+
+
+    {   // ImGui initialization
+        IMGUI_CHECKVERSION();
+        if (!ImGui::CreateContext() || !ImGui_ImplGlfw_InitForOpenGL(m_window, true) || !ImGui_ImplOpenGL3_Init("#version 460"))
+            throw std::runtime_error("Failed to initialize ImGui");
+
+        ImGui::StyleColorsDark();
+
+        m_deletionQueue.add([]() {
+            ImGui_ImplOpenGL3_Shutdown();
+            ImGui_ImplGlfw_Shutdown();
+            ImGui::DestroyContext();
+        });
+    }
 }
 
 Window::~Window() {

@@ -24,7 +24,7 @@ endif()
 # Executable
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../external/stb)
 add_executable(zappy_gui ${SOURCES} ${IMGUI_SOURCES})
-target_link_libraries(zappy_gui glfw glm glad)
+target_link_libraries(zappy_gui glfw glm glad assimp)
 
 # Copy zappy_gui to build
 add_custom_command(TARGET zappy_gui POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:zappy_gui> ..)

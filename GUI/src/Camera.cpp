@@ -80,7 +80,7 @@ void Camera::setPerspective(float fov, float aspect, float near, float far) noex
 }
 
 void Camera::update(float deltaTime) noexcept {
-    float cameraSpeed = deltaTime * 4;
+    float cameraSpeed = deltaTime * 10;
 
     if (glfwGetKey(m_window->getHandle(), GLFW_KEY_W) == GLFW_PRESS)
         m_position += cameraSpeed * front;

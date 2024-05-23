@@ -105,6 +105,16 @@ void Model::loadTexture(const std::string& texturePath, const std::string& model
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+    {   // Anisotropic filtering
+        GLfloat value, max_anisotropy = 8.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & value);
+
+        value = (value > max_anisotropy) ? max_anisotropy : value;
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, value);
+
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, value);
+    }
+
     stbi_image_free(data);
 }
 

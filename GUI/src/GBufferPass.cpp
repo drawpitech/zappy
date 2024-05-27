@@ -105,6 +105,7 @@ GBufferPass::~GBufferPass() {
 
 void GBufferPass::bind(const glm::mat4& model, const glm::mat4& view, const glm::mat4& proj) const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
 

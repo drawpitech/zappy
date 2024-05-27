@@ -6,8 +6,9 @@
 */
 
 #include "App.hpp"
+#include "LightingPass.hpp"
 #include "Model.hpp"
-#include "ShaderProgram.hpp"
+#include "SSAOPass.hpp"
 #include "Window.hpp"
 
 #include "backends/imgui_impl_glfw.h"
@@ -21,7 +22,9 @@ App::App() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
     m_camera = std::make_unique<Camera>(m_window);
     m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
-    m_shaderProgram = std::make_shared<ShaderProgram>("../GUI/shaders/vertex.glsl", "../GUI/shaders/fragment.glsl");
+    m_gBufferPass = std::make_unique<GBufferPass>(m_window);
+    m_lightingPass = std::make_unique<LightingPass>(m_window);
+    m_ssaoPass = std::make_unique<SSAOPass>(m_window);
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
@@ -61,23 +64,15 @@ void App::updateDeltaTime() noexcept {
     m_frameStartTime = m_frameEndTime;
 }
 
-void App::drawUi() const noexcept {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    {   // Telemetry
-        ImGui::SetNextWindowBgAlpha(0);
-        ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(300, 200));
-        ImGui::Begin("Telemetry", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground);
-            ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0f);
-            ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime);
-        ImGui::End();
-    }
-
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+void App::drawUi() noexcept {
+    ImGui::SetNextWindowBgAlpha(0);
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(300, 200));
+    ImGui::Begin("Telemetry", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground);
+        ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0f);
+        ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime);
+        ImGui::Checkbox("Use SSAO", &m_useSSAO);
+    ImGui::End();
 }
 
 void App::run() {
@@ -86,15 +81,41 @@ void App::run() {
     while (!m_window->shouldClose()) {
         updateDeltaTime();
         handleUserInput();
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-        m_window->clear();
-        m_shaderProgram->use();
-        m_shaderProgram->setMat4("view", m_camera->getViewMatrix());
-        m_shaderProgram->setMat4("proj", m_camera->getProjectionMatrix());
-        m_shaderProgram->setVec3("camPos", m_camera->getPosition());
-        sponza.draw(m_shaderProgram);
+        m_gBufferPass->bind(glm::mat4(1.0f), m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
+        sponza.draw(m_gBufferPass->getShaderProgram());
+
+        if (m_useSSAO) {
+            m_ssaoPass->bindMainPass(
+                m_gBufferPass->getPositionTexture(),
+                m_gBufferPass->getNormalTexture(),
+                m_camera->getViewMatrix(),
+                m_camera->getProjectionMatrix()
+            );
+            m_ssaoPass->renderQuad();
+            m_ssaoPass->bindBlurPass();
+            m_ssaoPass->renderQuad();
+        } else {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoPass->getBluredFramebuffer());
+            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+
+        m_lightingPass->bind(
+            m_gBufferPass->getPositionTexture(),
+            m_gBufferPass->getAlbedoTexture(),
+            m_gBufferPass->getNormalTexture(),
+            m_gBufferPass->getPbrTexture(),
+            m_ssaoPass->getSSAOBlurTexture()
+        );
+        m_lightingPass->renderQuad();
 
         drawUi();
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         m_window->swapBuffers();
     }
 }

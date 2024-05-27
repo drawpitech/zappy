@@ -1,0 +1,12 @@
+#!/bin/python3
+""" Main """
+from args_handling.args_handling import get_args
+
+
+if __name__ == "__main__":
+    args = get_args()
+
+    print(args.p)
+    print(args.n)
+    print(args.he)
+    print("ok")

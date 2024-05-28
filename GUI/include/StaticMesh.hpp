@@ -14,6 +14,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -28,7 +29,7 @@ class StaticMesh {
         StaticMesh(StaticMesh&&) = default;
         StaticMesh& operator=(StaticMesh&&) = delete;
 
-        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& modelMatrix) const noexcept;
+        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept;
 
     private:
         struct Material {

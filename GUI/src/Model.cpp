@@ -37,6 +37,11 @@ Model::~Model() {
 }
 
 void Model::draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept {
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
+
     for (const auto& submesh : m_submeshes) {
         if (m_materials[submesh.materialIndex].albedoMap != 0) {
             glActiveTexture(GL_TEXTURE0);
@@ -69,6 +74,9 @@ void Model::draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept {
         glBindVertexArray(submesh.vao);
         glDrawElements(GL_TRIANGLES, submesh.indexCount, GL_UNSIGNED_INT, nullptr);
     }
+
+    glDisable(GL_CULL_FACE);
+    glDisable(GL_DEPTH_TEST);
 }
 
 void Model::loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture) {

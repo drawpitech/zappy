@@ -6,6 +6,7 @@
 */
 
 #include "App.hpp"
+#include "GlUtils.hpp"
 #include "LightingPass.hpp"
 #include "Model.hpp"
 #include "SSAOPass.hpp"
@@ -95,9 +96,9 @@ void App::run() {
                 m_camera->getViewMatrix(),
                 m_camera->getProjectionMatrix()
             );
-            m_ssaoPass->renderQuad();
+            GlUtils::renderQuad();
             m_ssaoPass->bindBlurPass();
-            m_ssaoPass->renderQuad();
+            GlUtils::renderQuad();
         } else {
             glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoPass->getBluredFramebuffer());
             glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -111,7 +112,7 @@ void App::run() {
             m_gBufferPass->getPbrTexture(),
             m_ssaoPass->getSSAOBlurTexture()
         );
-        m_lightingPass->renderQuad();
+        GlUtils::renderQuad();
 
         drawUi();
         ImGui::Render();

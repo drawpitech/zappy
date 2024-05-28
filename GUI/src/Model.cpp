@@ -65,15 +65,6 @@ void Model::draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept {
             shaderProgram->setBool("useNormalMap", false);
         }
 
-        if (m_materials[submesh.materialIndex].aoMap != 0) {
-            glActiveTexture(GL_TEXTURE3);
-            glBindTexture(GL_TEXTURE_2D, m_materials[submesh.materialIndex].aoMap);
-            shaderProgram->setInt("aoMap", 3);
-            shaderProgram->setBool("useAoMap", true);
-        } else {
-            shaderProgram->setBool("useAoMap", false);
-        }
-
         shaderProgram->setMat4("model", submesh.transform);
         glBindVertexArray(submesh.vao);
         glDrawElements(GL_TRIANGLES, submesh.indexCount, GL_UNSIGNED_INT, nullptr);
@@ -132,9 +123,6 @@ void Model::loadMaterials(const aiScene *scene, const std::string& modelPath) {
 
         if (assimpMat->GetTexture(aiTextureType_NORMALS, 0, &texturePath) == AI_SUCCESS)
             loadTexture(texturePath.C_Str(), modelPath, material.normalMap);
-
-        if (assimpMat->GetTexture(aiTextureType_AMBIENT_OCCLUSION, 0, &texturePath) == AI_SUCCESS)
-            loadTexture(texturePath.C_Str(), modelPath, material.aoMap);
 
         m_materials.push_back(material);
     }

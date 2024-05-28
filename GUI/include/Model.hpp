@@ -33,7 +33,6 @@ class Model {
             uint32_t albedoMap;
             uint32_t metallicRoughnessMap;
             uint32_t normalMap;
-            uint32_t aoMap;
         };
 
         struct Vertex {

@@ -8,22 +8,19 @@
 #include "Window.hpp"
 
 #include "GLFW/glfw3.h"
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 
 #include <stdexcept>
 #include <iostream>
 
 #define DEBUG 1
 
-static void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept {
-    Window *self = reinterpret_cast<Window *>(glfwGetWindowUserPointer(window));
+void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept {
+    auto *self = static_cast<Window *>(glfwGetWindowUserPointer(window));
     self->wasResized = true;
     self->resize(width, height);
 }
 
-static void APIENTRY debugCallback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *userParam) {
+void APIENTRY debugCallback(GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length, const char *message, const void *userParam) {
     (void) userParam, (void) length;
 
     if(id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
@@ -33,12 +30,13 @@ static void APIENTRY debugCallback(GLenum source, GLenum type, unsigned int id, 
     debugMessage += "Debug message (" + std::to_string(id) + "): " + message + "\n";
 
     switch (source) {
-        case GL_DEBUG_SOURCE_API:             debugMessage += "- Source: API\n"; break;
-        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   debugMessage += "- Source: Window System\n"; break;
-        case GL_DEBUG_SOURCE_SHADER_COMPILER: debugMessage += "- Source: Shader Compiler\n"; break;
-        case GL_DEBUG_SOURCE_THIRD_PARTY:     debugMessage += "- Source: Third Party\n"; break;
-        case GL_DEBUG_SOURCE_APPLICATION:     debugMessage += "- Source: Application\n"; break;
-        case GL_DEBUG_SOURCE_OTHER:           debugMessage += "- Source: Other\n"; break;
+        case GL_DEBUG_SOURCE_API:               debugMessage += "- Source: API\n"; break;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM:     debugMessage += "- Source: Window System\n"; break;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER:   debugMessage += "- Source: Shader Compiler\n"; break;
+        case GL_DEBUG_SOURCE_THIRD_PARTY:       debugMessage += "- Source: Third Party\n"; break;
+        case GL_DEBUG_SOURCE_APPLICATION:       debugMessage += "- Source: Application\n"; break;
+        case GL_DEBUG_SOURCE_OTHER:             debugMessage += "- Source: Other\n"; break;
+        default:                                debugMessage += "- Source: Unknown\n"; break;
     };
 
     switch (type) {
@@ -51,29 +49,29 @@ static void APIENTRY debugCallback(GLenum source, GLenum type, unsigned int id, 
         case GL_DEBUG_TYPE_PUSH_GROUP:          debugMessage += "- Type: Push Group\n"; break;
         case GL_DEBUG_TYPE_POP_GROUP:           debugMessage += "- Type: Pop Group\n"; break;
         case GL_DEBUG_TYPE_OTHER:               debugMessage += "- Type: Other\n"; break;
+        default:                                debugMessage += "- Type: Unknown\n"; break;
     };
 
     switch (severity) {
-        case GL_DEBUG_SEVERITY_HIGH:         debugMessage += "- Severity: high\n"; break;
-        case GL_DEBUG_SEVERITY_MEDIUM:       debugMessage += "- Severity: medium\n"; break;
-        case GL_DEBUG_SEVERITY_LOW:          debugMessage += "- Severity: low\n"; break;
-        case GL_DEBUG_SEVERITY_NOTIFICATION: debugMessage += "- Severity: notification\n"; break;
+        case GL_DEBUG_SEVERITY_HIGH:            debugMessage += "- Severity: high\n"; break;
+        case GL_DEBUG_SEVERITY_MEDIUM:          debugMessage += "- Severity: medium\n"; break;
+        case GL_DEBUG_SEVERITY_LOW:             debugMessage += "- Severity: low\n"; break;
+        case GL_DEBUG_SEVERITY_NOTIFICATION:    debugMessage += "- Severity: notification\n"; break;
+        default:                                debugMessage += "- Severity: unknown\n"; break;
     };
     debugMessage += "============================================================\n";
 
     switch (severity) {
         case GL_DEBUG_SEVERITY_HIGH:
-            throw std::runtime_error(debugMessage);
-            break;
+            throw std::runtime_error(debugMessage); break;
         case GL_DEBUG_SEVERITY_MEDIUM:
-            std::clog << "Medium error: " << debugMessage << std::endl;
-            break;
+            std::clog << "Medium error: " << debugMessage << std::endl; break;
         case GL_DEBUG_SEVERITY_LOW:
-            std::clog << "Low error: " << debugMessage << std::endl;
-            break;
+            std::clog << "Low error: " << debugMessage << std::endl; break;
         case GL_DEBUG_SEVERITY_NOTIFICATION:
-            std::clog << "Notification: " << debugMessage << std::endl;
-            break;
+            std::clog << "Notification: " << debugMessage << std::endl; break;
+        default:
+            std::clog << "Unknown error: " << debugMessage << std::endl; break;
     }
 }
 
@@ -88,7 +86,7 @@ Window::Window(int width, int height, const std::string& title) : m_width(width)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     #if DEBUG
-        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
     #endif
 
     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
@@ -103,17 +101,17 @@ Window::Window(int width, int height, const std::string& title) : m_width(width)
     glfwSetFramebufferSizeCallback(m_window, framebufferResizeCallback);
     glfwSwapInterval(0);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (gladLoadGLLoader(GLADloadproc(glfwGetProcAddress)) == 0)
         throw std::runtime_error("Failed to initialize GLAD");
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
     glViewport(0, 0, width, height);
 
     #if DEBUG
-        int flags;
+        int flags = 0.0;
         glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        if ((flags & GL_CONTEXT_FLAG_DEBUG_BIT) != 0) {
             glEnable(GL_DEBUG_OUTPUT);
             glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
             glDebugMessageCallback(debugCallback, nullptr);

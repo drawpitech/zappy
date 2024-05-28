@@ -22,14 +22,14 @@
 App::App() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
     m_camera = std::make_unique<Camera>(m_window);
-    m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
+    m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
     m_gBufferPass = std::make_unique<GBufferPass>(m_window);
     m_lightingPass = std::make_unique<LightingPass>(m_window);
     m_ssaoPass = std::make_unique<SSAOPass>(m_window);
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
-        if (!ImGui::CreateContext() || !ImGui_ImplGlfw_InitForOpenGL(m_window->getHandle(), true) || !ImGui_ImplOpenGL3_Init("#version 460"))
+        if ((ImGui::CreateContext() == nullptr) || !ImGui_ImplGlfw_InitForOpenGL(m_window->getHandle(), true) || !ImGui_ImplOpenGL3_Init("#version 460"))
             throw std::runtime_error("Failed to initialize ImGui");
 
         ImGui::StyleColorsDark();
@@ -43,7 +43,7 @@ void App::handleUserInput() noexcept {
     m_window->pollEvents();
 
     if (m_window->wasResized) {
-        m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1f, 100.0f);
+        m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
         m_window->wasResized = false;
     }
 
@@ -70,8 +70,8 @@ void App::drawUi() noexcept {
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImGui::SetNextWindowSize(ImVec2(300, 200));
     ImGui::Begin("Telemetry", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground);
-        ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0f);
-        ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime);
+        ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0); // NOLINT
+        ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime); // NOLINT
         ImGui::Checkbox("Use SSAO", &m_useSSAO);
     ImGui::End();
 }
@@ -86,7 +86,7 @@ void App::run() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        m_gBufferPass->bind(glm::mat4(1.0f), m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
+        m_gBufferPass->bind(glm::mat4(1.0), m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
         sponza.draw(m_gBufferPass->getShaderProgram());
 
         if (m_useSSAO) {
@@ -101,7 +101,7 @@ void App::run() {
             GlUtils::renderQuad();
         } else {
             glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoPass->getBluredFramebuffer());
-            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glClearColor(1.0, 1.0, 1.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
 

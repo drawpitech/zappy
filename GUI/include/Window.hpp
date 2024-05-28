@@ -22,7 +22,10 @@ class Window {
         Window(const Window&) = delete;
         Window& operator=(const Window&) = delete;
 
-        bool wasResized = false;
+        Window(Window&&)  noexcept = default;
+        Window& operator=(Window&&) = delete;
+
+        bool wasResized = false;    // NOLINT
 
         /**
          * @brief Check if the user has attempted to close the window
@@ -30,23 +33,23 @@ class Window {
          * @return true if the user has attempted to close the window
          * @return false otherwise
          */
-        [[nodiscard]] bool shouldClose() const noexcept { return glfwWindowShouldClose(m_window); }
+        [[nodiscard]] bool shouldClose() const noexcept { return static_cast<bool>(glfwWindowShouldClose(m_window)); }
 
         /**
          * @brief I don't know what this does
          */
-        void close() const noexcept { glfwSetWindowShouldClose(m_window, true); }
+        void close() const noexcept { glfwSetWindowShouldClose(m_window, static_cast<int>(true)); }
 
         /**
          * @brief Poll for events such as key presses, mouse movement,
          * window resizing, etc.
          */
-        void pollEvents() const noexcept { glfwPollEvents(); }
+        static void pollEvents() noexcept { glfwPollEvents(); }
 
         /**
          * @brief Clear the window's color and depth buffers.
          */
-        void clear() const noexcept { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
+        static void clear() noexcept { glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); }
 
         /**
          * @brief Display the rendered image to the window.

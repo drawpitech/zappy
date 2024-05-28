@@ -7,12 +7,14 @@
 
 #pragma once
 
-#include <functional>
 #include <deque>
+#include <functional>
 
-struct DeletionQueue {
-    std::deque<std::function<void()>> deletors;
+class DeletionQueue {
+    public:
+        void add(std::function<void()>&& function);
+        void flush();
 
-    void add(std::function<void()>&& function);
-    void flush();
+    private:
+        std::deque<std::function<void()>> deletors;
 };

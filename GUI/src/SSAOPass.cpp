@@ -9,11 +9,11 @@
 
 #include <random>
 
-static float lerp(float a, float b, float f) {
+float lerp(float a, float b, float f) {
     return a + f * (b - a);
 }
 
-SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
+SSAOPass::SSAOPass(std::shared_ptr<Window>& window) : m_window(window) {
     m_ssaoPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAO.frag");
     m_blurPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAOBlur.frag");
 
@@ -25,7 +25,7 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
     // SSAO framebuffer
     glGenTextures(1, &m_ssaoTexture);
     glBindTexture(GL_TEXTURE_2D, m_ssaoTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, m_window->getWidth(), m_window->getHeight(), 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(window->getWidth()), static_cast<GLsizei>(window->getHeight()), 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ssaoTexture, 0);
@@ -37,7 +37,7 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoBlurFBO);
     glGenTextures(1, &m_ssaoBlurTexture);
     glBindTexture(GL_TEXTURE_2D, m_ssaoBlurTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, m_window->getWidth(), m_window->getHeight(), 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(window->getWidth()), static_cast<GLsizei>(window->getHeight()), 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ssaoBlurTexture, 0);
@@ -55,10 +55,10 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
         glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
         sample = glm::normalize(sample);
         sample *= randomFloats(generator);
-        float scale = float(i) / 64.0f;
+        auto scale = static_cast<float>(i / 64.0);
 
         // scale samples s.t. they're more aligned to center of kernel
-        scale = lerp(0.1f, 1.0f, scale * scale);
+        scale = lerp(0.1, 1.0, scale * scale);
         sample *= scale;
         m_ssaoKernel.push_back(sample);
     }
@@ -67,13 +67,13 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
     // Generate noise texture
     std::vector<glm::vec3> ssaoNoise;
     for (unsigned int i = 0; i < 16; i++) {
-        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0);
         ssaoNoise.push_back(noise);
     }
 
     glGenTextures(1, &m_noiseTexture);
     glBindTexture(GL_TEXTURE_2D, m_noiseTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

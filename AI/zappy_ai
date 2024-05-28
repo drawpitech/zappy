@@ -1,12 +1,24 @@
 #!/bin/python3
 """ Main """
 from args_handling.args_handling import get_args
-
+from client.client import Client
 
 if __name__ == "__main__":
     args = get_args()
 
+    try:
+        client = Client("127.0.0.1", args.p, args.n)
+    except RuntimeError as err:
+        print(err.args[0])
+        exit(84)
+
     print(args.p)
     print(args.n)
     print(args.he)
-    print("ok")
+
+    client.send_cmd("Forward")
+    answer = client.get_answer()
+    if answer == 'ok\n':
+        print("Juste moved forward")
+    else:
+        print("didn't move")

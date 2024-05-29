@@ -7,14 +7,14 @@ import socket
 class Client:
     """Class to handle server connection and communication
     """
-    def __init__(self, ip: str, port: int, team: str):
+    def __init__(self, host: str, port: int, team: str):
         self.team: str = team
         if team[-1] != '\n':
             self.team += '\n'
-        self.ip: str = ip
+        self.host: str = host
         self.port: int = port
         self.socket: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.ip, self.port))
+        self.socket.connect((self.host, self.port))
 
         if self.get_answer() != 'WELCOME\n':
             raise RuntimeError("Server did not welcome")

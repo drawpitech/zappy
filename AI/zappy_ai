@@ -1,24 +1,38 @@
 #!/bin/python3
 """ Main """
+from time import sleep
 from args_handling.args_handling import get_args
-from client.client import Client
+from trentorian.trentorian import Trantorian
+
+
+def main(host: str, port: int, team: str):
+    """main for the ai
+
+    Args:
+        host (str): machine hosting serv
+        port (int): port open for the serv
+        team (str): name of the team
+    """
+    pop : list[Trantorian] = []
+    Trantorian(host, port, team, pop)
+
+    while True:
+        for trantor in pop:
+            if trantor.forward():
+                print("Juste moved forward")
+            else:
+                print("didn't move")
+
 
 if __name__ == "__main__":
     args = get_args()
-
-    try:
-        client = Client("127.0.0.1", args.p, args.n)
-    except RuntimeError as err:
-        print(err.args[0])
-        exit(84)
 
     print(args.p)
     print(args.n)
     print(args.he)
 
-    client.send_cmd("Forward")
-    answer = client.get_answer()
-    if answer == 'ok\n':
-        print("Juste moved forward")
-    else:
-        print("didn't move")
+    try:
+        main(args.he, args.p, args.n)
+    except RuntimeError as err:
+        print(err.args[0])
+        exit(84)

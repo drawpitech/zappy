@@ -1,0 +1,9 @@
+-I./GUI/include
+-std=c++20
+
+-I./external/assimp/include
+-I./external/glad/include
+-I./external/glfw/include
+-I./external/glm
+-I./external/imgui
+-I./external/stb

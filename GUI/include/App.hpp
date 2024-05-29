@@ -8,11 +8,11 @@
 #pragma once
 
 #include "GBufferPass.hpp"
+#include "Camera.hpp"
 #include "LightingPass.hpp"
 #include "SSAOPass.hpp"
-#include "Window.hpp"
 #include "ShaderProgram.hpp"
-#include "Camera.hpp"
+#include "Window.hpp"
 
 #include <chrono>
 
@@ -21,8 +21,11 @@ class App {
         App();
         ~App();
 
-        App (const App&) = delete;
+        App(const App&) = delete;
         App& operator=(const App&) = delete;
+
+        App(App&&) = default;
+        App& operator=(App&&) = default;
 
         void run();
 
@@ -31,7 +34,6 @@ class App {
         void updateDeltaTime() noexcept;
         void drawUi() noexcept;
 
-    private:
         std::shared_ptr<Window> m_window;
         std::shared_ptr<ShaderProgram> m_shaderProgram;
         std::unique_ptr<Camera> m_camera;
@@ -41,7 +43,7 @@ class App {
 
         std::chrono::time_point<std::chrono::high_resolution_clock> m_frameStartTime = std::chrono::high_resolution_clock::now();
         std::chrono::time_point<std::chrono::high_resolution_clock> m_frameEndTime = std::chrono::high_resolution_clock::now();
-        float m_deltaTime;
+        float m_deltaTime = 0;
 
         bool m_useSSAO = true;
 };

@@ -34,7 +34,11 @@ vec3 getNormalFromMap() {
 }
 
 void main() {
-    outAlbedo = useAlbedoMap ? pow(texture(albedoMap, inTexCoords).rgb, vec3(2.2)) : vec3(1.0);
+    vec4 albedo = useAlbedoMap ? pow(texture(albedoMap, inTexCoords), vec4(2.2)) : vec4(1.0);
+    if (albedo.a < 0.1)
+        discard;
+
+    outAlbedo = albedo.rgb;
     outNormal = useNormalMap ? getNormalFromMap() : inNormal;
     outPbr = useMetallicRoughnessMap ? texture(metallicRoughnessMap, inTexCoords).gb : vec2(0.0);
     outFragPos = inFragPos;

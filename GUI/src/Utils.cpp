@@ -7,6 +7,8 @@
 
 #include "Utils.hpp"
 
+#include "glad/glad.h"
+
 #include <ranges>
 
 #include "glad/glad.h"

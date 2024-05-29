@@ -20,18 +20,20 @@ class ShaderProgram {
         ShaderProgram(const ShaderProgram&) = delete;
         ShaderProgram& operator=(const ShaderProgram&) = delete;
 
-        void use() noexcept;
+        ShaderProgram(ShaderProgram&&) = default;
+        ShaderProgram& operator=(ShaderProgram&&) = delete;
 
-        void setMat4(const std::string &name, const glm::mat4 &value) noexcept;
-        void setBool(const std::string &name, bool value) noexcept;
-        void setInt(const std::string &name, int value) noexcept;
-        void setVec3(const std::string &name, glm::vec3 value) noexcept;
+        void use() const noexcept;
 
-    private:
-        void loadShader(const std::string &shaderPath, GLuint shaderID);
-        void checkShader(GLuint shaderID);
-        void checkProgram();
+        void setMat4(const std::string &name, const glm::mat4 &value) const noexcept;
+        void setBool(const std::string &name, bool value) const noexcept;
+        void setInt(const std::string &name, int value) const noexcept;
+        void setVec3(const std::string &name, glm::vec3 value) const noexcept;
 
     private:
+        void loadShader(const std::string &shaderPath, GLuint shaderID) const;
+        static void checkShader(GLuint shaderID);
+        void checkProgram() const;
+
         GLuint m_program;
 };

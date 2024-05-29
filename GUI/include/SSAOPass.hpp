@@ -16,12 +16,17 @@
 
 class SSAOPass {
     public:
-        SSAOPass(std::shared_ptr<Window> window);
+        SSAOPass(std::shared_ptr<Window>& window);
         ~SSAOPass();
+
+        SSAOPass(const SSAOPass&) = delete;
+        SSAOPass& operator=(const SSAOPass&) = delete;
+
+        SSAOPass(SSAOPass&&) = default;
+        SSAOPass& operator=(SSAOPass&&) = default;
 
         void bindMainPass(uint32_t positionTexture, uint32_t normalTexture, const glm::mat4& view, const glm::mat4& proj) const noexcept;
         void bindBlurPass() const noexcept;
-        void renderQuad() const noexcept;
 
         [[nodiscard]] uint32_t getSSAOTexture() const noexcept { return m_ssaoTexture; }
         [[nodiscard]] uint32_t getSSAOBlurTexture() const noexcept { return m_ssaoBlurTexture; }
@@ -34,13 +39,10 @@ class SSAOPass {
         std::unique_ptr<ShaderProgram> m_blurPass;
 
         std::vector<glm::vec3> m_ssaoKernel;
-        uint32_t m_noiseTexture;
 
-        uint32_t m_ssaoFBO;
-        uint32_t m_ssaoTexture;
-        uint32_t m_ssaoBlurFBO;
-        uint32_t m_ssaoBlurTexture;
-
-        uint32_t m_quadVAO;
-        uint32_t m_quadVBO;
+        uint32_t m_noiseTexture = 0;
+        uint32_t m_ssaoFBO = 0;
+        uint32_t m_ssaoTexture = 0;
+        uint32_t m_ssaoBlurFBO = 0;
+        uint32_t m_ssaoBlurTexture = 0;
 };

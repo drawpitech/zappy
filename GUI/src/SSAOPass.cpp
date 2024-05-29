@@ -9,11 +9,11 @@
 
 #include <random>
 
-static float lerp(float a, float b, float f) {
+float lerp(float a, float b, float f) {
     return a + f * (b - a);
 }
 
-SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
+SSAOPass::SSAOPass(std::shared_ptr<Window>& window) : m_window(window) {
     m_ssaoPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAO.frag");
     m_blurPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAOBlur.frag");
 
@@ -25,7 +25,7 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
     // SSAO framebuffer
     glGenTextures(1, &m_ssaoTexture);
     glBindTexture(GL_TEXTURE_2D, m_ssaoTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, m_window->getWidth(), m_window->getHeight(), 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(window->getWidth()), static_cast<GLsizei>(window->getHeight()), 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ssaoTexture, 0);
@@ -37,7 +37,7 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoBlurFBO);
     glGenTextures(1, &m_ssaoBlurTexture);
     glBindTexture(GL_TEXTURE_2D, m_ssaoBlurTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, m_window->getWidth(), m_window->getHeight(), 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(window->getWidth()), static_cast<GLsizei>(window->getHeight()), 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ssaoBlurTexture, 0);
@@ -55,10 +55,10 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
         glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
         sample = glm::normalize(sample);
         sample *= randomFloats(generator);
-        float scale = float(i) / 64.0f;
+        auto scale = static_cast<float>(i / 64.0);
 
         // scale samples s.t. they're more aligned to center of kernel
-        scale = lerp(0.1f, 1.0f, scale * scale);
+        scale = lerp(0.1, 1.0, scale * scale);
         sample *= scale;
         m_ssaoKernel.push_back(sample);
     }
@@ -67,41 +67,17 @@ SSAOPass::SSAOPass(std::shared_ptr<Window> window) : m_window(window) {
     // Generate noise texture
     std::vector<glm::vec3> ssaoNoise;
     for (unsigned int i = 0; i < 16; i++) {
-        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0);
         ssaoNoise.push_back(noise);
     }
 
     glGenTextures(1, &m_noiseTexture);
     glBindTexture(GL_TEXTURE_2D, m_noiseTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, ssaoNoise.data());
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-
-    // Quad mesh
-    float quadVertices[] = {
-        // positions            // texture Coords
-        -1.0f,  1.0f, 0.0f,     0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f,     0.0f, 0.0f,
-         1.0f,  1.0f, 0.0f,     1.0f, 1.0f,
-         1.0f, -1.0f, 0.0f,     1.0f, 0.0f,
-    };
-
-    glGenVertexArrays(1, &m_quadVAO);
-    glGenBuffers(1, &m_quadVBO);
-    glBindVertexArray(m_quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-
-    glBindVertexArray(m_quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
 }
 
 SSAOPass::~SSAOPass() {
@@ -109,8 +85,6 @@ SSAOPass::~SSAOPass() {
     glDeleteFramebuffers(1, &m_ssaoBlurFBO);
     glDeleteTextures(1, &m_ssaoTexture);
     glDeleteTextures(1, &m_ssaoBlurTexture);
-    glDeleteVertexArrays(1, &m_quadVAO);
-    glDeleteBuffers(1, &m_quadVBO);
 }
 
 void SSAOPass::bindMainPass(uint32_t positionTexture, uint32_t normalTexture, const glm::mat4& view, const glm::mat4& proj) const noexcept {
@@ -146,10 +120,4 @@ void SSAOPass::bindBlurPass() const noexcept {
 
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoBlurFBO);
     glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void SSAOPass::renderQuad() const noexcept {
-    glBindVertexArray(m_quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
 }

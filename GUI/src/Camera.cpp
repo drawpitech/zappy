@@ -9,22 +9,22 @@
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "GLFW/glfw3.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/geometric.hpp"
-#include "GLFW/glfw3.h"
 
 // static members for mouse callback
-static glm::vec3 front = glm::vec3(1, 0, 0);
-static bool firstMouse = true;
-static float lastX = 0;
-static float lastY = 0;
-static float yaw = 0;
-static float pitch = 0;
-static bool cursorLocked = false;
-static float cameraSpeed = 4.f;
+static glm::vec3 front = glm::vec3(1, 0, 0); // NOLINT
+static bool firstMouse = true; // NOLINT
+static float lastX = 0; // NOLINT
+static float lastY = 0; // NOLINT
+static float yaw = 0; // NOLINT
+static float pitch = 0; // NOLINT
+static bool cursorLocked = false; // NOLINT
+static float cameraSpeed = 4.f; // NOLINT
 
-static void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     (void) window;
     if (cursorLocked)
         return;
@@ -40,30 +40,31 @@ static void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     lastX = static_cast<float>(xpos);
     lastY = static_cast<float>(ypos);
 
-    float sensitivity = 0.1f;
+    float sensitivity = 0.1;
     xOffset *= sensitivity;
     yOffset *= sensitivity;
 
     yaw += xOffset;
     pitch -= yOffset;
 
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
+    if (pitch > 89.0)
+        pitch = 89.0;
+    if (pitch < -89.0)
+        pitch = -89.0;
 
-    glm::vec3 direction;
-    direction.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    direction.y = sin(glm::radians(-pitch));
-    direction.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+    glm::vec3 direction = {
+        cos(glm::radians(yaw)) * cos(glm::radians(pitch)),
+        sin(glm::radians(-pitch)),
+        sin(glm::radians(yaw)) * cos(glm::radians(pitch))
+    };
 
     front = glm::normalize(direction);
 }
 
-static void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     (void) window;
     (void) xoffset;
-    cameraSpeed += yoffset;
+    cameraSpeed += static_cast<float>(yoffset);
     if (cameraSpeed < 1)
         cameraSpeed = 1;
     if (cameraSpeed > 10)

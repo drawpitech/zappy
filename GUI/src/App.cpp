@@ -96,10 +96,10 @@ void App::run() {
         sponza.draw(m_gBufferPass->getStaticShaderProgram(), glm::mat4(1));
 
         m_gBufferPass->bindSkinnedShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
-            animator.updateAnimation(m_deltaTime / 10);
+            animator.updateAnimation(m_deltaTime / 2);
             std::array<glm::mat4, MAX_BONES> transforms = animator.getFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)
-                m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+                m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);  // NOLINT
         vampire->draw(m_gBufferPass->getSkinnedShaderProgram(), glm::mat4(1));
 
         if (m_useSSAO) {

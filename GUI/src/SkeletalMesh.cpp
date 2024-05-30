@@ -78,6 +78,7 @@ void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, con
 
 void SkeletalMesh::loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture) {
     std::string filePath = modelPath.substr(0, modelPath.find_last_of('/')) + "/" + texturePath;
+    std::replace(filePath.begin(), filePath.end(), '\\', '/');
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);

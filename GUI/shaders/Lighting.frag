@@ -13,9 +13,9 @@ uniform sampler2D ssaoMap;
 uniform vec3 camPos;
 uniform bool useSSAO;
 
-const vec3 lightPos = vec3(0.0, 1.0, 0.0);
+const vec3 lightPos = vec3(0.0, 3.0, 0.0);
 const vec3 lightColor = vec3(1.0, 1.0, 1.0);
-const float lightIntensity = 5.0;
+const float lightIntensity = 10.0;
 
 const float PI = 3.14159265359;
 

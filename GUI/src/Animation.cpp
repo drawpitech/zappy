@@ -17,6 +17,8 @@ Animation::Animation(const std::string& animationPath, const std::shared_ptr<Ske
     const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
     if ((scene == nullptr) || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0) || (scene->mRootNode == nullptr))
         throw std::runtime_error("Failed to load animation file: " + animationPath + " " + importer.GetErrorString());
+    if (scene->mAnimations == nullptr)
+        throw std::runtime_error("No animations found in file: " + animationPath);
 
     aiAnimation *animation = *scene->mAnimations;
     m_duration = static_cast<float>(animation->mDuration);

@@ -28,6 +28,7 @@ App::App() {
     m_gBufferPass = std::make_unique<GBufferPass>(m_window);
     m_lightingPass = std::make_unique<LightingPass>(m_window);
     m_ssaoPass = std::make_unique<SSAOPass>(m_window);
+    m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
@@ -46,6 +47,8 @@ void App::handleUserInput() noexcept {
 
     if (m_window->wasResized) {
         m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
+        m_gBufferPass->resize(m_window->getWidth(), m_window->getHeight());
+        m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
         m_window->wasResized = false;
     }
 
@@ -80,13 +83,14 @@ void App::drawUi() noexcept {
 
 void App::run() {
     StaticMesh sponza("../assets/SponzaPBR/Sponza.gltf");
-    std::shared_ptr<SkeletalMesh> vampire = std::make_shared<SkeletalMesh>("../assets/dan/dan.dae");
-    std::shared_ptr<Animation> danceAnimation = std::make_shared<Animation>("../assets/dan/dan.dae", vampire);
+    std::shared_ptr<SkeletalMesh> dan = std::make_shared<SkeletalMesh>("../assets/dan/dan.dae");
+    std::shared_ptr<Animation> danceAnimation = std::make_shared<Animation>("../assets/dan/dan.dae", dan);
     Animator animator(danceAnimation);
 
     while (!m_window->shouldClose()) {
         updateDeltaTime();
         handleUserInput();
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -100,7 +104,7 @@ void App::run() {
             std::array<glm::mat4, MAX_BONES> transforms = animator.getFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)
                 m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);  // NOLINT
-        vampire->draw(m_gBufferPass->getSkinnedShaderProgram(), glm::mat4(1));
+        dan->draw(m_gBufferPass->getSkinnedShaderProgram(), glm::mat4(1));
 
         if (m_useSSAO) {
             m_ssaoPass->bindMainPass(
@@ -117,6 +121,7 @@ void App::run() {
             glClearColor(1.0, 1.0, 1.0, 1.0);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
+        glViewport(0, 0, static_cast<GLsizei>(m_window->getWidth()), static_cast<GLsizei>(m_window->getHeight()));
 
         m_lightingPass->bind(
             m_gBufferPass->getPositionTexture(),

@@ -97,7 +97,7 @@ void main() {
         Lo += (diffuse * albedo / PI + specular) * radiance * cosTheta;
     }
 
-    vec3 ambient = vec3(0.03) * albedo * ssao;
+    vec3 ambient = vec3(0.6) * albedo * ssao;
     vec3 color = ambient + Lo;
 
     color = color / (color + vec3(1.0)); // HDR tonemapping

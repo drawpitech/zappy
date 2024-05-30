@@ -98,3 +98,7 @@ void ShaderProgram::setInt(const std::string &name, int value) const noexcept {
 void ShaderProgram::setVec3(const std::string &name, glm::vec3 value) const noexcept {
     glUniform3fv(glGetUniformLocation(m_program, name.c_str()), 1, glm::value_ptr(value));
 }
+
+void ShaderProgram::setVec2(const std::string &name, glm::vec2 value) const noexcept {
+    glUniform2fv(glGetUniformLocation(m_program, name.c_str()), 1, glm::value_ptr(value));
+}

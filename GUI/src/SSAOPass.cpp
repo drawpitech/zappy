@@ -13,7 +13,7 @@ float lerp(float a, float b, float f) {
     return a + f * (b - a);
 }
 
-SSAOPass::SSAOPass(std::shared_ptr<Window>& window) : m_window(window) {
+SSAOPass::SSAOPass(std::shared_ptr<Window>& window) : m_window(window), m_size(glm::vec2(window->getWidth(), window->getHeight())) {
     m_ssaoPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAO.frag");
     m_blurPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAOBlur.frag");
 
@@ -87,10 +87,21 @@ SSAOPass::~SSAOPass() {
     glDeleteTextures(1, &m_ssaoBlurTexture);
 }
 
+void SSAOPass::resize(uint16_t width, uint16_t height) noexcept {
+    glBindTexture(GL_TEXTURE_2D, m_ssaoTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RED, GL_FLOAT, nullptr);
+
+    glBindTexture(GL_TEXTURE_2D, m_ssaoBlurTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RED, GL_FLOAT, nullptr);
+
+    m_size = glm::vec2(width, height);
+}
+
 void SSAOPass::bindMainPass(uint32_t positionTexture, uint32_t normalTexture, const glm::mat4& view, const glm::mat4& proj) const noexcept {
     m_ssaoPass->use();
     m_ssaoPass->setMat4("proj", proj);
     m_ssaoPass->setMat4("view", view);
+    m_ssaoPass->setVec2("attachmentSize", m_size);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, positionTexture);
@@ -107,6 +118,7 @@ void SSAOPass::bindMainPass(uint32_t positionTexture, uint32_t normalTexture, co
     for (unsigned int i = 0; i < 64; ++i)
         m_ssaoPass->setVec3("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
 
+    glViewport(0, 0, static_cast<GLsizei>(m_size.x), static_cast<GLsizei>(m_size.y));
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoFBO);
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -118,6 +130,7 @@ void SSAOPass::bindBlurPass() const noexcept {
     glBindTexture(GL_TEXTURE_2D, m_ssaoTexture);
     m_blurPass->setInt("ssaoMap", 0);
 
+    glViewport(0, 0, static_cast<GLsizei>(m_size.x), static_cast<GLsizei>(m_size.y));
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoBlurFBO);
     glClear(GL_COLOR_BUFFER_BIT);
 }

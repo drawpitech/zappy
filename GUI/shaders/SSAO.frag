@@ -11,13 +11,15 @@ uniform sampler2D noiseMap;
 uniform mat4 proj;
 uniform mat4 view;
 uniform vec3 samples[64];
+uniform vec2 attachmentSize;
 
 const int kernelSize = 64;
 const float radius = 0.5;
 const float bias = 0.025;
-const vec2 noiseScale = vec2(1280.0 / 4.0, 720.0 / 4.0);
 
 void main() {
+    const vec2 noiseScale = vec2(attachmentSize.x / 4.0, attachmentSize.y / 4.0);
+
     vec3 fragPos = vec3(view * vec4(texture(positionMap, inTexCoords).xyz, 1.0));
     vec3 normal = mat3(view) * texture(normalMap, inTexCoords).rgb;
 

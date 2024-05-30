@@ -15,9 +15,6 @@ LightingPass::~LightingPass() {
 }
 
 void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture) const noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_shaderProgram->use();
 
     glActiveTexture(GL_TEXTURE0);
@@ -39,4 +36,9 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, ssaoTexture);
     m_shaderProgram->setInt("ssaoMap", 4);
+
+    glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

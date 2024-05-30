@@ -29,6 +29,7 @@ class ShaderProgram {
         void setBool(const std::string &name, bool value) const noexcept;
         void setInt(const std::string &name, int value) const noexcept;
         void setVec3(const std::string &name, glm::vec3 value) const noexcept;
+        void setVec2(const std::string &name, glm::vec2 value) const noexcept;
 
     private:
         void loadShader(const std::string &shaderPath, GLuint shaderID) const;

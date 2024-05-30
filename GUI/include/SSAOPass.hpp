@@ -28,6 +28,8 @@ class SSAOPass {
         void bindMainPass(uint32_t positionTexture, uint32_t normalTexture, const glm::mat4& view, const glm::mat4& proj) const noexcept;
         void bindBlurPass() const noexcept;
 
+        void resize(uint16_t width, uint16_t height) noexcept;
+
         [[nodiscard]] uint32_t getSSAOTexture() const noexcept { return m_ssaoTexture; }
         [[nodiscard]] uint32_t getSSAOBlurTexture() const noexcept { return m_ssaoBlurTexture; }
         [[nodiscard]] uint32_t getFramebuffer() const noexcept { return m_ssaoFBO; }
@@ -37,6 +39,8 @@ class SSAOPass {
         std::shared_ptr<Window> m_window;
         std::unique_ptr<ShaderProgram> m_ssaoPass;
         std::unique_ptr<ShaderProgram> m_blurPass;
+
+        glm::vec2 m_size;
 
         std::vector<glm::vec3> m_ssaoKernel;
 

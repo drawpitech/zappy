@@ -45,5 +45,6 @@ class App {
         std::chrono::time_point<std::chrono::high_resolution_clock> m_frameEndTime = std::chrono::high_resolution_clock::now();
         float m_deltaTime = 0;
 
+        int m_debugView = 0;
         bool m_useSSAO = true;
 };

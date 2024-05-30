@@ -34,7 +34,7 @@ vec3 getNormalFromMap() {
 }
 
 void main() {
-    vec4 albedo = useAlbedoMap ? pow(texture(albedoMap, inTexCoords), vec4(2.2)) : vec4(1.0);
+    vec4 albedo = useAlbedoMap ? texture(albedoMap, inTexCoords) : vec4(1.0);
     if (albedo.a < 0.1)
         discard;
 

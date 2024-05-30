@@ -73,11 +73,27 @@ void App::updateDeltaTime() noexcept {
 void App::drawUi() noexcept {
     ImGui::SetNextWindowBgAlpha(0);
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(300, 200));
-    ImGui::Begin("Telemetry", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground);
-        ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0); // NOLINT
-        ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime); // NOLINT
-        ImGui::Checkbox("Use SSAO", &m_useSSAO);
+    ImGui::SetNextWindowSize(ImVec2(300, 300));
+    ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground);
+
+        {   // Telemetry
+            ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0); // NOLINT
+            ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime); // NOLINT
+            ImGui::Checkbox("Use SSAO", &m_useSSAO);
+        }
+
+        {   // Debug view
+            ImGui::Separator();
+            ImGui::Text("Debug view");
+            ImGui::RadioButton("Final", &m_debugView, 0);
+            ImGui::RadioButton("Albedo", &m_debugView, 1);
+            ImGui::RadioButton("AO", &m_debugView, 2);
+            ImGui::RadioButton("Normal", &m_debugView, 3);
+            ImGui::RadioButton("Position", &m_debugView, 4);
+            ImGui::RadioButton("Metallic", &m_debugView, 5);
+            ImGui::RadioButton("Roughness", &m_debugView, 6);
+        }
+
     ImGui::End();
 }
 
@@ -128,7 +144,8 @@ void App::run() {
             m_gBufferPass->getAlbedoTexture(),
             m_gBufferPass->getNormalTexture(),
             m_gBufferPass->getPbrTexture(),
-            m_ssaoPass->getSSAOBlurTexture()
+            m_ssaoPass->getSSAOBlurTexture(),
+            m_debugView
         );
         Utils::renderQuad();
 

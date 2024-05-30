@@ -12,6 +12,7 @@ uniform sampler2D ssaoMap;
 
 uniform vec3 camPos;
 uniform bool useSSAO;
+uniform int debugView;
 
 const vec3 lightPos = vec3(0.0, 3.0, 0.0);
 const vec3 lightColor = vec3(1.0, 1.0, 1.0);
@@ -55,9 +56,29 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+void drawDebugView() {
+    if (debugView == 1) // Albedo
+        FragColor = texture(albedoMap, inTexCoords);
+    else if (debugView == 2) // Ambient Occlusion
+        FragColor = vec4(texture(ssaoMap, inTexCoords).r);
+    else if (debugView == 3) // Normal
+        FragColor = vec4(texture(normalMap, inTexCoords).rgb * 0.5 + 0.5, 1.0);
+    else if (debugView == 4) // Position
+        FragColor = vec4(texture(positionMap, inTexCoords).rgb, 1.0);
+    else if (debugView == 5) // Metallic
+        FragColor = vec4(texture(pbrMap, inTexCoords).g);
+    else if (debugView == 6) // Roughness
+        FragColor = vec4(texture(pbrMap, inTexCoords).r);
+}
+
 void main() {
+    if (debugView != 0) {
+        drawDebugView();
+        return;
+    }
+
     vec3 fragPos = texture(positionMap, inTexCoords).xyz;
-    vec3 albedo = texture(albedoMap, inTexCoords).rgb;
+    vec3 albedo = pow(texture(albedoMap, inTexCoords).rgb, vec3(2.2));
     vec3 normal = normalize(texture(normalMap, inTexCoords).rgb);
     vec2 pbr = texture(pbrMap, inTexCoords).rg;
     float ssao = texture(ssaoMap, inTexCoords).r;

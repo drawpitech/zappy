@@ -1,9 +1,14 @@
 #!/bin/python3
 """ Main """
 from time import sleep
+from multiprocessing import Process
+from threading import Thread
 from args_handling.args_handling import get_args
 from trentorian.trentorian import Trantorian
 
+def fun():
+    for i in range(100):
+        print(i)
 
 def main(host: str, port: int, team: str):
     """main for the ai
@@ -13,23 +18,50 @@ def main(host: str, port: int, team: str):
         port (int): port open for the serv
         team (str): name of the team
     """
+
+    # processes = []
+    # for i in range(5):
+        # p = Process(target=fun)
+        # processes.append(p)
+        # p.start()
+#
+    # for p in processes:
+        # p.join()
+    # return
+
     pop : list[Trantorian] = []
+    threads: list[Process] = []
+    Trantorian(host, port, team, pop)
+    Trantorian(host, port, team, pop)
+    Trantorian(host, port, team, pop)
     Trantorian(host, port, team, pop)
 
-    while True:
-        for trantor in pop:
-            if trantor.forward():
-                print("Juste moved forward")
-            else:
-                print("didn't move")
+    for e in pop:
+        threads.append(Process(target=e.born))
+
+    for e in threads:
+        e.start()
+
+
+    while len(threads) != 0:
+        threads.pop(0).join()
+
+
+
+    # while True:
+        # for trantor in pop:
+            # if trantor.forward():
+                # print("Juste moved forward")
+            # else:
+                # print("didn't move")
 
 
 if __name__ == "__main__":
     args = get_args()
 
-    print(args.p)
-    print(args.n)
-    print(args.he)
+    # print(args.p)
+    # print(args.n)
+    # print(args.he)
 
     try:
         main(args.he, args.p, args.n)

@@ -9,8 +9,6 @@
 
 #include "Window.hpp"
 
-#include "glm/glm.hpp"
-
 #include <memory>
 
 class Camera {

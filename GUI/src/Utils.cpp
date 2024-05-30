@@ -11,10 +11,6 @@
 
 #include <ranges>
 
-#include "glad/glad.h"
-
-#include <ranges>
-
 void Utils::DeletionQueue::add(std::function<void()>&& function) {
     deletors.push_back(std::move(function));
 }

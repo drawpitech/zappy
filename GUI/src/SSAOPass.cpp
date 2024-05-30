@@ -118,7 +118,7 @@ void SSAOPass::bindMainPass(uint32_t positionTexture, uint32_t normalTexture, co
     for (unsigned int i = 0; i < 64; ++i)
         m_ssaoPass->setVec3("samples[" + std::to_string(i) + "]", m_ssaoKernel[i]);
 
-    glViewport(0, 0, static_cast<GLsizei>(m_size.x), static_cast<GLsizei>(m_size.y));
+    glViewport(0, 0, static_cast<GLsizei>(m_size[0]), static_cast<GLsizei>(m_size[1]));
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoFBO);
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -130,7 +130,7 @@ void SSAOPass::bindBlurPass() const noexcept {
     glBindTexture(GL_TEXTURE_2D, m_ssaoTexture);
     m_blurPass->setInt("ssaoMap", 0);
 
-    glViewport(0, 0, static_cast<GLsizei>(m_size.x), static_cast<GLsizei>(m_size.y));
+    glViewport(0, 0, static_cast<GLsizei>(m_size[0]), static_cast<GLsizei>(m_size[1]));
     glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoBlurFBO);
     glClear(GL_COLOR_BUFFER_BIT);
 }

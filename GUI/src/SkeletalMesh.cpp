@@ -9,15 +9,11 @@
 
 #include "ShaderProgram.hpp"
 #include "Utils.hpp"
-#include "assimp/Importer.hpp"
-#include "assimp/material.h"
-#include "assimp/matrix4x4.h"
-#include "assimp/mesh.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
+
+#include "stb_image.h"
 #include "glad/glad.h"
 #include "glm/gtc/type_ptr.hpp"
-#include "stb_image.h"
+#include "assimp/postprocess.h"
 
 SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
     Assimp::Importer importer;

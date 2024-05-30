@@ -73,8 +73,8 @@ class Window {
         void showCursor(const bool show) const noexcept { glfwSetInputMode(m_window, GLFW_CURSOR, show ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED); }
 
         /* Getters */
-        [[nodiscard]] uint32_t getWidth() const noexcept { return m_width; }
-        [[nodiscard]] uint32_t getHeight() const noexcept { return m_height; }
+        [[nodiscard]] int getWidth() const noexcept { return m_width; }
+        [[nodiscard]] int getHeight() const noexcept { return m_height; }
         [[nodiscard]] GLFWwindow* getHandle() const noexcept { return m_window; }
 
     private:

@@ -8,16 +8,12 @@
 #include "StaticMesh.hpp"
 
 #include "ShaderProgram.hpp"
-#include "assimp/Importer.hpp"
-#include "assimp/material.h"
-#include "assimp/matrix4x4.h"
-#include "assimp/mesh.h"
-#include "assimp/scene.h"
-#include "assimp/postprocess.h"
-#include "glad/glad.h"
-#include "glm/gtc/type_ptr.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include "glad/glad.h"
+#include "glm/gtc/type_ptr.hpp"
+#include "assimp/postprocess.h"
 
 StaticMesh::StaticMesh(const std::string& modelPath) {
     Assimp::Importer importer;

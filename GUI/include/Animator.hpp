@@ -10,7 +10,6 @@
 #include "Animation.hpp"
 #include "Bone.hpp"
 
-#include <glm/glm.hpp>
 #include <assimp/scene.h>
 #include <assimp/Importer.hpp>
 

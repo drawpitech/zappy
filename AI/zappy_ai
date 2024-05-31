@@ -1,14 +1,22 @@
 #!/bin/python3
 """ Main """
 from time import sleep
-from multiprocessing import Process
-from threading import Thread
+from multiprocessing import Process, Queue
 from args_handling.args_handling import get_args
 from trentorian.trentorian import Trantorian
 
-def fun():
-    for i in range(100):
-        print(i)
+
+def burry_dead(pop: list[Process]) -> list[Process]:
+    """remove all the dead trantorians from the population
+
+    Args:
+        pop (list[Process]): list of trantorians
+
+    Returns:
+        list[Process]: filtered list
+    """
+    return list(filter(lambda trant:trant.is_alive(), pop))
+
 
 def main(host: str, port: int, team: str):
     """main for the ai
@@ -18,43 +26,24 @@ def main(host: str, port: int, team: str):
         port (int): port open for the serv
         team (str): name of the team
     """
-
-    # processes = []
-    # for i in range(5):
-        # p = Process(target=fun)
-        # processes.append(p)
-        # p.start()
-#
-    # for p in processes:
-        # p.join()
-    # return
-
-    pop : list[Trantorian] = []
     threads: list[Process] = []
-    Trantorian(host, port, team, pop)
-    Trantorian(host, port, team, pop)
-    Trantorian(host, port, team, pop)
-    Trantorian(host, port, team, pop)
-
-    for e in pop:
-        threads.append(Process(target=e.born))
+    queue: Queue = Queue()
+    t = Trantorian(host, port, team)
+    threads.append(Process(target=t.born, args=(queue,)))
 
     for e in threads:
         e.start()
 
-
-    while len(threads) != 0:
-        threads.pop(0).join()
-
-
-
-    # while True:
-        # for trantor in pop:
-            # if trantor.forward():
-                # print("Juste moved forward")
-            # else:
-                # print("didn't move")
-
+    while len(threads) > 0:
+        threads = burry_dead(threads)
+        if queue.empty():
+            continue
+        sended = queue.get()
+        if sended == "birth" and len(threads) != 5:  # TODO remove the size check, should be know before asking
+            t = Trantorian(host, port, team)
+            threads.append(Process(target=t.born, args=(queue,)))
+            threads[-1].start()
+    return
 
 if __name__ == "__main__":
     args = get_args()

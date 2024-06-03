@@ -48,7 +48,6 @@ class GBufferPass {
         uint32_t m_albedoTexture = 0;
         uint32_t m_pbrTexture = 0;
         uint32_t m_depthTexture = 0;
-        uint32_t m_rbo = 0;
 
         uint32_t m_quadVAO = 0;
         uint32_t m_quadVBO = 0;

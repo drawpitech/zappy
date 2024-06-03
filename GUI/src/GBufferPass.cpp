@@ -50,16 +50,17 @@ GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_pbrTexture, 0);
 
+    // Depth buffer
+    glGenTextures(1, &m_depthTexture);
+    glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, m_depthTexture, 0);
 
     // Framebuffer attachments
     std::array<unsigned int, 4> attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3};
     glDrawBuffers(4, attachments.data());
-
-    // Depth buffer creation (renderbuffer)
-    glGenRenderbuffers(1, &m_depthTexture);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_depthTexture);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()));
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthTexture);
 
     // Framebuffer validation
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -75,7 +76,6 @@ GBufferPass::~GBufferPass() {
     glDeleteTextures(1, &m_albedoTexture);
     glDeleteTextures(1, &m_pbrTexture);
     glDeleteTextures(1, &m_depthTexture);
-    glDeleteRenderbuffers(1, &m_rbo);
     glDeleteVertexArrays(1, &m_quadVAO);
     glDeleteBuffers(1, &m_quadVBO);
 }
@@ -88,8 +88,8 @@ void GBufferPass::resize(const uint16_t width, const uint16_t height) const noex
     glBindTexture(GL_TEXTURE_2D, m_albedoTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glBindTexture(GL_TEXTURE_2D, m_pbrTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, NULL);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_depthTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, 0);
+    glBindTexture(GL_TEXTURE_2D, m_depthTexture);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
 }
 

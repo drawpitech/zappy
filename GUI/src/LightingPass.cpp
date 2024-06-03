@@ -14,7 +14,7 @@ LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
 LightingPass::~LightingPass() {
 }
 
-void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture, int debugView) const noexcept {
+void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture, uint32_t ssrTexture, int debugView) const noexcept {
     m_shaderProgram->use();
 
     m_shaderProgram->setInt("debugView", debugView);
@@ -38,6 +38,10 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
     glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, ssaoTexture);
     m_shaderProgram->setInt("ssaoMap", 4);
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, ssrTexture);
+    m_shaderProgram->setInt("ssrMap", 5);
 
     glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
     glBindFramebuffer(GL_FRAMEBUFFER, 0);

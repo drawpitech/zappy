@@ -9,9 +9,9 @@ uniform sampler2D albedoMap;
 uniform sampler2D normalMap;
 uniform sampler2D pbrMap;
 uniform sampler2D ssaoMap;
+uniform sampler2D ssrMap;
 
 uniform vec3 camPos;
-uniform bool useSSAO;
 uniform int debugView;
 
 const vec3 lightPos = vec3(0.0, 3.0, 0.0);
@@ -61,13 +61,15 @@ void drawDebugView() {
         FragColor = texture(albedoMap, inTexCoords);
     else if (debugView == 2) // Ambient Occlusion
         FragColor = vec4(texture(ssaoMap, inTexCoords).r);
-    else if (debugView == 3) // Normal
+    else if (debugView == 3) // SSR
+        FragColor = texture(ssrMap, inTexCoords);
+    else if (debugView == 4) // Normal
         FragColor = vec4(texture(normalMap, inTexCoords).rgb * 0.5 + 0.5, 1.0);
-    else if (debugView == 4) // Position
+    else if (debugView == 5) // Position
         FragColor = vec4(texture(positionMap, inTexCoords).rgb, 1.0);
-    else if (debugView == 5) // Metallic
+    else if (debugView == 6) // Metallic
         FragColor = vec4(texture(pbrMap, inTexCoords).g);
-    else if (debugView == 6) // Roughness
+    else if (debugView == 7) // Roughness
         FragColor = vec4(texture(pbrMap, inTexCoords).r);
 }
 
@@ -118,8 +120,13 @@ void main() {
         Lo += (diffuse * albedo / PI + specular) * radiance * cosTheta;
     }
 
-    vec3 ambient = vec3(0.6) * albedo * ssao;
+    vec3 ambient = vec3(0.3) * albedo * ssao;
     vec3 color = ambient + Lo;
+
+    if (fragPos.y < 0.0) {
+        vec3 reflection = texture(ssrMap, inTexCoords).rgb * vec3(0.3);
+        color = mix(color, reflection, 0.5);
+    }
 
     color = color / (color + vec3(1.0)); // HDR tonemapping
     color = pow(color, vec3(1.0 / 2.2)); // gamma correction

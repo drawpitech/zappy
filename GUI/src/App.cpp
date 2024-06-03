@@ -20,6 +20,7 @@
 
 #include <chrono>
 #include <memory>
+#include <stdexcept>
 
 App::App() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
@@ -29,6 +30,8 @@ App::App() {
     m_lightingPass = std::make_unique<LightingPass>(m_window);
     m_ssaoPass = std::make_unique<SSAOPass>(m_window);
     m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
+    m_ssrPass = std::make_unique<SSRPass>(m_window);
+    m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
@@ -49,6 +52,7 @@ void App::handleUserInput() noexcept {
         m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
         m_gBufferPass->resize(m_window->getWidth(), m_window->getHeight());
         m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
+        m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
         m_window->wasResized = false;
     }
 
@@ -80,6 +84,7 @@ void App::drawUi() noexcept {
             ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0); // NOLINT
             ImGui::Text("Frame rate: %.3f", 1 / m_deltaTime); // NOLINT
             ImGui::Checkbox("Use SSAO", &m_useSSAO);
+            ImGui::Checkbox("Use SSR", &m_useSSR);
         }
 
         {   // Debug view
@@ -88,10 +93,11 @@ void App::drawUi() noexcept {
             ImGui::RadioButton("Final", &m_debugView, 0);
             ImGui::RadioButton("Albedo", &m_debugView, 1);
             ImGui::RadioButton("AO", &m_debugView, 2);
-            ImGui::RadioButton("Normal", &m_debugView, 3);
-            ImGui::RadioButton("Position", &m_debugView, 4);
-            ImGui::RadioButton("Metallic", &m_debugView, 5);
-            ImGui::RadioButton("Roughness", &m_debugView, 6);
+            ImGui::RadioButton("SSR", &m_debugView, 3);
+            ImGui::RadioButton("Normal", &m_debugView, 4);
+            ImGui::RadioButton("Position", &m_debugView, 5);
+            ImGui::RadioButton("Metallic", &m_debugView, 6);
+            ImGui::RadioButton("Roughness", &m_debugView, 7);
         }
 
     ImGui::End();
@@ -135,9 +141,23 @@ void App::run() {
         } else {
             glBindFramebuffer(GL_FRAMEBUFFER, m_ssaoPass->getBluredFramebuffer());
             glClearColor(1.0, 1.0, 1.0, 1.0);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT);
         }
-        glViewport(0, 0, static_cast<GLsizei>(m_window->getWidth()), static_cast<GLsizei>(m_window->getHeight()));
+
+        if (m_useSSR) {
+            m_ssrPass->bind(
+                m_gBufferPass->getNormalTexture(),
+                m_gBufferPass->getAlbedoTexture(),
+                m_gBufferPass->getDepthTexture(),
+                m_camera->getProjectionMatrix(),
+                m_camera->getViewMatrix()
+            );
+            Utils::renderQuad();
+        } else {
+            glBindFramebuffer(GL_FRAMEBUFFER, m_ssrPass->getFramebuffer());
+            glClearColor(1.0, 1.0, 1.0, 1.0);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
 
         m_lightingPass->bind(
             m_gBufferPass->getPositionTexture(),
@@ -145,6 +165,7 @@ void App::run() {
             m_gBufferPass->getNormalTexture(),
             m_gBufferPass->getPbrTexture(),
             m_ssaoPass->getSSAOBlurTexture(),
+            m_ssrPass->getSSRTexture(),
             m_debugView
         );
         Utils::renderQuad();

@@ -6,6 +6,7 @@
 */
 
 #include "GBufferPass.hpp"
+#include "ShaderProgram.hpp"
 #include "Window.hpp"
 
 GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
@@ -19,7 +20,7 @@ GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
     // Position texture
     glGenTextures(1, &m_positionTexture);
     glBindTexture(GL_TEXTURE_2D, m_positionTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -29,7 +30,7 @@ GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
     // Normal texture
     glGenTextures(1, &m_normalTexture);
     glBindTexture(GL_TEXTURE_2D, m_normalTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_normalTexture, 0);
@@ -37,7 +38,7 @@ GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
     // Albedo texture
     glGenTextures(1, &m_albedoTexture);
     glBindTexture(GL_TEXTURE_2D, m_albedoTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_albedoTexture, 0);
@@ -45,7 +46,7 @@ GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
     // PBR texture
     glGenTextures(1, &m_pbrTexture);
     glBindTexture(GL_TEXTURE_2D, m_pbrTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RG, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, static_cast<int>(m_window->getWidth()), static_cast<int>(m_window->getHeight()), 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_pbrTexture, 0);
@@ -80,17 +81,36 @@ GBufferPass::~GBufferPass() {
     glDeleteBuffers(1, &m_quadVBO);
 }
 
-void GBufferPass::resize(const uint16_t width, const uint16_t height) const noexcept {
+void GBufferPass::resize(const uint16_t width, const uint16_t height) const {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
+
     glBindTexture(GL_TEXTURE_2D, m_positionTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_positionTexture, 0);
+
     glBindTexture(GL_TEXTURE_2D, m_normalTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_normalTexture, 0);
+
     glBindTexture(GL_TEXTURE_2D, m_albedoTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_albedoTexture, 0);
+
     glBindTexture(GL_TEXTURE_2D, m_pbrTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_pbrTexture, 0);
+
     glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, nullptr);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, m_depthTexture, 0);
+
+    std::array<unsigned int, 4> attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3};
+    glDrawBuffers(4, attachments.data());
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        throw std::runtime_error("Framebuffer is not complete after resizing");
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void GBufferPass::bindFramebuffer() const noexcept {

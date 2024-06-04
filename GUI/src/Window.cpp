@@ -127,5 +127,4 @@ Window::~Window() {
 void Window::resize(int width, int height) noexcept {
     m_width = width;
     m_height = height;
-    glViewport(0, 0, width, height);
 }

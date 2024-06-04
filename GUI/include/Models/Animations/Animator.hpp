@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Animation.hpp"
+#include "Models/Animations/Animation.hpp"
 #include "Bone.hpp"
 
 #include <assimp/scene.h>

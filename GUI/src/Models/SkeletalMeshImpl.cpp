@@ -2,12 +2,12 @@
 ** EPITECH PROJECT, 2024
 ** zappy
 ** File description:
-** SkeletalMesh
+** SkeletalMeshImpl
 */
 
-#include "SkeletalMesh.hpp"
+#include "Models/SkeletalMeshImpl.hpp"
 
-#include "ShaderProgram.hpp"
+#include "Renderer/ShaderProgram.hpp"
 #include "Utils.hpp"
 
 #include "stb_image.h"
@@ -15,7 +15,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "assimp/postprocess.h"
 
-SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
+SkeletalMeshImpl::SkeletalMeshImpl(const std::string& modelPath) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(modelPath,
         aiProcess_JoinIdenticalVertices | aiProcess_Triangulate | aiProcess_GenNormals |
@@ -29,10 +29,10 @@ SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
     processNode(scene->mRootNode, scene);
 }
 
-SkeletalMesh::~SkeletalMesh() {
+SkeletalMeshImpl::~SkeletalMeshImpl() {
 }
 
-void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& modelMatrix) const noexcept {
+void SkeletalMeshImpl::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& modelMatrix) const noexcept {
     glEnable(GL_DEPTH_TEST);
 
     for (const auto& submesh : m_submeshes) {
@@ -72,7 +72,7 @@ void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, con
     glDisable(GL_DEPTH_TEST);
 }
 
-void SkeletalMesh::loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture) {
+void SkeletalMeshImpl::loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture) {
     std::string filePath = modelPath.substr(0, modelPath.find_last_of('/')) + "/" + texturePath;
     std::replace(filePath.begin(), filePath.end(), '\\', '/');
 
@@ -113,7 +113,7 @@ void SkeletalMesh::loadTexture(const std::string& texturePath, const std::string
     stbi_image_free(data);
 }
 
-void SkeletalMesh::loadMaterials(const aiScene *scene, const std::string& modelPath) {
+void SkeletalMeshImpl::loadMaterials(const aiScene *scene, const std::string& modelPath) {
     for (std::size_t i = 0; i < scene->mNumMaterials; ++i) {
         const aiMaterial *assimpMat = scene->mMaterials[i]; // NOLINT
         Material material = {};
@@ -132,7 +132,7 @@ void SkeletalMesh::loadMaterials(const aiScene *scene, const std::string& modelP
     }
 }
 
-void SkeletalMesh::processNode(const aiNode *node, const aiScene *scene) {
+void SkeletalMeshImpl::processNode(const aiNode *node, const aiScene *scene) {
     for (std::size_t i = 0; i < node->mNumMeshes; ++i) {
         const aiMatrix4x4 transform = node->mTransformation;
         const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];  // NOLINT
@@ -143,7 +143,7 @@ void SkeletalMesh::processNode(const aiNode *node, const aiScene *scene) {
         processNode(node->mChildren[i], scene); // NOLINT
 }
 
-void SkeletalMesh::processMesh(const aiMesh *mesh, const glm::mat4& transform) {
+void SkeletalMeshImpl::processMesh(const aiMesh *mesh, const glm::mat4& transform) {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
 

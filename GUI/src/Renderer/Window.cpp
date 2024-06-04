@@ -5,7 +5,7 @@
 ** Window
 */
 
-#include "Window.hpp"
+#include "Renderer/Window.hpp"
 
 #include "GLFW/glfw3.h"
 

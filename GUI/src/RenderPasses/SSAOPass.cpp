@@ -5,7 +5,7 @@
 ** SSAOPass
 */
 
-#include "SSAOPass.hpp"
+#include "RenderPasses/SSAOPass.hpp"
 
 #include <random>
 

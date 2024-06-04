@@ -5,7 +5,7 @@
 ** LightingPass
 */
 
-#include "LightingPass.hpp"
+#include "RenderPasses/LightingPass.hpp"
 
 LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
     m_shaderProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/Lighting.frag");

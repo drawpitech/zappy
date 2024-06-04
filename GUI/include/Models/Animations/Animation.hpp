@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "SkeletalMesh.hpp"
+#include "Models/SkeletalMeshImpl.hpp"
 #include "Bone.hpp"
 
 #include "assimp/anim.h"
@@ -25,7 +25,7 @@ struct AssimpNodeData {
 
 class Animation {
     public:
-        Animation(const std::string& animationPath, const std::shared_ptr<SkeletalMesh>& mesh);
+        Animation(const std::string& animationPath, const std::shared_ptr<SkeletalMeshImpl>& mesh);
         ~Animation() = default;
 
         Animation(const Animation&) = delete;
@@ -42,7 +42,7 @@ class Animation {
         [[nodiscard]] const std::map<std::string, BoneInfo>& getBoneIDMap() const { return m_boneInfoMap; }
 
     private:
-        void readMissingBones(const aiAnimation* animation, const std::shared_ptr<SkeletalMesh>& mesh);
+        void readMissingBones(const aiAnimation* animation, const std::shared_ptr<SkeletalMeshImpl>& mesh);
         void readHierarchyData(AssimpNodeData& dest, const aiNode* src);
 
         std::map<std::string, BoneInfo> m_boneInfoMap;

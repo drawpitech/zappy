@@ -5,9 +5,9 @@
 ** Animator
 */
 
-#include "Animator.hpp"
+#include "Models/Animations/Animator.hpp"
 
-#include "Bone.hpp"
+#include "Models/Animations/Bone.hpp"
 
 #include <utility>
 

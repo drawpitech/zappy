@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "ShaderProgram.hpp"
-#include "Window.hpp"
+#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/Window.hpp"
 
 #include <memory>
 

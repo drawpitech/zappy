@@ -5,8 +5,8 @@
 ** SSRPass
 */
 
-#include "SSRPass.hpp"
-#include "ShaderProgram.hpp"
+#include "RenderPasses/SSRPass.hpp"
+#include "Renderer/ShaderProgram.hpp"
 
 #include <stdexcept>
 

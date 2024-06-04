@@ -2,12 +2,12 @@
 ** EPITECH PROJECT, 2024
 ** zappy
 ** File description:
-** SkeletalMesh
+** SkeletalMeshImpl
 */
 
 #pragma once
 
-#include "ShaderProgram.hpp"
+#include "Renderer/ShaderProgram.hpp"
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
@@ -24,7 +24,7 @@ struct BoneInfo {
     int id;
 };
 
-class SkeletalMesh {
+class SkeletalMeshImpl {
     private:
         struct Material {
             uint32_t albedoMap;
@@ -56,14 +56,14 @@ class SkeletalMesh {
         std::vector<Material> m_materials;
 
     public:
-        explicit SkeletalMesh(const std::string& modelPath);
-        ~SkeletalMesh();
+        explicit SkeletalMeshImpl(const std::string& modelPath);
+        ~SkeletalMeshImpl();
 
-        SkeletalMesh(const SkeletalMesh&) = delete;
-        SkeletalMesh& operator=(const SkeletalMesh&) = delete;
+        SkeletalMeshImpl(const SkeletalMeshImpl&) = delete;
+        SkeletalMeshImpl& operator=(const SkeletalMeshImpl&) = delete;
 
-        SkeletalMesh(SkeletalMesh&&) = default;
-        SkeletalMesh& operator=(SkeletalMesh&&) = delete;
+        SkeletalMeshImpl(SkeletalMeshImpl&&) = default;
+        SkeletalMeshImpl& operator=(SkeletalMeshImpl&&) = delete;
 
         auto& GetBoneInfoMap() { return m_boneInfoMap; }
         int& GetBoneCount() { return m_boneCounter; }

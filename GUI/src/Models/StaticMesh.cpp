@@ -5,9 +5,9 @@
 ** StaticMesh
 */
 
-#include "StaticMesh.hpp"
+#include "Models/StaticMesh.hpp"
 
-#include "ShaderProgram.hpp"
+#include "Renderer/ShaderProgram.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

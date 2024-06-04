@@ -5,7 +5,7 @@
 ** Camera
 */
 
-#include "Camera.hpp"
+#include "Renderer/Camera.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

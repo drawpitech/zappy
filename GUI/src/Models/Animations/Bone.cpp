@@ -5,7 +5,7 @@
 ** Bone
 */
 
-#include "Bone.hpp"
+#include "Models/Animations/Bone.hpp"
 
 #include <stdexcept>
 

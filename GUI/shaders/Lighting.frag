@@ -125,7 +125,7 @@ void main() {
 
     if (fragPos.y < 0.0) {
         vec3 reflection = texture(ssrMap, inTexCoords).rgb * vec3(0.3);
-        color = mix(color, reflection, 0.5);
+        color = mix(color, reflection, 0.2);
     }
 
     color = color / (color + vec3(1.0)); // HDR tonemapping

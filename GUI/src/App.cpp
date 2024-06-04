@@ -26,12 +26,18 @@ App::App() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
     m_camera = std::make_unique<Camera>(m_window);
     m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
-    m_gBufferPass = std::make_unique<GBufferPass>(m_window);
-    m_lightingPass = std::make_unique<LightingPass>(m_window);
-    m_ssaoPass = std::make_unique<SSAOPass>(m_window);
-    m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
-    m_ssrPass = std::make_unique<SSRPass>(m_window);
-    m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
+
+    {   // Render passes
+        m_gBufferPass = std::make_unique<GBufferPass>(m_window);
+
+        m_ssaoPass = std::make_unique<SSAOPass>(m_window);
+        m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
+
+        m_ssrPass = std::make_unique<SSRPass>(m_window);
+        m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
+
+        m_lightingPass = std::make_unique<LightingPass>(m_window);
+    }
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();

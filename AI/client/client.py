@@ -15,18 +15,24 @@ class Client:
         self.port: int = port
         self.socket: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
+        self.buffer: str = ""
 
-        if self.get_answer() != 'WELCOME\n':
+        if self.get_answer() != 'WELCOME':
             raise RuntimeError("Server did not welcome")
 
         self.send_cmd(self.team)
-        infos: list = self.get_answer().split('\n')
-        if len(infos) != 3:
-            raise RuntimeError("Server answer did't match expectation")
+        teamnb: str = self.get_answer()
+        coordinates: str = self.get_answer()
+        # infos: list = self.get_answer().split('\n')
+        # print(infos)
+        # if len(infos) != 3:
+            # raise RuntimeError("Server answer didn't match expectation")
 
-        x, y = infos[1].split()
+        x: str = -1
+        y: str = -1
         try:
-            self.team_nb = int(infos[0])
+            x, y = coordinates.split()
+            self.team_nb = int(teamnb)
             self.x = int(x)
             self.y = int(y)
         except ValueError as exc:
@@ -36,12 +42,19 @@ class Client:
         self.socket.close()
 
     def get_answer(self) -> bytes:
-        """get the str answer from server
+        """get the last str answer from server
 
         Returns:
             str: server answer
         """
-        return self.socket.recv(1024).decode()
+        while '\n' not in self.buffer:
+            new = self.socket.recv(1024).decode()
+            if new == "":
+                self.buffer += "\ndead\n"
+            else :
+                self.buffer += new
+        last_answer, self.buffer = self.buffer.split('\n', maxsplit=1)
+        return last_answer
 
     def send_cmd(self, cmd: str) -> None:
         """send a command to the server

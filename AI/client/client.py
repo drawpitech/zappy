@@ -16,6 +16,8 @@ class Client:
         self.socket: socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
         self.buffer: str = ""
+        self.size_x: int = -1
+        self.size_y: int = -1
 
         if self.get_answer() != 'WELCOME':
             raise RuntimeError("Server did not welcome")
@@ -33,8 +35,8 @@ class Client:
         try:
             x, y = coordinates.split()
             self.team_nb = int(teamnb)
-            self.x = int(x)
-            self.y = int(y)
+            self.size_x = int(x)
+            self.size_y = int(y)
         except ValueError as exc:
             raise RuntimeError("Server answer did't match expectation") from exc
 

@@ -19,8 +19,31 @@ from utils import (
     determine_direction
 )
 
-FOOD = 126
 
+############################### UTILS #########################################
+def split_list(msg: str) -> list[str]:
+    """convert a string of a list to the corresponding list
+
+    Args:
+        msg (str): intial string
+
+    Returns:
+        list[str]: resulting list
+    """
+    if msg[0] != '[' or msg[-1] != ']':
+        return []
+    sp = msg[1:-1].split(',')
+
+    return [e.strip(' ') for e in sp]
+
+
+
+
+#-----------------------------------------------------------------------------#
+############################### THE CLASS #####################################
+#-----------------------------------------------------------------------------#
+
+FOOD = 126
 class TrantorianDirection(IntEnum):
     """Trantorian direction enum
     """
@@ -72,7 +95,7 @@ class SoundDirection(IntEnum):
 class Trantorian:
     """Class for a trantorian
     """
-    def __init__(self, host: str, port: int, team: str):
+    def __init__(self, host: str, port: int, team: str): # TODO decrement the food with time
         self.host = host
         self.port = port
         try:
@@ -81,17 +104,16 @@ class Trantorian:
             print(err.args[0])
             raise RuntimeError("Trentor didn't connect to server") from err
         self.team: str = team
-        self.life: int = FOOD * 10
+        self.level: int = 1
         self.x: int = 0
         self.y: int = 0
         self.dead: bool = False
         self.unused_slot: int = 1
         self.inventory: dict = {
-            "food": 0, "linemate": 0, "deraumere": 0,
+            "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
         }
-        self.known_map = create_default_map(10, 10)
-        # TODO on the prev line, change known_map to be taken from the __init__ method
+        self.known_map = create_default_map(self.client.x, self.client.y)
         self.direction: TrantorianDirection = TrantorianDirection.RIGHT
 
     def born(self, queue: Queue): # TODO add a real code here
@@ -99,10 +121,11 @@ class Trantorian:
             # queue.put("birth")
             i = 0
             while not self.dead: # all the ai code should be in this loop
-                if self.forward():
-                    self.x += 1
-                self.left()
-                print(self.direction)
+                self.get_inventory()
+                # if self.forward():
+                    # self.x += 1
+                # self.left()
+                # print(self.direction)
                 # self.look_around()
                 # self.take_object("food")
                 # if random.randint(0, 2) == 1:
@@ -114,7 +137,11 @@ class Trantorian:
             self.dead = True
         return
 
-    def wait_answer(self) -> str:
+
+##############################  UTILS  #######################################
+
+
+    def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
         """wait for an answer, handle the message and eject
 
         Returns:
@@ -131,7 +158,7 @@ class Trantorian:
             self.dead = True
         return answer
 
-    def receive_message(self, msg: str):
+    def receive_message(self, msg: str) -> None:
         """handle the broadcast reception
 
         Args:
@@ -139,13 +166,20 @@ class Trantorian:
         """
         print(msg)
 
-    def handle_eject(self, msg: str):
+    def handle_eject(self, msg: str) -> None:
         """handle an ejection
 
         Args:
             msg (str): message sent by the server
         """
-        print(msg)
+        if len(msg) != 8:
+            return
+        direct: TrantorianDirection = TrantorianDirection(int(msg[-1]))
+        off_x, off_y = direct.get_offset()
+        self.x = (self.x - off_x) % self.client.size_x # TODO check if the direction is correct
+        self.y = (self.y - off_y) % self.client.size_y
+        return
+
 
     def update_direction_from_msg(self, sender_x: int, sender_y: int, sound_direction: int) -> bool:
         # TODO get previous line parameter from message parsing when a protocol will be implemented
@@ -197,6 +231,8 @@ class Trantorian:
         x, y = self.direction.get_offset()
         self.x += x
         self.y += y
+        self.x %= self.client.size_x
+        self.y %= self.client.size_y
         return True
 
     def right(self) -> bool:
@@ -236,13 +272,14 @@ class Trantorian:
         """
         self.client.send_cmd("Look")
         answer = self.wait_answer()
-        if answer[0] != '[' or answer[-1:] != "]":
+        cases = split_list(self.wait_answer())
+        if cases == []:
             return False
-        content = answer.split(",")
-        print(content)
+        for i in range(len(cases)): # TODO properly set the map
+            print(cases[i])
         return True
 
-    def get_inventory(self) -> bool: # TODO
+    def get_inventory(self) -> bool:
         """update the inventory
         time limit : 1/f
 
@@ -250,7 +287,19 @@ class Trantorian:
             bool: false if parsing failed
         """
         self.client.send_cmd("Inventory")
-        answer = self.wait_answer()
+        content = split_list(self.wait_answer())
+        if content == []:
+            return False
+        newinv = {}
+        for e in content:
+            key, val = e.split()
+            if key not in self.inventory:
+                return False
+            try:
+                newinv[key] = int(val)
+            except ValueError:
+                return False
+        self.inventory = newinv
         return True
 
     def broadcast(self, msg: str) -> bool: # TODO
@@ -264,10 +313,9 @@ class Trantorian:
             bool: true if ok, otherwise false
         """
         self.client.send_cmd("Broadcast " + msg)
-        answer = self.wait_answer()
-        return answer == 'ok'
+        return self.wait_answer() == 'ok'
 
-    def get_unused_slot(self) -> bool: # TODO
+    def get_unused_slot(self) -> bool:
         """update the unused_slot
         time limit : instant
 
@@ -282,7 +330,7 @@ class Trantorian:
             return False
         return True
 
-    def asexual_multiplication(self) -> bool: # TODO
+    def asexual_multiplication(self) -> bool:
         """selffucking for a new trantorian
         time limit : 42/f
 
@@ -290,10 +338,12 @@ class Trantorian:
             bool: false if self is sterile
         """
         self.client.send_cmd("Fork")
-        answer = self.wait_answer()
+        if self.wait_answer() != 'ok':
+            return False
+        # self.broadcast("birth at my pos") # TODO send a message to other
         return True
 
-    def eject(self) -> bool: # TODO
+    def eject(self) -> bool:
         """eject trantorians on the same case
         time limit : 7/f
 
@@ -301,10 +351,9 @@ class Trantorian:
             bool: false if self is weak
         """
         self.client.send_cmd("Eject")
-        answer = self.wait_answer()
-        return True
+        return self.wait_answer() == 'ok'
 
-    def take_object(self, obj: str) -> bool: # TODO
+    def take_object(self, obj: str) -> bool:
         """take object on the same case
         time limit : 7/f
 
@@ -318,10 +367,9 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         self.inventory[obj] += 1
-        print(self.inventory[obj])
         return
 
-    def drop_object(self, obj: str) -> bool: # TODO
+    def drop_object(self, obj: str) -> bool:
         """drop object on the same case
         time limit : 7/f
 
@@ -331,25 +379,29 @@ class Trantorian:
         Returns:
             bool: true if the object is took
         """
-        self.client.send_cmd("Set object")
-        answer = self.wait_answer()
-        if answer != 'ok':
+        self.client.send_cmd("Set " + obj)
+        if self.wait_answer() != 'ok':
             return False
-        self.inventory[obj] -= obj
+        if obj not in self.inventory:
+            return False
+        self.inventory[obj] -= 1
         return True
 
-    def start_incantation(self) -> bool: # TODO
+    def start_incantation(self) -> bool:
         """Start the incantation
         time limit : 300/f
 
-        Args:
-            obj (str): obj to drop
-
         Returns:
-            bool: true if the object is took
+            bool: true if the incantation did work
         """
         self.client.send_cmd("Incantation")
+        if self.wait_answer() != "Elevation underway":
+            return False
         answer = self.wait_answer()
+        if len(answer) < 16 or answer[:15] != "Current level: " or answer[15] not in "12345678":
+            return False
+        self.level = int(answer[15])
+        self.level += 1
         return True
 
 if __name__ == "__main__":

@@ -7,10 +7,15 @@ from warnings import warn
 
 from multiprocessing import Queue
 from client.client import Client
-from trentorian.map import (
+
+from map import (
     create_default_map,
     Map,
     merge_maps
+)
+
+from utils import (
+    determine_direction
 )
 
 FOOD = 126
@@ -133,8 +138,8 @@ class Trantorian:
         if sender_x == 0 and sender_y == 0:
             return False
 
-        predicted_sound_direction: int = SoundDirection.SOUTH
-        # TODO calculate previous line with trigonometry
+        predicted_sound_direction: int = determine_direction(
+            (sender_x, sender_y), (self.x, self.y), (self.known_map.width, self.known_map.height))
 
         sound_direction -= 1
         sound_direction: int = predicted_sound_direction - sound_direction
@@ -169,5 +174,5 @@ class Trantorian:
 
 if __name__ == "__main__":
     trantorien = Trantorian("localhost", 8000, "dan")
-    trantorien.update_direction_from_msg(5, 5, 5)
+    trantorien.update_direction_from_msg(5, 5, 6)
     print(trantorien.direction)

@@ -79,7 +79,9 @@ typedef struct ai_client_s {
 
 typedef struct server_s {
     int s_fd;
-    array_t *ai_clients;
+    struct sockaddr_in s_addr;
+    array_t ai_clients;
+    array_t waitlist_fd;
     cell_t *map;
 } server_t;
 

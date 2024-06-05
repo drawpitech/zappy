@@ -7,22 +7,27 @@
 
 #include "array.h"
 
+#include <stdio.h>
 #include <stdlib.h>
+
+#include "server.h"
 
 int add_elt_to_array(array_t *array, void *element)
 {
     void *tmp = NULL;
 
-    if (array->nb_elements + 1 == array->size) {
-        tmp = realloc(array->elements, array->size * 2);
-        if (NULL == array->elements)
-            return FAILURE;
+    if (array->nb_elements + 1 >= array->size) {
+        tmp = reallocarray(
+            array->elements, ((array->size) ? array->size * 2 : DEFAULT_SIZE),
+            sizeof(void *));
+        if (NULL == tmp)
+            return RET_ERROR;
         array->elements = tmp;
         array->size *= 2;
     }
     array->elements[array->nb_elements] = element;
     array->nb_elements++;
-    return 0;
+    return RET_VALID;
 }
 
 int remove_elt_to_array(array_t *array, size_t i)

@@ -1,1 +1,16 @@
-build/*
+# Editors
+.vscode/
+.cache/
+.idea/
+
+# Build
+build/
+.build/
+result
+
+# Binaries
+/zappy_server
+/zappy_gui
+/zappy_ai
+/asan
+/prof

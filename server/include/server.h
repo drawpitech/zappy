@@ -43,19 +43,14 @@ typedef struct {
     size_t y;
 } vector_t;
 
-const static ressource_t r_index[] = {
-    {FOOD, 0.5},
-    {LINEMATE, 0.3},
-    {DERAUMERE, 0.15},
-    {SIBUR, 0.1},
-    {MENDIANE, 0.1},
-    {PHIRAS, 0.08},
-    {THYSTAME, 0.05}
-};
+extern const ressource_t r_index[];
 
-typedef struct {
+struct cell_s {
     vector_t pos;
-} cell_t;
+    ressource_t res[7];
+} extern const default_cell;
+
+typedef struct cell_s cell_t;
 
 typedef struct context_s {
     int port;

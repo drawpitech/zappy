@@ -11,10 +11,12 @@
 
 int add_elt_to_array(array_t *array, void *element)
 {
-    if (array->nb_elements + 1 == DEFAULT_SIZE) {
-        array->elements = realloc(array->elements, array->size * 2);
+    void *tmp = NULL;
+    if (array->nb_elements + 1 == array->size) {
+        tmp = realloc(array->elements, array->size * 2);
         if (NULL == array->elements)
             return FAILURE;
+        array->elements = tmp;
         array->size *= 2;
     }
     array->elements[array->nb_elements] = element;

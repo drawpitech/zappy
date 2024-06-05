@@ -7,10 +7,14 @@
 
 #include "server.h"
 
+#include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/select.h>
 #include <sys/socket.h>
+#include <string.h>
+#include "array.h"
 
 const double DENSITIES[] = {
     [FOOD] = 0.5,
@@ -64,6 +68,50 @@ static int new_client(server_t *serv)
     return accept(serv->s_fd, (struct sockaddr *)&serv->s_addr, &len);
 }
 
+static
+void handle_waitlist(server_t *serv, size_t i, int client_fd)
+{
+    char buffer[DEFAULT_SIZE];
+    ssize_t bytes_read = 0;
+    ai_client_t *ai_client = NULL;
+
+    bytes_read = read(client_fd, buffer, DEFAULT_SIZE);
+    if (bytes_read <= 0) {
+        remove_elt_to_array(&serv->waitlist_fd, i);
+        return;
+    }
+    buffer[bytes_read] = '\0';
+    if (strcmp(buffer, "GRAPHIC\n") == 0) {
+        //implement GUI client
+    } else {
+        //TODO error handling
+        ai_client = malloc(sizeof(ai_client_t));
+        ai_client->s_fd = serv->s_fd;
+        strcpy(ai_client->team, buffer);
+        add_elt_to_array(&serv->ai_clients, ai_client);
+    }
+}
+
+static int iterate_waitlist(server_t *server)
+{
+    fd_set rfd;
+    struct timeval timeout;
+    int client_fd = 0;
+
+    for (size_t i = 0; i < server->waitlist_fd.nb_elements; ++i) {
+        client_fd = ((int*)server->waitlist_fd.elements[i])[0];
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 1000;
+        FD_ZERO(&rfd);
+        FD_SET(client_fd, &rfd);
+        if (select(client_fd + 1, &rfd, NULL, NULL, &timeout) < 0)
+            continue;
+        if (FD_ISSET(client_fd + 1, &rfd))
+            handle_waitlist(server, i, client_fd);
+    }
+    return 0;
+}
+
 int server(UNUSED int argc, UNUSED char **argv)
 {
     context_t ctx = {0};
@@ -75,7 +123,7 @@ int server(UNUSED int argc, UNUSED char **argv)
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);
-        // handle_clients(&server);
+        iterate_waitlist(&server);
     }
     // close_server(&serv);
     return RET_VALID;

@@ -17,8 +17,8 @@
 
 #define ATTR(x) __attribute__((x))
 #define UNUSED ATTR(unused)
-
-#define LENOF(x) (sizeof(x) / sizeof*(x))
+#define LEN(x) (sizeof(x) / sizeof*(x))
+#define IDX(x, y, w, h) (((y) % (h)) * (w) + ((x) % (w)))
 
 enum {
     RET_VALID = 0,
@@ -47,10 +47,10 @@ typedef struct {
 
 extern const double DENSITIES[];
 
-extern const struct cell_s {
+struct cell_s {
     vector_t pos;
     ressource_t res[7];
-} DEFAULT_CELL;
+};
 
 typedef struct cell_s cell_t;
 
@@ -58,15 +58,29 @@ typedef struct context_s {
     int port;
     size_t width;
     size_t height;
-    char **names;
+    array_t *names;
     size_t client_nb;
     double freq;
 } context_t;
 
+typedef struct ai_client_s {
+    int s_fd;
+    char team[512];
+    ressource_t res[7];
+    vector_t pos;
+    enum {
+        NORTH,
+        EAST,
+        SOUTH,
+        WEST
+    } dir;
+    int lvl;
+} ai_client_t;
+
 typedef struct server_s {
     int s_fd;
-    struct sockaddr_in s_addr;
-    array_t *clients;
+    array_t *ai_clients;
+    cell_t *map;
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);

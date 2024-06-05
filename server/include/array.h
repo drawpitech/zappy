@@ -14,7 +14,6 @@
 #define SUCCESS 0
 #define DISCONNECT 83
 #define FAILURE 84
-#define LEN(a) (sizeof(a) / sizeof(*a))
 
 typedef struct array_s {
     size_t size;

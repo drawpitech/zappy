@@ -15,6 +15,14 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
+#define ATTR(x) __attribute__((x))
+#define UNUSED ATTR(unused)
+
+enum {
+    RET_VALID = 0,
+    RET_ERROR = 84,
+};
+
 typedef enum {
     FOOD,
     LINEMATE,
@@ -63,3 +71,5 @@ typedef struct server_s {
     struct sockaddr_in s_addr;
     array_t *clients;
 } server_t;
+
+int server(UNUSED int argc, UNUSED char const *argv[]);

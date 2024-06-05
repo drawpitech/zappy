@@ -5,13 +5,14 @@
 ** array
 */
 
-#include "../include/array.h"
+#include "array.h"
 
 #include <stdlib.h>
 
 int add_elt_to_array(array_t *array, void *element)
 {
     void *tmp = NULL;
+
     if (array->nb_elements + 1 == array->size) {
         tmp = realloc(array->elements, array->size * 2);
         if (NULL == array->elements)

@@ -11,6 +11,7 @@ add_subdirectory(external/assimp)
 add_subdirectory(external/glad)
 add_subdirectory(external/glfw)
 add_subdirectory(external/glm)
+add_subdirectory(server)
 
 # Link to project modules
 add_subdirectory(GUI)

@@ -7,17 +7,17 @@
 
 #include "server.h"
 
-const ressource_t r_index[] = {
-    {FOOD, 0.5},
-    {LINEMATE, 0.3},
-    {DERAUMERE, 0.15},
-    {SIBUR, 0.1},
-    {MENDIANE, 0.1},
-    {PHIRAS, 0.08},
-    {THYSTAME, 0.05}
+const double DENSITIES[] = {
+    [FOOD] = 0.5,
+    [LINEMATE] = 0.3,
+    [DERAUMERE] = 0.15,
+    [SIBUR] = 0.1,
+    [MENDIANE] = 0.1,
+    [PHIRAS] = 0.08,
+    [THYSTAME] = 0.05
 };
 
-const struct cell_s default_cell = {
+const struct cell_s DEFAULT_CELL = {
     .pos = {0},
     .res[0] = {FOOD, 0},
     .res[1] = {LINEMATE, 0},
@@ -28,7 +28,7 @@ const struct cell_s default_cell = {
     .res[6] = {THYSTAME, 0},
 };
 
-int server(UNUSED int argc, UNUSED char const *argv[])
+int server(UNUSED int argc, UNUSED char **argv)
 {
     return RET_VALID;
 }

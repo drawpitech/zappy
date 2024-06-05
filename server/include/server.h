@@ -18,6 +18,8 @@
 #define ATTR(x) __attribute__((x))
 #define UNUSED ATTR(unused)
 
+#define LENOF(x) (sizeof(x) / sizeof*(x))
+
 enum {
     RET_VALID = 0,
     RET_ERROR = 84,
@@ -35,7 +37,7 @@ typedef enum {
 
 typedef struct {
     res_name_t r_name;
-    double density;
+    int quantity;
 } ressource_t;
 
 typedef struct {
@@ -43,12 +45,12 @@ typedef struct {
     size_t y;
 } vector_t;
 
-extern const ressource_t r_index[];
+extern const double DENSITIES[];
 
-struct cell_s {
+extern const struct cell_s {
     vector_t pos;
     ressource_t res[7];
-} extern const default_cell;
+} DEFAULT_CELL;
 
 typedef struct cell_s cell_t;
 
@@ -67,4 +69,4 @@ typedef struct server_s {
     array_t *clients;
 } server_t;
 
-int server(UNUSED int argc, UNUSED char const *argv[]);
+int server(UNUSED int argc, UNUSED char **argv);

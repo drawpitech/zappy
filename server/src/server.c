@@ -206,6 +206,7 @@ int arg_parse(const int argc, char *argv[], context_t *ctx)
     if (check_flags(array, argv) != RET_VALID)
         return RET_ERROR;
     ctx->names = array_constructor();
+    // TODO error handling with atoi (maybe port under 1024 ?)
     ctx->port = atoi(argv[2]);
     ctx->width = atoi(argv[4]);
     ctx->height = atoi(argv[6]);

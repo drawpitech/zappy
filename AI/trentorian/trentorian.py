@@ -113,6 +113,10 @@ class Trantorian:
             "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
         }
+        self.global_inventory: dict = {
+            "food": 10, "linemate": 0, "deraumere": 0,
+            "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
+        }
         self.known_map = create_default_map(self.client.x, self.client.y)
         self.direction: TrantorianDirection = TrantorianDirection.RIGHT
 
@@ -299,7 +303,10 @@ class Trantorian:
                 newinv[key] = int(val)
             except ValueError:
                 return False
-        self.inventory = newinv
+        for item, val in self.inventory:
+            diff = newinv[item] - val
+            self.global_inventory[item] += diff
+            self.inventory = newinv[item]
         return True
 
     def broadcast(self, msg: str) -> bool: # TODO
@@ -367,6 +374,7 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         self.inventory[obj] += 1
+        self.global_inventory[obj] += 1
         return
 
     def drop_object(self, obj: str) -> bool:
@@ -385,6 +393,7 @@ class Trantorian:
         if obj not in self.inventory:
             return False
         self.inventory[obj] -= 1
+        self.global_inventory[obj] -= 1
         return True
 
     def start_incantation(self) -> bool:

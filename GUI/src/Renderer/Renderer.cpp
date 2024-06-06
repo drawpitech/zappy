@@ -8,7 +8,7 @@
 #include "Renderer/Renderer.hpp"
 
 #include "Models/Animations/Bone.hpp"
-#include "Models/SkeletalMeshImpl.hpp"
+#include "Models/SkeletalMesh.hpp"
 #include "Models/StaticMesh.hpp"
 #include "Renderer/Window.hpp"
 
@@ -18,7 +18,6 @@
 
 #include <memory>
 #include <stdexcept>
-
 
 Renderer::Renderer() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
@@ -125,12 +124,16 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
     {   // Skeletal meshes
         m_gBufferPass->bindSkinnedShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
 
-        std::array<glm::mat4, MAX_BONES> transforms{};
-        for (int i = 0; i < transforms.size(); ++i)
-            m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", glm::scale(glm::mat4(1), glm::vec3(0.01)));  // NOLINT
 
-        for (auto& mesh : scene->skeletalMeshes)
-            mesh.draw(m_gBufferPass->getSkinnedShaderProgram(), glm::mat4(1));
+        for (auto& animatedMesh : scene->animatedMeshes) {
+            animatedMesh->animator.updateAnimation(m_deltaTime);
+
+            std::array<glm::mat4, MAX_BONES> transforms = animatedMesh->animator.getFinalBoneMatrices();
+            for (int i = 0; i < transforms.size(); ++i)
+                m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);  // NOLINT
+
+            animatedMesh->mesh->draw(m_gBufferPass->getSkinnedShaderProgram(), glm::scale(glm::mat4(1), glm::vec3(100)));
+        }
 
             // animator.updateAnimation(m_deltaTime / 2);
             // std::array<glm::mat4, MAX_BONES> transforms = animator.getFinalBoneMatrices();

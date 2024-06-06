@@ -12,7 +12,7 @@
 #include "assimp/anim.h"
 #include "assimp/postprocess.h"
 
-Animation::Animation(const std::string& animationPath, const std::shared_ptr<SkeletalMeshImpl>& mesh) {
+Animation::Animation(const std::string& animationPath, const std::shared_ptr<SkeletalMesh>& mesh) {
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
     if ((scene == nullptr) || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0) || (scene->mRootNode == nullptr))
@@ -38,7 +38,7 @@ Bone* Animation::findBone(const std::string& name) {
     return &(*iter);
 }
 
-void Animation::readMissingBones(const aiAnimation* animation, const std::shared_ptr<SkeletalMeshImpl>& mesh) {
+void Animation::readMissingBones(const aiAnimation* animation, const std::shared_ptr<SkeletalMesh>& mesh) {
     unsigned int size = animation->mNumChannels;
 
     auto& boneInfoMap = mesh->GetBoneInfoMap();

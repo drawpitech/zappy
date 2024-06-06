@@ -120,15 +120,16 @@ void main() {
         Lo += (diffuse * albedo / PI + specular) * radiance * cosTheta;
     }
 
-    vec3 ambient = vec3(0.3) * albedo * ssao;
+    vec3 ambient = vec3(0.1) * albedo * ssao;
     vec3 color = ambient + Lo;
 
+    /* SSR
     if (fragPos.y < 0.0) {
-        vec3 reflection = texture(ssrMap, inTexCoords).rgb * vec3(0.3);
+        vec3 reflection = texture(ssrMap, inTexCoords).rgb * vec3(0.1);
         color = mix(color, reflection, 0.2);
     }
+    */
 
-    color = color / (color + vec3(1.0)); // HDR tonemapping
     color = pow(color, vec3(1.0 / 2.2)); // gamma correction
     FragColor = vec4(color, 1.0);
 }

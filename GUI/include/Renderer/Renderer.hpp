@@ -7,22 +7,28 @@
 
 #pragma once
 
+#include "Models/Animations/Animator.hpp"
 #include "RenderPasses/GBufferPass.hpp"
 #include "RenderPasses/LightingPass.hpp"
 #include "RenderPasses/SSAOPass.hpp"
 #include "RenderPasses/SSRPass.hpp"
 #include "Renderer/Camera.hpp"
 #include "Renderer/Window.hpp"
-#include "Models/SkeletalMeshImpl.hpp"
+#include "Models/SkeletalMesh.hpp"
 #include "Models/StaticMesh.hpp"
 
 #include <chrono>
 
 class Renderer {
     public:
+        struct AnimatedMesh {
+            std::shared_ptr<SkeletalMesh> mesh;
+            Animator animator;
+        };
+
         struct Scene {
             std::vector<StaticMesh> staticMeshes;
-            std::vector<SkeletalMeshImpl> skeletalMeshes;
+            std::vector<std::shared_ptr<AnimatedMesh>> animatedMeshes;
         };
 
         Renderer();

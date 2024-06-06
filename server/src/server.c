@@ -119,7 +119,7 @@ void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
 }
 
 static
-int iterate_waitlist(server_t *server)
+int iterate_waitlist(server_t *server, context_t *ctx)
 {
     fd_set rfd;
     struct timeval timeout;
@@ -134,7 +134,7 @@ int iterate_waitlist(server_t *server)
         if (select(client_fd + 1, &rfd, NULL, NULL, &timeout) < 0)
             continue;
         if (FD_ISSET(client_fd + 1, &rfd))
-            handle_waitlist(server, i, client_fd);
+            handle_waitlist(server, i, client_fd, ctx);
     }
     return 0;
 }
@@ -248,7 +248,7 @@ int server(UNUSED int argc, UNUSED char **argv)
 
     if (arg_parse(argc, argv, &ctx) != RET_VALID)
         return RET_ERROR;
-    if (init_server(&server, 6666) == RET_ERROR)
+    if (init_server(&server, ctx.port) == RET_ERROR)
         return RET_ERROR;
     if (init_map(&server, &ctx) != RET_VALID)
         return RET_ERROR;

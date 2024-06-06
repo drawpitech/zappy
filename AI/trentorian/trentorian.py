@@ -9,14 +9,15 @@ from warnings import warn
 from multiprocessing import Queue
 from client.client import Client
 
-from map import (
+from trentorian.map import (
     create_default_map,
     Map,
     merge_maps
 )
 
 from utils import (
-    determine_direction
+    determine_direction,
+    check_levelup
 )
 
 
@@ -117,33 +118,75 @@ class Trantorian:
             "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
         }
-        self.known_map = create_default_map(self.client.x, self.client.y)
+        self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.RIGHT
 
-    def born(self, queue: Queue): # TODO add a real code here
+    def born(self, queue: Queue):
+        """launch a trantorian and do its life
+
+        Args:
+            queue (Queue): process shared queu (for birth)
+        """
         try:
-            # queue.put("birth")
-            i = 0
-            while not self.dead: # all the ai code should be in this loop
-                self.get_inventory()
-                # if self.forward():
-                    # self.x += 1
-                # self.left()
-                # print(self.direction)
+            queue.put("birth")
+            self.first_level()
+            while self.iter(): # all the ai code should be in this loop
                 # self.look_around()
-                # self.take_object("food")
-                # if random.randint(0, 2) == 1:
-                    # self.left()
-                # else : self.right()
+                continue
             print("died")
         except BrokenPipeError:
             print("Server closed socket")
             self.dead = True
         return
 
+    def first_level(self) -> None:
+        """script to fastly go to level 2 and acquire some food
+        """
+        ready: bool = False
+        while self.iter() and not ready:
+            self.forward()
+            self.take_object("linemate")
+            direct: int = random.randint(0, 5)
+            if direct == 1:
+                self.left()
+            elif direct == 2:
+                self.right()
+            ready = check_levelup(self.inventory, 2, 1)
+        if self.dead:
+            return
+        if self.inventory["linemate"] == 0:
+            self.first_level()
+            return
+        while not self.dead and not self.drop_object("linemate"):
+            continue
+        if self.start_incantation() is False:
+            self.first_level()
+        return
 
 ##############################  UTILS  #######################################
 
+    def iter(self) -> bool:
+        """check if next iteration is possible, and update the needed values
+        if the food is to low, refills it to 15 unit
+
+        Returns:
+            bool: can do the net iteration
+        """
+        if self.dead:
+            return False
+        self.get_unused_slot()
+        self.get_inventory()
+        if self.inventory["food"] > 5:
+            return True
+        while self.inventory["food"] < 20: # TODO check that we dont go out of the zone, maybe loo to go faster
+            self.forward()
+            self.take_object("food")
+            direct: int = random.randint(0, 5)
+            if direct == 1:
+                self.left()
+            elif direct == 2:
+                self.right()
+        return True
 
     def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
         """wait for an answer, handle the message and eject
@@ -228,6 +271,8 @@ class Trantorian:
         Returns:
             bool: true if it worked, otherwise false
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Forward")
         answer = self.wait_answer()
         if answer != 'ok':
@@ -246,6 +291,8 @@ class Trantorian:
         Returns:
             bool: true if it worked, otherwise false
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Right")
         answer = self.wait_answer()
         if answer != 'ok':
@@ -260,6 +307,8 @@ class Trantorian:
         Returns:
             bool: true if it worked, otherwise false
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Left")
         answer = self.wait_answer()
         if answer != 'ok':
@@ -274,8 +323,9 @@ class Trantorian:
         Returns:
             bool: false if parsing failed
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Look")
-        answer = self.wait_answer()
         cases = split_list(self.wait_answer())
         if cases == []:
             return False
@@ -290,6 +340,8 @@ class Trantorian:
         Returns:
             bool: false if parsing failed
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Inventory")
         content = split_list(self.wait_answer())
         if content == []:
@@ -303,10 +355,10 @@ class Trantorian:
                 newinv[key] = int(val)
             except ValueError:
                 return False
-        for item, val in self.inventory:
+        for item, val in self.inventory.items():
             diff = newinv[item] - val
             self.global_inventory[item] += diff
-            self.inventory = newinv[item]
+            self.inventory[item] = newinv[item]
         return True
 
     def broadcast(self, msg: str) -> bool: # TODO
@@ -319,6 +371,8 @@ class Trantorian:
         Returns:
             bool: true if ok, otherwise false
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Broadcast " + msg)
         return self.wait_answer() == 'ok'
 
@@ -329,6 +383,8 @@ class Trantorian:
         Returns:
             bool: false if parsing failed
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Connect_nbr")
         answer = self.wait_answer()
         try:
@@ -344,6 +400,8 @@ class Trantorian:
         Returns:
             bool: false if self is sterile
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Fork")
         if self.wait_answer() != 'ok':
             return False
@@ -357,6 +415,8 @@ class Trantorian:
         Returns:
             bool: false if self is weak
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Eject")
         return self.wait_answer() == 'ok'
 
@@ -370,6 +430,8 @@ class Trantorian:
         Returns:
             bool: true if the object is took
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Take " + obj)
         if self.wait_answer() != 'ok':
             return False
@@ -387,8 +449,11 @@ class Trantorian:
         Returns:
             bool: true if the object is took
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Set " + obj)
-        if self.wait_answer() != 'ok':
+        ans = self.wait_answer()
+        if ans != 'ok':
             return False
         if obj not in self.inventory:
             return False
@@ -403,6 +468,8 @@ class Trantorian:
         Returns:
             bool: true if the incantation did work
         """
+        if self.dead:
+            return False
         self.client.send_cmd("Incantation")
         if self.wait_answer() != "Elevation underway":
             return False

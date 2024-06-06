@@ -58,6 +58,7 @@ typedef struct context_s {
     int port;
     size_t width;
     size_t height;
+    size_t map_size;
     array_t *names;
     size_t client_nb;
     double freq;

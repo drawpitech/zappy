@@ -60,6 +60,7 @@ static void add_client(server_t *serv, int fd)
 
     *fd_ptr = fd;
     add_elt_to_array(&serv->ai_clients, fd_ptr);
+    dprintf(fd, "WELCOME\n");
 }
 
 static int new_client(server_t *serv)
@@ -79,11 +80,29 @@ static int new_client(server_t *serv)
 }
 
 static
-void handle_waitlist(server_t *serv, size_t i, int client_fd)
+int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *buffer)
+{
+    ai_client_t *client = malloc(sizeof(ai_client_t));
+
+    if (client == NULL)
+        return RET_ERROR;
+    memset(client, 0, sizeof(ai_client_t));
+    strcpy(client->team, buffer);
+    client->s_fd = client_fd;
+    client->dir = rand() % 4;
+    client->pos.x = rand() % ctx->width;
+    client->pos.y = rand() % ctx->height;
+    add_elt_to_array(&server->ai_clients, client);
+    dprintf(client_fd, "1\n");
+    dprintf(client_fd, "%ld %ld\n", client->pos.x, client->pos.y);
+    return RET_VALID;
+}
+
+static
+void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
 {
     char buffer[DEFAULT_SIZE];
     ssize_t bytes_read = 0;
-    ai_client_t *ai_client = NULL;
 
     bytes_read = read(client_fd, buffer, DEFAULT_SIZE);
     if (bytes_read <= 0) {
@@ -92,18 +111,15 @@ void handle_waitlist(server_t *serv, size_t i, int client_fd)
     }
     buffer[bytes_read] = '\0';
     if (strcmp(buffer, "GRAPHIC\n") == 0) {
-        //implement GUI client
+        // TODO implement GUI client
     } else {
         //TODO error handling
-        ai_client = malloc(sizeof(ai_client_t));
-        ai_client->s_fd = serv->s_fd;
-        strcpy(ai_client->team, buffer);
-        add_elt_to_array(&serv->ai_clients, ai_client);
-        write(client_fd, "WELCOME\n", 8);
+        init_ai_client(serv, ctx, client_fd, buffer);
     }
 }
 
-static int iterate_waitlist(server_t *server)
+static
+int iterate_waitlist(server_t *server)
 {
     fd_set rfd;
     struct timeval timeout;
@@ -123,6 +139,43 @@ static int iterate_waitlist(server_t *server)
     return 0;
 }
 
+static
+void handle_ai_client(server_t *serv, size_t i, int client_fd)
+{
+
+    char buffer[DEFAULT_SIZE];
+    ssize_t bytes_read = 0;
+    ai_client_t *ai_client = NULL;
+
+    bytes_read = read(client_fd, buffer, DEFAULT_SIZE);
+    if (bytes_read <= 0) {
+        remove_elt_to_array(&serv->waitlist_fd, i);
+        return;
+    }
+    buffer[bytes_read] = '\0';
+}
+
+static
+int iterate_ai_clients(server_t *server)
+{
+    fd_set rfd;
+    struct timeval timeout;
+    int client_fd = 0;
+
+    for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
+        client_fd = ((int*)server->ai_clients.elements[i])[0];
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 1000;
+        FD_ZERO(&rfd);
+        FD_SET(client_fd, &rfd);
+        if (select(client_fd + 1, &rfd, NULL, NULL, &timeout) < 0)
+            continue;
+        if (FD_ISSET(client_fd + 1, &rfd))
+            handle_ai_client(server, i, client_fd);
+    }
+    return 0;
+}
+
 UNUSED static void debug_ctx(context_t *ctx)
 {
     printf("Port: %d\n", ctx->port);
@@ -136,10 +189,9 @@ UNUSED static void debug_ctx(context_t *ctx)
 static
 int check_flags(const int *array, char *argv[])
 {
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 6; ++i)
         if (strcmp(argv[array[i]], flags[i]) != 0)
             return RET_ERROR;
-    }
     return RET_VALID;
 }
 
@@ -159,6 +211,33 @@ int arg_parse(const int argc, char *argv[], context_t *ctx)
     ctx->height = atoi(argv[6]);
     for (int i = 8; i < array[4]; ++i)
         add_elt_to_array(ctx->names, argv[i]);
+    debug_ctx(ctx);
+    return RET_VALID;
+}
+
+static void refill_map(server_t *server, context_t *ctx)
+{
+    size_t spread = 0;
+    size_t x = 0;
+    size_t y = 0;
+
+    for (size_t i = 0; i < LEN(DENSITIES); ++i) {
+        spread = (size_t)((double)ctx->map_size * DENSITIES[i]);
+        for (size_t cell = 0; cell < spread; ++cell) {
+            x = rand() % ctx->width;
+            y = rand() % ctx->height;
+            server->map[IDX(x, y, ctx->width, ctx->height)].res[i].quantity++;
+        }
+    }
+}
+
+static int init_map(server_t *server, context_t *ctx)
+{
+    ctx->map_size = ctx->width * ctx->height;
+    server->map = malloc(sizeof(cell_t) * ctx->map_size);
+    if (server->map == NULL)
+        return RET_ERROR;
+    refill_map(server, ctx);
     return RET_VALID;
 }
 
@@ -171,12 +250,17 @@ int server(UNUSED int argc, UNUSED char **argv)
         return RET_ERROR;
     if (init_server(&server, 6666) == RET_ERROR)
         return RET_ERROR;
+    if (init_map(&server, &ctx) != RET_VALID)
+        return RET_ERROR;
+    /*
     for (int fd = -1;; fd = -1) {
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);
         iterate_waitlist(&server);
+        iterate_ai_clients(&server);
     }
+    */
     // close_server(&serv);
     return RET_VALID;
 }

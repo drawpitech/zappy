@@ -41,7 +41,7 @@ class Renderer {
         Renderer& operator=(Renderer&& other) = delete;
 
         [[nodiscard]] bool shouldStop() const noexcept { return m_window->shouldClose(); }
-        void render(std::shared_ptr<Renderer::Scene>& scene) noexcept;
+        void render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) noexcept;
 
     private:
         void handleUserInput() noexcept;

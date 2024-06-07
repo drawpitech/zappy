@@ -54,12 +54,20 @@ void App::parseConnectionResponse() {
         close(m_socket);
         throw std::runtime_error("Read failed");
     }
+    const std::string bufferView(buffer.data());
+    std::cout << bufferView << std::endl;
 
-    std::cout << buffer.data() << std::endl;
-
-    m_mapSize = getMapSize(buffer.data());
+    m_mapSize = getMapSize(bufferView);
     m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
-    parseMap(buffer.data());
+    parseMap(bufferView);
+
+    {   // Get the speed (sgt in the bufferView)
+        size_t pos = bufferView.find("sgt ");
+        if (pos == std::string::npos)
+            throw std::runtime_error("sgt not found in welcome bufferView");
+
+        m_speed =  std::stoi(bufferView.substr(pos + 4, bufferView.find('\n', pos) - pos));
+    }
 }
 
 void App::parseMap(const std::string& buffer) {
@@ -136,6 +144,6 @@ void App::run() {
     m_scene->animatedMeshes[0]->mesh->setScale(glm::vec3(100, 100, 100));
 
     while (!m_renderer->shouldStop()) {
-        m_renderer->render(m_scene);
+        m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
 }

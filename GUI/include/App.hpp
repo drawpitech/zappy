@@ -44,6 +44,7 @@ class App {
         std::shared_ptr<Renderer::Scene> m_scene;
 
         glm::vec2 m_mapSize = {0, 0};
+        unsigned int m_speed = 0;
         std::vector<std::vector<TileContent>> m_map;
 
         int m_socket = 0;

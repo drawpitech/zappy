@@ -104,7 +104,7 @@ void Renderer::updateDeltaTime() noexcept {
     m_frameStartTime = m_frameEndTime;
 }
 
-void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
+void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) noexcept {
     updateDeltaTime();
     handleUserInput();
 
@@ -123,7 +123,7 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
         m_gBufferPass->bindSkinnedShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
 
         for (auto& animatedMesh : scene->animatedMeshes) {
-            animatedMesh->animator.updateAnimation(m_deltaTime);
+            animatedMesh->animator.updateAnimation(m_deltaTime * gameSpeed);
 
             std::array<glm::mat4, MAX_BONES> transforms = animatedMesh->animator.getFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)

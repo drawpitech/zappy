@@ -9,6 +9,7 @@
 
 #include "array.h"
 
+#include <bits/stdint-uintn.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <uuid/uuid.h>
@@ -18,7 +19,7 @@
 #define ATTR(x) __attribute__((x))
 #define UNUSED ATTR(unused)
 #define LEN(x) (sizeof(x) / sizeof*(x))
-#define IDX(x, y, w, h) (((y) % (h)) * (w) + ((x) % (w)))
+#define IDX(x, y, w, h) ((((y) % (h) + (h)) % (h)) * (w) + (((x) % (w) + (w)) % (w)))
 
 enum {
     RET_VALID = 0,
@@ -41,8 +42,8 @@ typedef struct {
 } ressource_t;
 
 typedef struct {
-    size_t x;
-    size_t y;
+    int x;
+    int y;
 } vector_t;
 
 extern const double DENSITIES[];
@@ -53,6 +54,16 @@ struct cell_s {
 };
 
 typedef struct cell_s cell_t;
+
+typedef struct payload_s {
+    ressource_t res[7];
+} payload_t;
+
+typedef struct look_payload_s {
+    uint32_t player_lvl;
+    size_t size;
+    payload_t *cell_content;
+} look_payload_t;
 
 typedef struct context_s {
     int port;

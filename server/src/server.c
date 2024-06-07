@@ -90,11 +90,11 @@ int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *buffer
     strcpy(client->team, buffer);
     client->s_fd = client_fd;
     client->dir = rand() % 4;
-    client->pos.x = rand() % ctx->width;
-    client->pos.y = rand() % ctx->height;
+    client->pos.x = rand() % (int)ctx->width;
+    client->pos.y = rand() % (int)ctx->height;
     add_elt_to_array(&server->ai_clients, client);
     dprintf(client_fd, "1\n");
-    dprintf(client_fd, "%ld %ld\n", client->pos.x, client->pos.y);
+    dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
     return RET_VALID;
 }
 
@@ -245,37 +245,65 @@ static int init_map(server_t *server, context_t *ctx)
 //payload_t get_cell_payload(server_t *server, context_t *ctx, struct {int x; int y;} *pos)
 
 static
-payload_t get_cell_payload(server_t *server, context_t *ctx, vector_t *pos)
+payload_t *get_cell_payload(server_t *server, context_t *ctx, vector_t *pos)
 {
-    payload_t payload = {0};
+    payload_t *payload = malloc(sizeof(payload_t));
 
     for (size_t i = 0; i < LEN(DENSITIES); ++i)
-        payload.res[i] = server->map[IDX(pos->x, pos->y, ctx->width, ctx->height)].res[i];
+        payload->res[i] = server->map[IDX(pos->x, pos->y, ctx->width, ctx->height)].res[i];
     return payload;
 }
 
 static
-look_payload_t look(server_t *server, context_t *ctx, ai_client_t *client)
+look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client)
 {
     int cell_idx = 0;
-    look_payload_t payload = {0};
+    look_payload_t *payload = malloc(sizeof(look_payload_t));
+    for (size_t i = 0; i < LEN(payload->cell_content); ++i) {
+        for (size_t j = 0; j < LEN(payload->cell_content[i].res); ++j) {
+            payload->cell_content[i].res[j].r_name= j;
+            payload->cell_content[i].res[j].quantity = 0;
+        }
+    }
 
     switch (client->dir) {
         case NORTH:
-            for (int i = 0; i < client->lvl; ++i) {
-                for (size_t x = client->pos.x - client->lvl; x < client->pos.x + client->lvl; ++x) {
-                    get_cell_payload(server, ctx, &(vector_t){x, client->pos.y - (i + 1)});
+            for (int i = 1; i <= client->lvl; ++i) {
+                for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
+                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){x, client->pos.y - i});
                 }
             }
             break;
         case EAST:
+            for (int i = 1; i <= client->lvl; ++i) {
+                for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
+                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){client->pos.x - i, y});
+                }
+            }
             break;
         case SOUTH:
+            for (int i = 1; i <= client->lvl; ++i) {
+                for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
+                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){x, client->pos.y + i});
+                }
+            }
             break;
         case WEST:
+            for (int i = 1; i <= client->lvl; ++i) {
+                for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
+                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){client->pos.x + i, y});
+                }
+            }
             break;
     }
     return payload;
+}
+
+static void debug_payload(look_payload_t *payload)
+{
+    for (size_t i = 0; i < LEN(payload->cell_content); ++i) {
+        printf("%d\n", payload->cell_content[i].res[FOOD].quantity);
+    }
 }
 
 int server(UNUSED int argc, UNUSED char **argv)
@@ -283,21 +311,34 @@ int server(UNUSED int argc, UNUSED char **argv)
     context_t ctx = {0};
     UNUSED server_t server = {0};
 
+    srand(time(NULL));
+
     if (arg_parse(argc, argv, &ctx) != RET_VALID)
         return RET_ERROR;
-    if (init_server(&server, ctx.port) == RET_ERROR)
+    if (init_server(&server, ctx.port) != RET_VALID)
         return RET_ERROR;
     if (init_map(&server, &ctx) != RET_VALID)
         return RET_ERROR;
+
+    // test
+    ai_client_t client = {0};
+    client.lvl = 1;
+    client.pos.x = 5;
+    client.pos.y = 5;
+
+    look_payload_t *payload = look(&server, &ctx, &client);
+    debug_payload(payload);
+    //
+
     /*
     for (int fd = -1;; fd = -1) {
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);
-        iterate_waitlist(&server);
+        iterate_waitlist(&server, &ctx);
         iterate_ai_clients(&server);
     }
-    */
     // close_server(&serv);
+    */
     return RET_VALID;
 }

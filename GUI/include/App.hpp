@@ -9,9 +9,26 @@
 
 #include "Renderer/Renderer.hpp"
 
+#include "glm/ext/vector_float2.hpp"
+
 class App {
+    private:
+        enum RessourceType {
+            FOOD = 0,
+            LINEMATE = 1,
+            DERAUMERE = 2,
+            SIBUR = 3,
+            MENDIANE = 4,
+            PHIRAS = 5,
+            THYSTAME = 6,
+        };
+
+        struct TileContent {
+            std::array<int, 7> ressources = {0, 0, 0, 0, 0, 0, 0};
+        };
+
     public:
-        App();
+        App(int port);
         ~App();
 
         App(const App&) = delete;
@@ -24,4 +41,14 @@ class App {
 
     private:
         std::unique_ptr<Renderer> m_renderer;
+
+        int m_socket = 0;
+        glm::vec2 m_mapSize = {0, 0};
+        std::vector<std::vector<TileContent>> m_map;
+
+        void connectToServer(int port);
+
+        static glm::vec2 getMapSize(const std::string& buffer);
+        void parseMap(const std::string& buffer);
+        void parseConnectionResponse();
 };

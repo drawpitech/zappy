@@ -27,7 +27,7 @@ class Renderer {
         };
 
         struct Scene {
-            std::vector<StaticMesh> staticMeshes;
+            std::vector<std::shared_ptr<StaticMesh>> staticMeshes;
             std::vector<std::shared_ptr<AnimatedMesh>> animatedMeshes;
         };
 

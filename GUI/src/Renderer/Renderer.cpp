@@ -8,8 +8,6 @@
 #include "Renderer/Renderer.hpp"
 
 #include "Models/Animations/Bone.hpp"
-#include "Models/SkeletalMesh.hpp"
-#include "Models/StaticMesh.hpp"
 #include "Renderer/Window.hpp"
 
 #include "backends/imgui_impl_glfw.h"
@@ -118,7 +116,7 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
         m_gBufferPass->bindFramebuffer();
         m_gBufferPass->bindStaticShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
         for (const auto& mesh : scene->staticMeshes)
-            mesh.draw(m_gBufferPass->getStaticShaderProgram(), glm::mat4(1));
+            mesh->draw(m_gBufferPass->getStaticShaderProgram());
     }
 
     {   // Skeletal meshes
@@ -132,7 +130,7 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
             for (int i = 0; i < transforms.size(); ++i)
                 m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);  // NOLINT
 
-            animatedMesh->mesh->draw(m_gBufferPass->getSkinnedShaderProgram(), glm::scale(glm::mat4(1), glm::vec3(100)));
+            animatedMesh->mesh->draw(m_gBufferPass->getSkinnedShaderProgram());
         }
 
             // animator.updateAnimation(m_deltaTime / 2);

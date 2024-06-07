@@ -27,10 +27,24 @@ App::App(int port) {
     parseConnectionResponse();
 
     m_renderer = std::make_unique<Renderer>();
+    m_scene = std::make_shared<Renderer::Scene>();
+    createScene();
 }
 
 App::~App() {
     close(m_socket);
+}
+
+void App::createScene() {
+    // Islands creation
+    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
+        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
+            std::shared_ptr<StaticMesh> island = std::make_shared<StaticMesh>("../assets/cube.obj");
+            island->setPosition(glm::vec3(i * 5, -0.1, j * 5));
+            island->setScale(glm::vec3(1.8, 0.1, 1.8));
+            m_scene->staticMeshes.push_back(island);
+        }
+    }
 }
 
 void App::parseConnectionResponse() {
@@ -113,21 +127,15 @@ glm::vec2 App::getMapSize(const std::string& buffer) {
 }
 
 void App::run() {
-    std::shared_ptr<Renderer::Scene> scene = std::make_shared<Renderer::Scene>();
-    scene->staticMeshes.emplace_back(std::make_shared<StaticMesh>("../assets/SponzaPBR/Sponza.gltf"));
+    // m_scene->staticMeshes.emplace_back(std::make_shared<StaticMesh>("../assets/SponzaPBR/Sponza.gltf"));
 
     // Animated mesh example
     const std::shared_ptr<SkeletalMesh> danMesh = std::make_shared<SkeletalMesh>("../assets/Dancing_Twerk/Dancing Twerk.dae");
-    const std::shared_ptr<Animation> idleAnim = std::make_shared<Animation>("../assets/Dancing_Twerk/Dancing Twerk.dae", danMesh);
-    scene->animatedMeshes.push_back(std::make_shared<Renderer::AnimatedMesh>(danMesh, idleAnim));
-    scene->animatedMeshes[0]->mesh->setScale(glm::vec3(100, 100, 100));
+    const std::shared_ptr<Animation> danceAnim = std::make_shared<Animation>("../assets/Dancing_Twerk/Dancing Twerk.dae", danMesh);
+    m_scene->animatedMeshes.push_back(std::make_shared<Renderer::AnimatedMesh>(danMesh, danceAnim));
+    m_scene->animatedMeshes[0]->mesh->setScale(glm::vec3(100, 100, 100));
 
     while (!m_renderer->shouldStop()) {
-        // Model rotation exemple
-        glm::vec3 rotation = scene->staticMeshes[0]->getRotation();
-        rotation[1] += 0.1;
-        scene->staticMeshes[0]->setRotation(rotation);
-
-        m_renderer->render(scene);
+        m_renderer->render(m_scene);
     }
 }

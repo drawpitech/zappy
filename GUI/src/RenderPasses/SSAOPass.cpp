@@ -6,6 +6,7 @@
 */
 
 #include "RenderPasses/SSAOPass.hpp"
+#include "Renderer/ShaderProgram.hpp"
 
 #include <random>
 

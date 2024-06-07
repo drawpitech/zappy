@@ -20,8 +20,17 @@ const float bias = 0.025;
 void main() {
     const vec2 noiseScale = vec2(attachmentSize.x / 4.0, attachmentSize.y / 4.0);
 
-    vec3 fragPos = vec3(view * vec4(texture(positionMap, inTexCoords).xyz, 1.0));
     vec3 normal = mat3(view) * texture(normalMap, inTexCoords).rgb;
+    if (length(normal) == 0.0) {
+        FragColor = 1.0;
+        return;
+    }
+
+    vec3 fragPos = vec3(view * vec4(texture(positionMap, inTexCoords).xyz, 1.0));
+    if (length(fragPos) > 15) {
+        FragColor = 1.0;
+        return;
+    }
 
     vec3 randomVec = normalize(texture(noiseMap, inTexCoords * noiseScale).xyz);
 

@@ -41,14 +41,16 @@ class App {
 
     private:
         std::unique_ptr<Renderer> m_renderer;
+        std::shared_ptr<Renderer::Scene> m_scene;
 
-        int m_socket = 0;
         glm::vec2 m_mapSize = {0, 0};
         std::vector<std::vector<TileContent>> m_map;
 
+        int m_socket = 0;
         void connectToServer(int port);
 
         static glm::vec2 getMapSize(const std::string& buffer);
         void parseMap(const std::string& buffer);
         void parseConnectionResponse();
+        void createScene();
 };

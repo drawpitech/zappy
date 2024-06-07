@@ -26,7 +26,7 @@ Renderer::Renderer() {
         m_gBufferPass = std::make_unique<GBufferPass>(m_window);
 
         m_ssaoPass = std::make_unique<SSAOPass>(m_window);
-        m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
+        m_ssaoPass->resize(m_window->getWidth() / 2, m_window->getHeight() / 2);
 
         m_ssrPass = std::make_unique<SSRPass>(m_window);
         m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
@@ -52,7 +52,7 @@ void Renderer::handleUserInput() noexcept {
     if (m_window->wasResized) {
         m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
         m_gBufferPass->resize(m_window->getWidth(), m_window->getHeight());
-        m_ssaoPass->resize(m_window->getWidth() / 4, m_window->getHeight() / 4);
+        m_ssaoPass->resize(m_window->getWidth() / 2, m_window->getHeight() / 2);
         m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
         m_window->wasResized = false;
     }
@@ -122,7 +122,6 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
     {   // Skeletal meshes
         m_gBufferPass->bindSkinnedShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
 
-
         for (auto& animatedMesh : scene->animatedMeshes) {
             animatedMesh->animator.updateAnimation(m_deltaTime);
 
@@ -132,12 +131,6 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene) noexcept {
 
             animatedMesh->mesh->draw(m_gBufferPass->getSkinnedShaderProgram());
         }
-
-            // animator.updateAnimation(m_deltaTime / 2);
-            // std::array<glm::mat4, MAX_BONES> transforms = animator.getFinalBoneMatrices();
-            // for (int i = 0; i < transforms.size(); ++i)
-                // m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);  // NOLINT
-        // dan->draw(m_gBufferPass->getSkinnedShaderProgram(), glm::mat4(1));
     }
 
     if (m_useSSAO) {

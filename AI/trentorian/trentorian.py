@@ -282,6 +282,7 @@ class Trantorian:
         self.y += y
         self.x %= self.client.size_x
         self.y %= self.client.size_y
+        # TODO update the map to contain ourself at the good position
         return True
 
     def right(self) -> bool:
@@ -477,7 +478,6 @@ class Trantorian:
         if len(answer) < 16 or answer[:15] != "Current level: " or answer[15] not in "12345678":
             return False
         self.level = int(answer[15])
-        self.level += 1
         return True
 
 if __name__ == "__main__":

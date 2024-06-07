@@ -242,6 +242,42 @@ static int init_map(server_t *server, context_t *ctx)
     return RET_VALID;
 }
 
+//payload_t get_cell_payload(server_t *server, context_t *ctx, struct {int x; int y;} *pos)
+
+static
+payload_t get_cell_payload(server_t *server, context_t *ctx, vector_t *pos)
+{
+    payload_t payload = {0};
+
+    for (size_t i = 0; i < LEN(DENSITIES); ++i)
+        payload.res[i] = server->map[IDX(pos->x, pos->y, ctx->width, ctx->height)].res[i];
+    return payload;
+}
+
+static
+look_payload_t look(server_t *server, context_t *ctx, ai_client_t *client)
+{
+    int cell_idx = 0;
+    look_payload_t payload = {0};
+
+    switch (client->dir) {
+        case NORTH:
+            for (int i = 0; i < client->lvl; ++i) {
+                for (size_t x = client->pos.x - client->lvl; x < client->pos.x + client->lvl; ++x) {
+                    get_cell_payload(server, ctx, &(vector_t){x, client->pos.y - (i + 1)});
+                }
+            }
+            break;
+        case EAST:
+            break;
+        case SOUTH:
+            break;
+        case WEST:
+            break;
+    }
+    return payload;
+}
+
 int server(UNUSED int argc, UNUSED char **argv)
 {
     context_t ctx = {0};

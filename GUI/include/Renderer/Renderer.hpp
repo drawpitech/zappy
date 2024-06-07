@@ -21,14 +21,24 @@
 
 class Renderer {
     public:
-        struct AnimatedMesh {
+        struct AnimatedActor {
             std::shared_ptr<SkeletalMesh> mesh;
-            Animator animator;
+            std::shared_ptr<Animator> animator;
+            glm::vec3 position;
+            glm::vec3 scale;
+            glm::vec3 rotation;
+        };
+
+        struct StaticActor {
+            std::shared_ptr<StaticMesh> mesh;
+            glm::vec3 position;
+            glm::vec3 scale;
+            glm::vec3 rotation;
         };
 
         struct Scene {
-            std::vector<std::shared_ptr<StaticMesh>> staticMeshes;
-            std::vector<std::shared_ptr<AnimatedMesh>> animatedMeshes;
+            std::vector<StaticActor> staticActors;
+            std::vector<AnimatedActor> animatedActors;
         };
 
         Renderer();

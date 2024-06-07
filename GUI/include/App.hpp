@@ -51,7 +51,8 @@ class App {
         void connectToServer(int port);
 
         static glm::vec2 getMapSize(const std::string& buffer);
-        void parseMap(const std::string& buffer);
+        void updateMap(const std::string& buffer);
+
         void parseConnectionResponse();
-        void createScene();
+        void createIslands();
 };

@@ -32,16 +32,8 @@ SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
 SkeletalMesh::~SkeletalMesh() {
 }
 
-void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram) const noexcept {
+void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept {
     glEnable(GL_DEPTH_TEST);
-
-    auto transform = glm::mat4(1);
-    transform = glm::translate(transform, m_position);
-    transform = glm::scale(transform, m_scale);
-
-    transform = glm::rotate(transform, glm::radians(m_rotation[0]), glm::vec3(1, 0, 0));
-    transform = glm::rotate(transform, glm::radians(m_rotation[1]), glm::vec3(0, 1, 0));
-    transform = glm::rotate(transform, glm::radians(m_rotation[2]), glm::vec3(0, 0, 1));
 
     for (const auto& submesh : m_submeshes) {
         if (m_materials[submesh.materialIndex].albedoMap != 0) {

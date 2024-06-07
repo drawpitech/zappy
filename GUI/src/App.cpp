@@ -14,6 +14,7 @@
 #include "glm/gtx/quaternion.hpp"
 
 #include <memory>
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -28,38 +29,25 @@ App::App(int port) {
 
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
-    createScene();
+    createIslands();
 }
 
 App::~App() {
     close(m_socket);
 }
 
-void App::createScene() {
-    // Islands creation
-    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
-        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
-            std::shared_ptr<StaticMesh> island = std::make_shared<StaticMesh>("../assets/cube.obj");
-            island->setPosition(glm::vec3(i * 5, -0.1, j * 5));
-            island->setScale(glm::vec3(1.8, 0.1, 1.8));
-            m_scene->staticMeshes.push_back(island);
-        }
-    }
-}
-
 void App::parseConnectionResponse() {
     std::array<char, BUFFER_SIZE> buffer{};
     buffer.fill(0);
-    if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0) {
-        close(m_socket);
+    if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
         throw std::runtime_error("Read failed");
-    }
+
     const std::string bufferView(buffer.data());
     std::cout << bufferView << std::endl;
 
     m_mapSize = getMapSize(bufferView);
     m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
-    parseMap(bufferView);
+    updateMap(bufferView);
 
     {   // Get the speed (sgt in the bufferView)
         size_t pos = bufferView.find("sgt ");
@@ -70,7 +58,15 @@ void App::parseConnectionResponse() {
     }
 }
 
-void App::parseMap(const std::string& buffer) {
+void App::createIslands() {
+    static std::shared_ptr<StaticMesh> islandMesh = std::make_shared<StaticMesh>("../assets/cube.obj");
+
+    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
+        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
+            m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(i * 5, -0.1, j * 5), glm::vec3(1.8, 0.1, 1.8), glm::vec3(0, 0, 0)}));
+}
+
+void App::updateMap(const std::string& buffer) {
     size_t pos = buffer.find("bct");
     while (pos != std::string::npos) {
         int x = std::stoi(buffer.substr(buffer.find(' ', pos) + 1, buffer.find(' ', buffer.find(' ', pos) + 1) - buffer.find(' ', pos) - 1));
@@ -99,24 +95,18 @@ void App::connectToServer(int port) {
         .sin_zero = { 0 }
     };
 
-    if (connect(m_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) < 0) {
-        close(m_socket);
+    if (connect(m_socket, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) < 0)
         throw std::runtime_error("Connection failed");
-    }
 
     std::array<char, BUFFER_SIZE> buffer{};
-    if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0) {
-        close(m_socket);
+    if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
         throw std::runtime_error("Read failed");
-    }
 
     if (std::string(buffer.data()) != "WELCOME\n")
         throw std::runtime_error("Connection failed");
 
-    if (write(m_socket, "GRAPHIC\n", 8) < 0) {
-        close(m_socket);
+    if (write(m_socket, "GRAPHIC\n", 8) < 0)
         throw std::runtime_error("Write failed");
-    }
 }
 
 glm::vec2 App::getMapSize(const std::string& buffer) {
@@ -140,10 +130,30 @@ void App::run() {
     // Animated mesh example
     const std::shared_ptr<SkeletalMesh> danMesh = std::make_shared<SkeletalMesh>("../assets/Dancing_Twerk/Dancing Twerk.dae");
     const std::shared_ptr<Animation> danceAnim = std::make_shared<Animation>("../assets/Dancing_Twerk/Dancing Twerk.dae", danMesh);
-    m_scene->animatedMeshes.push_back(std::make_shared<Renderer::AnimatedMesh>(danMesh, danceAnim));
-    m_scene->animatedMeshes[0]->mesh->setScale(glm::vec3(100, 100, 100));
+    m_scene->animatedActors.push_back({danMesh, std::make_shared<Animator>(danceAnim), glm::vec3(0, 0, 0.5), glm::vec3(100, 100, 100), glm::vec3(0, 0, 0)});
+
+    m_scene->animatedActors.push_back({danMesh, std::make_shared<Animator>(danceAnim), glm::vec3(0.5, 0, 0), glm::vec3(100, 100, 100), glm::vec3(0, 0, 0)});
+    m_scene->animatedActors.push_back({danMesh, std::make_shared<Animator>(danceAnim), glm::vec3(-0.5, 0, 0), glm::vec3(100, 100, 100), glm::vec3(0, 0, 0)});
+
+    m_scene->animatedActors.push_back({danMesh, std::make_shared<Animator>(danceAnim), glm::vec3(0, 0, -0.5), glm::vec3(100, 100, 100), glm::vec3(0, 0, 0)});
+    m_scene->animatedActors.push_back({danMesh, std::make_shared<Animator>(danceAnim), glm::vec3(1, 0, -0.5), glm::vec3(100, 100, 100), glm::vec3(0, 0, 0)});
+    m_scene->animatedActors.push_back({danMesh, std::make_shared<Animator>(danceAnim), glm::vec3(-1, 0, -0.5), glm::vec3(100, 100, 100), glm::vec3(0, 0, 0)});
 
     while (!m_renderer->shouldStop()) {
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(m_socket, &readfds);
+        timeval timeout { .tv_sec = 0, .tv_usec = 0 };
+        if (select(m_socket + 1, &readfds, nullptr, nullptr, &timeout) > 0) {
+            std::array<char, BUFFER_SIZE> buffer{};
+            buffer.fill(0);
+            if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
+                throw std::runtime_error("Read failed");
+
+            const std::string bufferView(buffer.data());
+            updateMap(bufferView);
+        }
+
         m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
 }

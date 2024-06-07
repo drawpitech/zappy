@@ -62,15 +62,7 @@ class SkeletalMesh {
         auto& GetBoneInfoMap() { return m_boneInfoMap; }
         int& GetBoneCount() { return m_boneCounter; }
 
-        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram) const noexcept;
-
-        [[nodiscard]] const glm::vec3& getPosition() const noexcept { return m_position; }
-        [[nodiscard]] const glm::vec3& getScale() const noexcept { return m_scale; }
-        [[nodiscard]] const glm::vec3& getRotation() const noexcept { return m_rotation; }
-
-        void setPosition(const glm::vec3& position) noexcept { this->m_position = position; }
-        void setScale(const glm::vec3& scale) noexcept { this->m_scale = scale; }
-        void setRotation(const glm::vec3& rotation) noexcept { this->m_rotation = rotation; }
+        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept;
 
     private:
         std::map<std::string, BoneInfo> m_boneInfoMap;
@@ -78,10 +70,6 @@ class SkeletalMesh {
 
         std::vector<Submesh> m_submeshes;
         std::vector<Material> m_materials;
-
-        glm::vec3 m_position = {0, 0, 0};
-        glm::vec3 m_scale = {1, 1, 1};
-        glm::vec3 m_rotation = {0, 0, 0};
 
         static void loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture);
         void loadMaterials(const aiScene *scene, const std::string& modelPath);

@@ -115,21 +115,38 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
     {   // Static meshes
         m_gBufferPass->bindFramebuffer();
         m_gBufferPass->bindStaticShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
-        for (const auto& mesh : scene->staticMeshes)
-            mesh->draw(m_gBufferPass->getStaticShaderProgram());
+        for (const auto& actor : scene->staticActors) {
+            auto transform = glm::mat4(1);
+            transform = glm::translate(transform, actor.position);
+            transform = glm::scale(transform, actor.scale);
+
+            transform = glm::rotate(transform, glm::radians(actor.rotation[0]), glm::vec3(1, 0, 0));
+            transform = glm::rotate(transform, glm::radians(actor.rotation[1]), glm::vec3(0, 1, 0));
+            transform = glm::rotate(transform, glm::radians(actor.rotation[2]), glm::vec3(0, 0, 1));
+
+            actor.mesh->draw(m_gBufferPass->getStaticShaderProgram(), transform);
+        }
     }
 
     {   // Skeletal meshes
         m_gBufferPass->bindSkinnedShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
 
-        for (auto& animatedMesh : scene->animatedMeshes) {
-            animatedMesh->animator.updateAnimation(m_deltaTime * gameSpeed);
+        for (auto& actor : scene->animatedActors) {
+            actor.animator->updateAnimation(m_deltaTime * gameSpeed);
 
-            std::array<glm::mat4, MAX_BONES> transforms = animatedMesh->animator.getFinalBoneMatrices();
+            std::array<glm::mat4, MAX_BONES> transforms = actor.animator->getFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)
                 m_gBufferPass->getSkinnedShaderProgram()->setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);  // NOLINT
 
-            animatedMesh->mesh->draw(m_gBufferPass->getSkinnedShaderProgram());
+            auto transform = glm::mat4(1);
+            transform = glm::translate(transform, actor.position);
+            transform = glm::scale(transform, actor.scale);
+
+            transform = glm::rotate(transform, glm::radians(actor.rotation[0]), glm::vec3(1, 0, 0));
+            transform = glm::rotate(transform, glm::radians(actor.rotation[1]), glm::vec3(0, 1, 0));
+            transform = glm::rotate(transform, glm::radians(actor.rotation[2]), glm::vec3(0, 0, 1));
+
+            actor.mesh->draw(m_gBufferPass->getSkinnedShaderProgram(), transform);
         }
     }
 

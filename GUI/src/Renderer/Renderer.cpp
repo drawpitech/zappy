@@ -132,7 +132,7 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
         m_gBufferPass->bindSkinnedShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
 
         for (auto& actor : scene->animatedActors) {
-            actor.animator->updateAnimation(m_deltaTime * gameSpeed);
+            actor.animator->updateAnimation(m_deltaTime * gameSpeed / 2);
 
             std::array<glm::mat4, MAX_BONES> transforms = actor.animator->getFinalBoneMatrices();
             for (int i = 0; i < transforms.size(); ++i)

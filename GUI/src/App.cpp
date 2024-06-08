@@ -29,7 +29,7 @@ App::App(int port) {
 
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
-    createIslands();
+    createScene();
 }
 
 App::~App() {
@@ -42,10 +42,10 @@ void App::parseConnectionResponse() {
     if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
         throw std::runtime_error("Read failed");
 
-    const std::string bufferView(buffer.data());
+    const std::string& bufferView(buffer.data());
     std::cout << bufferView << std::endl;
 
-    m_mapSize = getMapSize(bufferView);
+    m_mapSize = parseMapSize(bufferView);
     m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
     updateMap(bufferView);
 
@@ -64,6 +64,52 @@ void App::createIslands() {
     for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
         for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
             m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(i * 5, -0.1, j * 5), glm::vec3(1.8, 0.1, 1.8), glm::vec3(0, 0, 0)}));
+}
+
+void App::createScene() {
+    m_scene->staticActors.clear();
+    createIslands();
+
+    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
+        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
+            const TileContent& tile = m_map[static_cast<size_t>(i + m_mapSize[0] / 2)][static_cast<size_t>(j + m_mapSize[1] / 2)];
+
+            static const std::map<RessourceType, glm::vec2> ressourceOffset = {
+                {FOOD, {-1.5, -1.5}},
+                {LINEMATE, {-1, -1.5}},
+                {DERAUMERE, {0.5, -1.5}},
+                {SIBUR, {0, -1.5}},
+                {MENDIANE, {0.5, -1.5}},
+                {PHIRAS, {1, -1.5}},
+                {THYSTAME, {1.5, -1.5}}
+            };
+
+            static const std::map<RessourceType, const std::shared_ptr<StaticMesh>> ressourceMesh = {
+                {FOOD, std::make_shared<StaticMesh>("../assets/cube.obj")},
+                {LINEMATE, std::make_shared<StaticMesh>("../assets/cube.obj")},
+                {DERAUMERE, std::make_shared<StaticMesh>("../assets/cube.obj")},
+                {SIBUR, std::make_shared<StaticMesh>("../assets/cube.obj")},
+                {MENDIANE, std::make_shared<StaticMesh>("../assets/cube.obj")},
+                {PHIRAS, std::make_shared<StaticMesh>("../assets/cube.obj")},
+                {THYSTAME, std::make_shared<StaticMesh>("../assets/cube.obj")}
+            };
+
+            for (const auto& [ressourceType, offset] : ressourceOffset) {
+                const glm::vec3 ressourcePosition = glm::vec3((i * 5) + offset[0], 0.5, (j * 5 + offset[1]));
+                static constexpr glm::vec3 ressourceScale = glm::vec3(0.1, 0.1, 0.1);
+                static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
+
+                for (int f = 0; f < tile.ressources[ressourceType]; f++)
+                    m_scene->staticActors.push_back(
+                        Renderer::StaticActor({
+                            ressourceMesh.at(ressourceType),
+                            ressourcePosition + glm::vec3(0, 0.5 * f, 0),
+                            ressourceScale, ressourceRotation
+                        })
+                    );
+            }
+        }
+    }
 }
 
 void App::updateMap(const std::string& buffer) {
@@ -109,7 +155,7 @@ void App::connectToServer(int port) {
         throw std::runtime_error("Write failed");
 }
 
-glm::vec2 App::getMapSize(const std::string& buffer) {
+glm::vec2 App::parseMapSize(const std::string& buffer) {
     glm::vec2 mapSize;
 
     size_t pos = buffer.find("msz");
@@ -150,8 +196,9 @@ void App::run() {
             if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
                 throw std::runtime_error("Read failed");
 
-            const std::string bufferView(buffer.data());
+            const std::string& bufferView(buffer.data());
             updateMap(bufferView);
+            createScene();
         }
 
         m_renderer->render(m_scene, static_cast<float>(m_speed));

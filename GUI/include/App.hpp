@@ -50,9 +50,12 @@ class App {
         int m_socket = 0;
         void connectToServer(int port);
 
-        static glm::vec2 getMapSize(const std::string& buffer);
         void updateMap(const std::string& buffer);
-
+        static glm::vec2 parseMapSize(const std::string& buffer);
         void parseConnectionResponse();
+
+
+        void createScene();
         void createIslands();
+        void createRessources();
 };

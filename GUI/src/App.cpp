@@ -36,6 +36,61 @@ App::~App() {
     close(m_socket);
 }
 
+void App::updatePlayers(const std::string& bufferView) {
+    size_t pos = bufferView.find("pnw");
+    while (pos != std::string::npos) {
+        const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        glm::ivec2 position;
+        position[0] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        position[1] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        position = (position - m_mapSize / 2) * 5;
+
+        const int orientation = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        const int level = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        pos = bufferView.find(' ', pos) + 1;
+
+        const std::string teamName = bufferView.substr(pos, bufferView.find('\n', pos) - pos);
+
+        m_players[playerNumber] = Player {
+            .position = glm::vec3(position[0], 0.5, position[1]),
+            .direction = glm::vec2(orientation, 0),
+            .team = teamName,
+            .level = level
+        };
+
+        pos = bufferView.find("pnw", pos);
+        std::cout << "New player: " << playerNumber << " at " << position[0] << ", " << position[1] << " looking " << orientation << " level " << level << " in team " << teamName << "\n";
+    }
+
+    pos = bufferView.find("ppo");
+    while (pos != std::string::npos) {
+        const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        glm::ivec2 position;
+        position[0] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        position[1] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        position = (position - m_mapSize / 2) * 5;
+
+        const int orientation = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        m_players[playerNumber].position = glm::vec3(position[0], 0.5, position[1]);
+        m_players[playerNumber].direction = glm::vec2(orientation, 0);
+
+        pos = bufferView.find("ppo", pos);
+    }
+}
+
 void App::parseConnectionResponse() {
     std::array<char, BUFFER_SIZE> buffer{};
     buffer.fill(0);
@@ -48,6 +103,7 @@ void App::parseConnectionResponse() {
     m_mapSize = parseMapSize(bufferView);
     m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
     updateMap(bufferView);
+    updatePlayers(bufferView);
 
     {   // Get the speed (sgt in the bufferView)
         size_t pos = bufferView.find("sgt ");
@@ -61,8 +117,8 @@ void App::parseConnectionResponse() {
 void App::createIslands() {
     static std::shared_ptr<StaticMesh> islandMesh = std::make_shared<StaticMesh>("../assets/cube.obj");
 
-    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
-        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
+    for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
+        for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
             m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(i * 5, -0.1, j * 5), glm::vec3(1.8, 0.1, 1.8), glm::vec3(0, 0, 0)}));
 }
 
@@ -70,9 +126,9 @@ void App::createScene() {
     m_scene->staticActors.clear();
     createIslands();
 
-    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
-        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
-            const TileContent& tile = m_map[static_cast<size_t>(i + m_mapSize[0] / 2)][static_cast<size_t>(j + m_mapSize[1] / 2)];
+    for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
+        for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
+            const TileContent& tile = m_map[i + m_mapSize[0] / 2][j + m_mapSize[1] / 2];
 
             static const std::map<RessourceType, glm::vec2> ressourceOffset = {
                 {FOOD, {-1.5, -1.5}},
@@ -95,7 +151,7 @@ void App::createScene() {
             };
 
             for (const auto& [ressourceType, offset] : ressourceOffset) {
-                const glm::vec3 ressourcePosition = glm::vec3((i * 5) + offset[0], 0.5, (j * 5 + offset[1]));
+                const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * 5) + offset[0], 0.5, (static_cast<float>(j) * 5 + offset[1]));
                 static constexpr glm::vec3 ressourceScale = glm::vec3(0.1, 0.1, 0.1);
                 static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
 
@@ -110,22 +166,30 @@ void App::createScene() {
             }
         }
     }
+
+    for (const auto& [playerNumber, player] : m_players) {
+        static const std::shared_ptr<StaticMesh> playerMesh = std::make_shared<StaticMesh>("../assets/cube.obj");
+        static constexpr glm::vec3 playerScale = glm::vec3(0.5, 1, 0.5);
+        static constexpr glm::vec3 playerRotation = glm::vec3(0, 0, 0);
+
+        m_scene->staticActors.push_back(Renderer::StaticActor({playerMesh, player.position, playerScale, playerRotation}));
+    }
 }
 
-void App::updateMap(const std::string& buffer) {
-    size_t pos = buffer.find("bct");
+void App::updateMap(const std::string& bufferView) {
+    size_t pos = bufferView.find("bct");
     while (pos != std::string::npos) {
-        int x = std::stoi(buffer.substr(buffer.find(' ', pos) + 1, buffer.find(' ', buffer.find(' ', pos) + 1) - buffer.find(' ', pos) - 1));
-        pos = buffer.find(' ', pos) + 1;
-        int y = std::stoi(buffer.substr(buffer.find(' ', pos) + 1, buffer.find(' ', buffer.find(' ', pos) + 1) - buffer.find(' ', pos) - 1));
-        pos = buffer.find(' ', pos) + 1;
+        int x = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        int y = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
 
         for (int i = 0; i < 7; i++) {
-            pos = buffer.find(' ', pos) + 1;
-            m_map[static_cast<size_t>(x)][static_cast<size_t>(y)].ressources[i] = std::stoi(buffer.substr(pos, buffer.find(' ', pos) - pos));
+            pos = bufferView.find(' ', pos) + 1;
+            m_map[static_cast<size_t>(x)][static_cast<size_t>(y)].ressources[i] = std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos));
         }
 
-        pos = buffer.find("bct", pos);
+        pos = bufferView.find("bct", pos);
     }
 }
 
@@ -155,17 +219,17 @@ void App::connectToServer(int port) {
         throw std::runtime_error("Write failed");
 }
 
-glm::vec2 App::parseMapSize(const std::string& buffer) {
-    glm::vec2 mapSize;
+glm::ivec2 App::parseMapSize(const std::string& bufferView) {
+    glm::ivec2 mapSize;
 
-    size_t pos = buffer.find("msz");
+    size_t pos = bufferView.find("msz");
     if (pos == std::string::npos)
         throw std::runtime_error("msz not found in welcome buffer");
 
-    pos += buffer.find(' ', pos) + 1;
-    mapSize[0] = std::stof(buffer.substr(pos, buffer.find(' ', pos) - pos));
-    pos = buffer.find(' ', pos) + 1;
-    mapSize[1] = std::stof(buffer.substr(pos, buffer.find('\n', pos) - pos));
+    pos += bufferView.find(' ', pos) + 1;
+    mapSize[0] = std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos));
+    pos = bufferView.find(' ', pos) + 1;
+    mapSize[1] = std::stoi(bufferView.substr(pos, bufferView.find('\n', pos) - pos));
 
     return mapSize;
 }
@@ -197,7 +261,9 @@ void App::run() {
                 throw std::runtime_error("Read failed");
 
             const std::string& bufferView(buffer.data());
+
             updateMap(bufferView);
+            updatePlayers(bufferView);
             createScene();
         }
 

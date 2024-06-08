@@ -27,6 +27,13 @@ class App {
             std::array<int, 7> ressources = {0, 0, 0, 0, 0, 0, 0};
         };
 
+        struct Player {
+            glm::vec3 position;
+            glm::vec2 direction;
+            std::string team;
+            int level;
+        };
+
     public:
         App(int port);
         ~App();
@@ -43,17 +50,18 @@ class App {
         std::unique_ptr<Renderer> m_renderer;
         std::shared_ptr<Renderer::Scene> m_scene;
 
-        glm::vec2 m_mapSize = {0, 0};
+        glm::ivec2 m_mapSize = {0, 0};
         unsigned int m_speed = 0;
         std::vector<std::vector<TileContent>> m_map;
+        std::map<int, Player> m_players;
 
         int m_socket = 0;
         void connectToServer(int port);
 
-        void updateMap(const std::string& buffer);
-        static glm::vec2 parseMapSize(const std::string& buffer);
+        void updateMap(const std::string& bufferView);
+        void updatePlayers(const std::string& bufferView);
+        static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
-
 
         void createScene();
         void createIslands();

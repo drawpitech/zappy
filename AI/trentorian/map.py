@@ -4,6 +4,7 @@ Module providing the Map class
 """
 
 import dataclasses
+from time import time
 
 NEVER_UPDATED = -1
 
@@ -63,7 +64,7 @@ class MapTile:
     """
     x: int
     y: int
-    last_update: int
+    last_update: float
     content: dict
     player_infos: list[PlayerMapInfo]
 
@@ -75,6 +76,22 @@ class MapTile:
         total += ' '.join(map(str, self.content.values()))
         total += ' ' + '$' +'$'.join(str(PlayerMapInfo(*info)) for info in self.player_infos)
         return total
+
+    def fill_from_str(self, content_str: str) -> None:
+        """Update a tile from its new content
+
+        Args:
+            content_str (str): string of the content, as it is sended by the server
+        """
+        objects = content_str.strip().split()
+        self.content = default_map_tile_content() # TODO keep track of the known players
+        for obj in objects:
+            if obj not in self.content.keys():
+                continue
+            self.content[obj] += 1
+        self.last_update = time()
+        return
+
 
     @classmethod
     def from_str(cls, map_tile_str: str) -> "MapTile":

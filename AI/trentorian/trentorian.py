@@ -121,17 +121,17 @@ class Trantorian:
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.RIGHT
 
-    def born(self, queue: Queue):
+    def born(self, queue: Queue): # TODO check the  problem when server close
         """launch a trantorian and do its life
 
         Args:
             queue (Queue): process shared queu (for birth)
         """
         try:
+            # self.look_around()
             queue.put("birth")
             self.first_level()
             while self.iter(): # all the ai code should be in this loop
-                # self.look_around()
                 continue
             print("died")
         except BrokenPipeError:
@@ -328,10 +328,21 @@ class Trantorian:
             return False
         self.client.send_cmd("Look")
         cases = split_list(self.wait_answer())
-        if cases == []:
+        nb_case: int = len(cases)
+        i: int = 1
+        current = 1
+        while i < 9 and current < nb_case:
+            current += 1 + 2 * i
+            i += 1
+        if nb_case != current:
+            print("Parsing Failed")
             return False
-        for i in range(len(cases)): # TODO properly set the map
-            print(cases[i])
+        self.level = i - 1
+
+        self.known_map.tiles[self.y][self.x].fill_from_str(cases.pop(0))
+        for i in range(1, self.level + 1):
+            for x in range(self.x - i, self.x + 1 + 1):
+                self.known_map.tiles[self.y - i][x].fill_from_str(cases.pop(0))
         return True
 
     def get_inventory(self) -> bool:

@@ -7,6 +7,7 @@
 
 #include "server.h"
 #include "arg_parse.h"
+#include "time.h"
 
 #include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
@@ -25,15 +26,6 @@ const double DENSITIES[] = {
     [MENDIANE] = 0.1,
     [PHIRAS] = 0.08,
     [THYSTAME] = 0.05
-};
-
-char const * const flags[] = {
-    "-p",
-    "-x",
-    "-y",
-    "-n",
-    "-c",
-    "-f",
 };
 
 static int init_server(server_t *serv, int port)
@@ -176,46 +168,6 @@ int iterate_ai_clients(server_t *server)
     return 0;
 }
 
-UNUSED static void debug_ctx(context_t *ctx)
-{
-    printf("Port: %d\n", ctx->port);
-    printf("Width: %ld\n", ctx->width);
-    printf("Height: %ld\n", ctx->height);
-
-    for (size_t i = 0; i < ctx->names->nb_elements; ++i)
-        printf("%s\n", (char *)ctx->names->elements[i]);
-}
-
-static
-int check_flags(const int *array, char *argv[])
-{
-    for (int i = 0; i < 6; ++i)
-        if (strcmp(argv[array[i]], flags[i]) != 0)
-            return RET_ERROR;
-    return RET_VALID;
-}
-
-static
-int arg_parse(const int argc, char *argv[], context_t *ctx)
-{
-    int adjust = (strcmp(argv[argc - 1], "-v") == 0 || strcmp(argv[argc - 1], "--verbose") == 0) ? 1 : 0;
-    int array[6] = {1, 3, 5, 7, argc - 4 - adjust, argc - 2 - adjust};
-
-    if (argc < 13)
-        return RET_ERROR;
-    if (check_flags(array, argv) != RET_VALID)
-        return RET_ERROR;
-    ctx->names = array_constructor();
-    // TODO error handling with atoi (maybe port under 1024 ?)
-    ctx->port = atoi(argv[2]);
-    ctx->width = atoi(argv[4]);
-    ctx->height = atoi(argv[6]);
-    for (int i = 8; i < array[4]; ++i)
-        add_elt_to_array(ctx->names, argv[i]);
-    debug_ctx(ctx);
-    return RET_VALID;
-}
-
 static void refill_map(server_t *server, context_t *ctx)
 {
     size_t spread = 0;
@@ -242,66 +194,9 @@ static int init_map(server_t *server, context_t *ctx)
     return RET_VALID;
 }
 
-//payload_t get_cell_payload(server_t *server, context_t *ctx, struct {int x; int y;} *pos)
-
-static
-payload_t *get_cell_payload(server_t *server, context_t *ctx, vector_t *pos)
+UNUSED static void debug_payload(look_payload_t *payload)
 {
-    payload_t *payload = malloc(sizeof(payload_t));
-
-    for (size_t i = 0; i < LEN(DENSITIES); ++i)
-        payload->res[i] = server->map[IDX(pos->x, pos->y, ctx->width, ctx->height)].res[i];
-    return payload;
-}
-
-static
-look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client)
-{
-    int cell_idx = 0;
-    look_payload_t *payload = malloc(sizeof(look_payload_t));
-    for (size_t i = 0; i < LEN(payload->cell_content); ++i) {
-        for (size_t j = 0; j < LEN(payload->cell_content[i].res); ++j) {
-            payload->cell_content[i].res[j].r_name= j;
-            payload->cell_content[i].res[j].quantity = 0;
-        }
-    }
-
-    switch (client->dir) {
-        case NORTH:
-            for (int i = 1; i <= client->lvl; ++i) {
-                for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
-                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){x, client->pos.y - i});
-                }
-            }
-            break;
-        case EAST:
-            for (int i = 1; i <= client->lvl; ++i) {
-                for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
-                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){client->pos.x - i, y});
-                }
-            }
-            break;
-        case SOUTH:
-            for (int i = 1; i <= client->lvl; ++i) {
-                for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
-                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){x, client->pos.y + i});
-                }
-            }
-            break;
-        case WEST:
-            for (int i = 1; i <= client->lvl; ++i) {
-                for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
-                    payload->cell_content[cell_idx++] = *get_cell_payload(server, ctx, &(vector_t){client->pos.x + i, y});
-                }
-            }
-            break;
-    }
-    return payload;
-}
-
-static void debug_payload(look_payload_t *payload)
-{
-    for (size_t i = 0; i < LEN(payload->cell_content); ++i) {
+    for (size_t i = 0; i < payload->size; ++i) {
         printf("%d\n", payload->cell_content[i].res[FOOD].quantity);
     }
 }

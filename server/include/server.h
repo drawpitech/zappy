@@ -9,10 +9,10 @@
 
 #include "array.h"
 
+#include <stdlib.h>
 #include <bits/stdint-uintn.h>
 #include <unistd.h>
 #include <stdbool.h>
-#include <uuid/uuid.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
@@ -46,7 +46,7 @@ typedef struct {
     int y;
 } vector_t;
 
-extern const double DENSITIES[];
+extern const double DENSITIES[7];
 
 struct cell_s {
     vector_t pos;
@@ -60,8 +60,8 @@ typedef struct payload_s {
 } payload_t;
 
 typedef struct look_payload_s {
-    uint32_t player_lvl;
     size_t size;
+    size_t idx;
     payload_t *cell_content;
 } look_payload_t;
 
@@ -98,3 +98,5 @@ typedef struct server_s {
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);
+payload_t *get_cell_payload(server_t *server, context_t *ctx, vector_t *pos);
+look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client);

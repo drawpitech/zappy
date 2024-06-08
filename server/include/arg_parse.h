@@ -6,5 +6,4 @@
 */
 
 #pragma once
-
-extern char const * const flags[];
+int arg_parse(const int argc, char *argv[], context_t *ctx);

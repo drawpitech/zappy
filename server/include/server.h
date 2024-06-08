@@ -9,7 +9,6 @@
 
 #include "array.h"
 
-#include <stdlib.h>
 #include <bits/stdint-uintn.h>
 #include <unistd.h>
 #include <stdbool.h>
@@ -98,5 +97,5 @@ typedef struct server_s {
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);
-payload_t *get_cell_payload(server_t *server, context_t *ctx, vector_t *pos);
+payload_t *get_cell_payload(server_t *server, context_t *ctx, vector_t *pos, payload_t *payload);
 look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client);

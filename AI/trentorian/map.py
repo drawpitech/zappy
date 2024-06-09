@@ -66,7 +66,7 @@ class MapTile:
     y: int
     last_update: float
     content: dict
-    player_infos: list[PlayerMapInfo]
+    player_infos: list[PlayerMapInfo] #TODO remove player infos, it is useless
 
     def __iter__(self):
         return iter((self.x, self.y, self.last_update, self.content, self.player_infos))

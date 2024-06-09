@@ -19,7 +19,7 @@ from utils import (
     determine_direction,
     check_levelup
 )
-
+# TODO use init file for the module
 
 ############################### UTILS #########################################
 def split_list(msg: str) -> list[str]:
@@ -97,7 +97,7 @@ class SoundDirection(IntEnum):
 class Trantorian:
     """Class for a trantorian
     """
-    def __init__(self, host: str, port: int, team: str): # TODO decrement the food with time
+    def __init__(self, host: str, port: int, team: str):
         self.host = host
         self.port = port
         try:
@@ -121,18 +121,19 @@ class Trantorian:
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.UP
 
-    def born(self, queue: Queue): # TODO check the  problem when server close
+    def born(self, queue: Queue):
         """launch a trantorian and do its life
 
         Args:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            # queue.put("birth")
             self.first_level()
             # self.look_around()
             # print(self.known_map)
-            while self.iter(): # all the ai code should be in this loop
+            self.asexual_multiplication(queue)
+            while not self.dead:# self.iter(): # all the ai code should be in this loop
+                self.forward()
                 continue
             print("died")
         except BrokenPipeError:
@@ -143,8 +144,9 @@ class Trantorian:
     def first_level(self) -> None:
         """script to fastly go to level 2 and acquire some food
         """
+        # TODO broadcast our birth to get our position
         ready: bool = False
-        while self.iter() and not ready:
+        while self.iter() and not ready: # TODO look to know where there is linemate
             self.forward()
             self.take_object("linemate")
             direct: int = random.randint(0, 5)
@@ -179,6 +181,7 @@ class Trantorian:
         self.get_inventory()
         if self.inventory["food"] > 5:
             return True
+        # TODO look to optimise the search process
         while self.inventory["food"] < 20: # TODO check that we dont go out of the zone, maybe loo to go faster
             if self.dead:
                 return False
@@ -204,7 +207,7 @@ class Trantorian:
             if answer[:5] == 'eject':
                 self.handle_eject(answer)
             answer = self.client.get_answer()
-        if answer[:4] == "dead": # TODO not sure that this is properly handled
+        if answer[:4] == "dead":
             self.dead = True
         return answer
 
@@ -281,11 +284,12 @@ class Trantorian:
         if answer != 'ok':
             return False
         x, y = self.direction.get_offset()
+        self.known_map.tiles[self.y][self.x].content["player"] -= 1
         self.x += x
         self.y += y
         self.x %= self.client.size_x
         self.y %= self.client.size_y
-        # TODO update the map to contain ourself at the good position
+        self.known_map.tiles[self.y][self.x].content["player"] += 1
         return True
 
     def right(self) -> bool:
@@ -320,7 +324,7 @@ class Trantorian:
         self.direction = TrantorianDirection((self.direction + 1) % 4)
         return True
 
-    def look_around(self) -> bool: # TODO
+    def look_around(self) -> bool:
         """try to look around
         time limit : 7/f
 
@@ -421,9 +425,12 @@ class Trantorian:
             return False
         return True
 
-    def asexual_multiplication(self) -> bool:
+    def asexual_multiplication(self, queue: Queue) -> bool:
         """selffucking for a new trantorian
         time limit : 42/f
+
+        Args:
+            queue (Queue): Queue to put in the good hole to fertilize itself
 
         Returns:
             bool: false if self is sterile
@@ -433,6 +440,7 @@ class Trantorian:
         self.client.send_cmd("Fork")
         if self.wait_answer() != 'ok':
             return False
+        queue.put("birth")
         # self.broadcast("birth at my pos") # TODO send a message to other
         return True
 
@@ -489,7 +497,7 @@ class Trantorian:
         self.global_inventory[obj] -= 1
         return True
 
-    def start_incantation(self) -> bool:
+    def start_incantation(self) -> bool: # TODO check what happend for player on the same tile
         """Start the incantation
         time limit : 300/f
 

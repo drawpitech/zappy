@@ -119,7 +119,7 @@ class Trantorian:
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
         }
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
-        self.direction: TrantorianDirection = TrantorianDirection.RIGHT
+        self.direction: TrantorianDirection = TrantorianDirection.UP
 
     def born(self, queue: Queue): # TODO check the  problem when server close
         """launch a trantorian and do its life
@@ -340,9 +340,20 @@ class Trantorian:
         self.level = i - 1
 
         self.known_map.tiles[self.y][self.x].fill_from_str(cases.pop(0))
+        direct: int = -1
+        if self.direction in [TrantorianDirection.DOWN, TrantorianDirection.LEFT]:
+            direct = 1
+        print(self.direction)
+        if self.direction in [TrantorianDirection.UP, TrantorianDirection.DOWN]:
+            for i in range(1, self.level + 1):
+                yc = (self.y + i * direct) % self.client.size_y
+                for x in range(self.x - i, self.x + 1 + i):
+                    self.known_map.tiles[yc][x % self.client.size_x].fill_from_str(cases.pop(0))
+            return True
         for i in range(1, self.level + 1):
-            for x in range(self.x - i, self.x + 1 + 1):
-                self.known_map.tiles[self.y - i][x].fill_from_str(cases.pop(0))
+            xc = (self.x + i * direct) % self.client.size_x
+            for y in range(self.y - i, self.y + i + 1):
+                self.known_map.tiles[y % self.client.size_y][xc].fill_from_str(cases.pop(0))
         return True
 
     def get_inventory(self) -> bool:

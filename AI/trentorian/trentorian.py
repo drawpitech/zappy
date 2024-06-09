@@ -31,7 +31,8 @@ def split_list(msg: str) -> list[str]:
     Returns:
         list[str]: resulting list
     """
-    if msg[0] != '[' or msg[-1] != ']':
+    if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
+        print("Parsing failed")
         return []
     sp = msg[1:-1].split(',')
 
@@ -101,8 +102,7 @@ class Trantorian:
         self.port = port
         try:
             self.client = Client(host, port, team)
-        except RuntimeError as err:
-            print(err.args[0])
+        except (RuntimeError, ConnectionRefusedError) as err:
             raise RuntimeError("Trentor didn't connect to server") from err
         self.team: str = team
         self.level: int = 1
@@ -128,9 +128,10 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            # self.look_around()
-            queue.put("birth")
+            # queue.put("birth")
             self.first_level()
+            # self.look_around()
+            # print(self.known_map)
             while self.iter(): # all the ai code should be in this loop
                 continue
             print("died")
@@ -179,6 +180,8 @@ class Trantorian:
         if self.inventory["food"] > 5:
             return True
         while self.inventory["food"] < 20: # TODO check that we dont go out of the zone, maybe loo to go faster
+            if self.dead:
+                return False
             self.forward()
             self.take_object("food")
             direct: int = random.randint(0, 5)
@@ -328,6 +331,8 @@ class Trantorian:
             return False
         self.client.send_cmd("Look")
         cases = split_list(self.wait_answer())
+        if cases == []:
+            return False
         nb_case: int = len(cases)
         i: int = 1
         current = 1

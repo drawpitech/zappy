@@ -50,11 +50,13 @@ class Client:
             str: server answer
         """
         while '\n' not in self.buffer:
-            new = self.socket.recv(1024).decode()
+            try:
+                new = self.socket.recv(1024).decode()
+            except ConnectionResetError:
+                self.buffer = "dead\n"
             if new == "":
-                self.buffer += "\ndead\n"
-            else :
-                self.buffer += new
+                self.buffer = "dead\n"
+            self.buffer += new
         last_answer, self.buffer = self.buffer.split('\n', maxsplit=1)
         return last_answer
 

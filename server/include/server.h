@@ -86,6 +86,7 @@ typedef struct ai_client_s {
         WEST
     } dir;
     int lvl;
+    char buffer[4096];
 } ai_client_t;
 
 typedef struct server_s {

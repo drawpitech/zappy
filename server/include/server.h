@@ -99,3 +99,4 @@ typedef struct server_s {
 int server(UNUSED int argc, UNUSED char **argv);
 payload_t *get_cell_payload(server_t *server, context_t *ctx, vector_t *pos, payload_t *payload);
 look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client);
+int iterate_ai_clients(server_t *server);

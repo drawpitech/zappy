@@ -6,4 +6,7 @@
 */
 
 #pragma once
-int arg_parse(const int argc, char *argv[], context_t *ctx);
+
+#include "server.h"
+
+int arg_parse(int argc, char *argv[], context_t *ctx);

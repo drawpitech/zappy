@@ -42,7 +42,7 @@ static int init_server(server_t *serv, int port)
             serv->s_fd, (struct sockaddr *)&serv->s_addr,
             sizeof serv->s_addr) == -1)
         return RET_ERROR;
-    listen(serv->s_fd, 5);
+    listen(serv->s_fd, 10);
     return RET_VALID;
 }
 
@@ -102,11 +102,15 @@ void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
         return;
     }
     buffer[bytes_read] = '\0';
-    if (strcmp(buffer, "GRAPHIC\n") == 0) {
+    if (strncmp(buffer, "GRAPHIC\n", bytes_read) == 0) {
+        write(client_fd, "ko\n", 3);
         // TODO implement GUI client
     } else {
-        //TODO error handling
+        // TODO:
+        // - add client to correct team
+        // - error handling
         init_ai_client(serv, ctx, client_fd, buffer);
+        remove_elt_to_array(&serv->waitlist_fd, i);
     }
 }
 
@@ -127,43 +131,6 @@ int iterate_waitlist(server_t *server, context_t *ctx)
             continue;
         if (FD_ISSET(client_fd + 1, &rfd))
             handle_waitlist(server, i, client_fd, ctx);
-    }
-    return 0;
-}
-
-static
-void handle_ai_client(server_t *serv, size_t i, int client_fd)
-{
-
-    char buffer[DEFAULT_SIZE];
-    ssize_t bytes_read = 0;
-    ai_client_t *ai_client = NULL;
-
-    bytes_read = read(client_fd, buffer, DEFAULT_SIZE);
-    if (bytes_read <= 0) {
-        remove_elt_to_array(&serv->waitlist_fd, i);
-        return;
-    }
-    buffer[bytes_read] = '\0';
-}
-
-static
-int iterate_ai_clients(server_t *server)
-{
-    fd_set rfd;
-    struct timeval timeout;
-    int client_fd = 0;
-
-    for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
-        client_fd = ((int*)server->ai_clients.elements[i])[0];
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 1000;
-        FD_ZERO(&rfd);
-        FD_SET(client_fd, &rfd);
-        if (select(client_fd + 1, &rfd, NULL, NULL, &timeout) < 0)
-            continue;
-        if (FD_ISSET(client_fd + 1, &rfd))
-            handle_ai_client(server, i, client_fd);
     }
     return 0;
 }
@@ -208,11 +175,9 @@ int server(UNUSED int argc, UNUSED char **argv)
 
     srand(time(NULL));
 
-    if (arg_parse(argc, argv, &ctx) != RET_VALID)
-        return RET_ERROR;
-    if (init_server(&server, ctx.port) != RET_VALID)
-        return RET_ERROR;
-    if (init_map(&server, &ctx) != RET_VALID)
+    if (arg_parse(argc, argv, &ctx) != RET_VALID
+        || init_server(&server, ctx.port) != RET_VALID
+        || init_map(&server, &ctx) != RET_VALID)
         return RET_ERROR;
 
     // test
@@ -225,7 +190,6 @@ int server(UNUSED int argc, UNUSED char **argv)
     debug_payload(payload);
     //
 
-    /*
     for (int fd = -1;; fd = -1) {
         fd = new_client(&server);
         if (fd != -1)
@@ -234,6 +198,5 @@ int server(UNUSED int argc, UNUSED char **argv)
         iterate_ai_clients(&server);
     }
     // close_server(&serv);
-    */
     return RET_VALID;
 }

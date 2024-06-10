@@ -5,6 +5,8 @@
 ** arg_parse
 */
 
+#include "arg_parse.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +35,7 @@ static int check_flags(const int *array, char *argv[])
     return RET_VALID;
 }
 
-int arg_parse(const int argc, char *argv[], context_t *ctx)
+int arg_parse(int argc, char *argv[], context_t *ctx)
 {
     int adjust =
         (strcmp(argv[argc - 1], "-v") == 0 ||

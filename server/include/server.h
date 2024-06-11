@@ -18,7 +18,7 @@
 #define ATTR(x) __attribute__((x))
 #define UNUSED ATTR(unused)
 #define LEN(x) (sizeof(x) / sizeof*(x))
-#define IDX(x, y, w, h) ((((y) % (h) + (h)) % (h)) * (w) + (((x) % (w) + (w)) % (w)))
+#define IDX(x, y, w, h) ((((y) + (h)) % (h)) * (w) + (((x) + (w)) % (w)))
 
 enum {
     RET_VALID = 0,

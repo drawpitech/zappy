@@ -9,9 +9,18 @@
 
 #include "server.h"
 
-struct ai_cmd_s{
+typedef struct {
+    server_t *server;
+    struct context_s *ctx;
+    size_t ai_idx;
+    ai_client_t *ai;
+} ai_cmd_ctx_t;
+
+typedef void (*ai_cmd_func_t)(ai_cmd_ctx_t *, char *);
+
+struct ai_cmd_s {
     const char *cmd;
-    void (*const func)(server_t *, size_t, ai_client_t *, char *);
+    const ai_cmd_func_t func;
 };
 
 extern const struct ai_cmd_s *const AI_CLIENT_COMMANDS;

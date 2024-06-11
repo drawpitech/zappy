@@ -16,8 +16,7 @@
 // - There will be some big issues if a users tries to send > 4096 bytes
 // without a \n.
 
-static void exec_ai_cmd(
-    server_t *serv, size_t idx, ai_client_t *client, char *buffer)
+static void exec_ai_cmd(ai_cmd_ctx_t *ctx, char *buffer)
 {
     char *content = NULL;
     struct ai_cmd_s *cmd = NULL;
@@ -31,45 +30,44 @@ static void exec_ai_cmd(
     }
     cmd = get_ai_cmd(buffer);
     if (cmd == NULL || cmd->func == NULL) {
-        write(client->s_fd, "ko\n", 3);
+        write(ctx->ai->s_fd, "ko\n", 3);
         return;
     }
-    cmd->func(serv, idx, client, content);
+    cmd->func(ctx, content);
 }
 
-static bool process_ai_cmd(
-    server_t *serv, size_t idx, ai_client_t *client, char **ptr)
+static bool process_ai_cmd(ai_cmd_ctx_t *ctx, char **ptr)
 {
     char *buffer = *ptr;
     char *newline = strchr(buffer, '\n');
 
     if (newline == NULL) {
-        strcat(client->buffer, buffer);
+        strcat(ctx->ai->buffer, buffer);
         return false;
     }
     *newline = '\0';
     if (buffer != newline && *(newline - 1) == '\r')
         *(newline - 1) = '\0';
-    exec_ai_cmd(serv, idx, client, buffer);
+    exec_ai_cmd(ctx, buffer);
     *ptr = newline + 1;
     return true;
 }
 
-static void handle_ai_client(server_t *serv, size_t idx, ai_client_t *client)
+static void handle_ai_client(ai_cmd_ctx_t *ctx)
 {
-    char buffer[sizeof client->buffer];
+    char buffer[sizeof ctx->ai->buffer];
     ssize_t bytes_read = 0;
     size_t offset = strlen(buffer);
 
-    strcpy(buffer, client->buffer);
-    client->buffer[0] = '\0';
-    bytes_read = read(client->s_fd, buffer + offset, sizeof buffer - offset);
+    strcpy(buffer, ctx->ai->buffer);
+    ctx->ai->buffer[0] = '\0';
+    bytes_read = read(ctx->ai->s_fd, buffer + offset, sizeof buffer - offset);
     if (bytes_read <= 0) {
-        remove_ai_client(serv, idx);
+        remove_ai_client(ctx->server, ctx->ai_idx);
         return;
     }
     buffer[bytes_read] = '\0';
-    for (char *ptr = buffer; process_ai_cmd(serv, idx, client, &ptr);)
+    for (char *ptr = buffer; process_ai_cmd(ctx, &ptr);)
         ;
 }
 
@@ -107,7 +105,7 @@ int remove_ai_client(server_t *server, size_t idx)
     return RET_VALID;
 }
 
-int iterate_ai_clients(server_t *server)
+int iterate_ai_clients(server_t *server, context_t *ctx)
 {
     fd_set rfd;
     struct timeval timeout;
@@ -122,7 +120,7 @@ int iterate_ai_clients(server_t *server)
         if (select(client->s_fd + 1, &rfd, NULL, NULL, &timeout) < 0 ||
             !FD_ISSET(client->s_fd, &rfd))
             continue;
-        handle_ai_client(server, i, client);
+        handle_ai_client(&(ai_cmd_ctx_t){server, ctx, i, client});
     }
     return 0;
 }

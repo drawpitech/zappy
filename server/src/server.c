@@ -177,7 +177,7 @@ int server(UNUSED int argc, UNUSED char **argv)
         if (fd != -1)
             add_client(&server, fd);
         iterate_waitlist(&server, &ctx);
-        iterate_ai_clients(&server);
+        iterate_ai_clients(&server, &ctx);
     }
     // close_server(&serv);
     return RET_VALID;

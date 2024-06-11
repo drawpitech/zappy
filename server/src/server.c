@@ -51,7 +51,7 @@ static void add_client(server_t *serv, int fd)
     int *fd_ptr = malloc(sizeof(int));
 
     *fd_ptr = fd;
-    add_elt_to_array(&serv->ai_clients, fd_ptr);
+    add_elt_to_array(&serv->waitlist_fd, fd_ptr);
     dprintf(fd, "WELCOME\n");
 }
 
@@ -110,6 +110,7 @@ void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
         // - add client to correct team
         // - error handling
         init_ai_client(serv, ctx, client_fd, buffer);
+        free(serv->waitlist_fd.elements[i]);
         remove_elt_to_array(&serv->waitlist_fd, i);
     }
 }
@@ -129,7 +130,7 @@ int iterate_waitlist(server_t *server, context_t *ctx)
         FD_SET(client_fd, &rfd);
         if (select(client_fd + 1, &rfd, NULL, NULL, &timeout) < 0)
             continue;
-        if (FD_ISSET(client_fd + 1, &rfd))
+        if (FD_ISSET(client_fd, &rfd))
             handle_waitlist(server, i, client_fd, ctx);
     }
     return 0;

@@ -103,3 +103,4 @@ look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client);
 
 int iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *team);
+int remove_ai_client(server_t *server, size_t idx);

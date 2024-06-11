@@ -65,7 +65,7 @@ static void handle_ai_client(server_t *serv, size_t idx, ai_client_t *client)
     client->buffer[0] = '\0';
     bytes_read = read(client->s_fd, buffer + offset, sizeof buffer - offset);
     if (bytes_read <= 0) {
-        remove_elt_to_array(&serv->ai_clients, idx);
+        remove_ai_client(serv, idx);
         return;
     }
     buffer[bytes_read] = '\0';
@@ -88,6 +88,22 @@ int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *team)
     add_elt_to_array(&server->ai_clients, client);
     dprintf(client_fd, "1\n");
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
+    return RET_VALID;
+}
+
+int remove_ai_client(server_t *server, size_t idx)
+{
+    ai_client_t *client = NULL;
+
+    if (idx >= server->ai_clients.nb_elements)
+        return RET_ERROR;
+    client = server->ai_clients.elements[idx];
+    if (client) {
+        if (client->s_fd > 0)
+            close(client->s_fd);
+        free(server->ai_clients.elements[idx]);
+    }
+    remove_elt_to_array(&server->ai_clients, idx);
     return RET_VALID;
 }
 

@@ -25,9 +25,9 @@ static const struct ai_cmd_s commands[] = {
     {"Get", NULL},
     {"Incantation", NULL},
     {"Inventory", NULL},
-    {"Left", NULL},
+    {"Left", ai_cmd_left},
     {"Look", NULL},
-    {"Right", NULL},
+    {"Right", ai_cmd_right},
     {"Take", NULL},
 };
 

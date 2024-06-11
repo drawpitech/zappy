@@ -72,25 +72,6 @@ static int new_client(server_t *serv)
 }
 
 static
-int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *buffer)
-{
-    ai_client_t *client = malloc(sizeof(ai_client_t));
-
-    if (client == NULL)
-        return RET_ERROR;
-    memset(client, 0, sizeof(ai_client_t));
-    strcpy(client->team, buffer);
-    client->s_fd = client_fd;
-    client->dir = rand() % 4;
-    client->pos.x = rand() % (int)ctx->width;
-    client->pos.y = rand() % (int)ctx->height;
-    add_elt_to_array(&server->ai_clients, client);
-    dprintf(client_fd, "1\n");
-    dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
-    return RET_VALID;
-}
-
-static
 void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
 {
     char buffer[DEFAULT_SIZE];

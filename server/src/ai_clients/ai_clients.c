@@ -6,6 +6,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "ai_internal.h"
@@ -70,6 +71,24 @@ static void handle_ai_client(server_t *serv, size_t idx, ai_client_t *client)
     buffer[bytes_read] = '\0';
     for (char *ptr = buffer; process_ai_cmd(serv, idx, client, &ptr);)
         ;
+}
+
+int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *team)
+{
+    ai_client_t *client = malloc(sizeof(ai_client_t));
+
+    if (client == NULL)
+        return RET_ERROR;
+    memset(client, 0, sizeof(ai_client_t));
+    strcpy(client->team, team);
+    client->s_fd = client_fd;
+    client->dir = rand() % 4;
+    client->pos.x = rand() % (int)ctx->width;
+    client->pos.y = rand() % (int)ctx->height;
+    add_elt_to_array(&server->ai_clients, client);
+    dprintf(client_fd, "1\n");
+    dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
+    return RET_VALID;
 }
 
 int iterate_ai_clients(server_t *server)

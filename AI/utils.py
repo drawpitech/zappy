@@ -4,6 +4,7 @@ Module providing some utilities for the ai
 """
 
 from enum import IntEnum
+from time import time
 
 class SoundDirection(IntEnum):
     """Sound direction enum
@@ -102,3 +103,79 @@ def check_levelup(inventory: dict, level: int, current_players: int) -> bool:
         if inventory[elements[i + 1]] < materials[i]:
             return False
     return True
+
+
+def pack_infos(players: dict, uid: float, inventory: dict, x: int, y: int) -> str:
+    """convert the playrs infos to a string
+
+    Args:
+        players (dict): dictionnary of all the teams members
+        uid (float): player uid
+        inventory (dict): player inventory
+        x (int): player pos x
+        y (int): player pos y
+
+    Returns:
+        str: packed infos
+    """
+    total: str = ""
+    for puid, infos in players:
+        inv, px, py, update = infos
+
+        total += f"{puid} {' '.join(map(str, inv.values()))} {px} {py} {update}|"
+    total += f"{uid} {' '.join(map(str, inventory.values()))} {x} {y} {time()}"
+
+def unpack_inventory(msg: str) -> dict:
+    """parse a string to an inventory
+
+    Args:
+        msg (str): string to parse
+
+    Returns:
+        dict: obateined inventory
+    """
+    inv = msg.strip().split()
+    res: dict = {
+            "food": 0, "linemate": 0, "deraumere": 0,
+            "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
+    }
+    try:
+        res["food"] = int(inv[0])
+        res["linemate"] = int(inv[1])
+        res["deraumere"] = int(inv[2])
+        res["sibur"] = int(inv[3])
+        res["mendiane"] = int(inv[4])
+        res["phiras"] = int(inv[5])
+        res["thystame"] = int(inv[6])
+    except (SyntaxError, ValueError, IndexError) as err:
+        raise SyntaxError("Invalid dictionary format") from err
+    return res
+
+def unpack_infos(msg: str, uid: str) -> dict:
+    """convert a string to a dic of the others players infos
+
+    Args:
+        msg (str): string to parse
+        uid (str): player uuid to skip
+
+    Returns:
+        dict: result
+    """
+    content: list = msg.strip().split('|')
+    res: dict = {}
+    for players in content:
+        infos = players.strip().split(' ')
+        if len(infos) != 4:
+            continue              # TODO raise an error
+        uuid, inv, x, y, last_u = infos
+        if uuid == uid:
+            continue
+        try:
+            inventory =  unpack_inventory(inv)
+            x = int(x)
+            y = int(y)
+            last_u = float(last_u)
+        except (SyntaxError, ValueError):
+            continue
+        res[uuid] = (inventory, x, y, last_u)
+    return res

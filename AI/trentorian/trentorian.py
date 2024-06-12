@@ -110,11 +110,8 @@ class Trantorian:
         self.y: int = 0
         self.dead: bool = False
         self.unused_slot: int = 1
+        self.others: dict = {} # uid : (inv, x, y, last update)
         self.inventory: dict = {
-            "food": 10, "linemate": 0, "deraumere": 0,
-            "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
-        }
-        self.global_inventory: dict = {
             "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
         }
@@ -128,12 +125,12 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            self.asexual_multiplication(queue)
+            # self.asexual_multiplication(queue)
             self.first_level()
             # self.look_around()
             # print(self.known_map)
             while self.iter(): # all the ai code should be in this loop
-                # self.forward()
+                self.wander()
                 continue
             print("died")
         except BrokenPipeError:
@@ -193,6 +190,54 @@ class Trantorian:
             elif direct == 2:
                 self.right()
         return True
+
+    def wander(self) -> None:
+        """look and take stuff until inventiry is enought to level up
+        """
+        while self.iter() and not check_levelup(self.inventory, self.level + 1, 2):
+            self.look_around()
+            for _ in range(self.level):
+                if not self.take_tile_objects():
+                    break
+                self.forward()
+            direct: int = random.randint(0, 5)
+            if direct == 1:
+                self.left()
+            elif direct == 2:
+                self.right()
+        return
+
+
+    def take_tile_objects(self) -> bool:
+        """take all the objects on the tile
+
+        Returns:
+            bool: true if all the object where taken, false if one didn't work
+        """
+        succes: bool = True
+        content: dict = self.known_map.tiles[self.y][self.x].content
+        for obj, quantity in content.items():
+            if obj == "egg" or obj == "player":
+                continue
+            for _ in range(quantity):
+                if self.take_object(obj):
+                    succes = False
+        return succes
+
+    def merge_others(self, received: dict) -> None:
+        """merge a received list of user into the current one
+
+        Args:
+            received (dict): received informations
+        """
+        for uuid, infos in received:
+            update = infos[4]
+            if uuid not in self.others:
+                self.others[uuid] = infos
+                continue
+            if update > self.others[uuid][3]:
+                self.others[uuid] = infos
+        return
 
     def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
         """wait for an answer, handle the message and eject
@@ -352,7 +397,6 @@ class Trantorian:
         direct: int = -1
         if self.direction in [TrantorianDirection.DOWN, TrantorianDirection.LEFT]:
             direct = 1
-        print(self.direction)
         if self.direction in [TrantorianDirection.UP, TrantorianDirection.DOWN]:
             for i in range(1, self.level + 1):
                 yc = (self.y + i * direct) % self.client.size_y
@@ -378,19 +422,14 @@ class Trantorian:
         content = split_list(self.wait_answer())
         if content == []:
             return False
-        newinv = {}
         for e in content:
             key, val = e.split()
             if key not in self.inventory:
                 return False
             try:
-                newinv[key] = int(val)
+                self.inventory[key] = int(val)
             except ValueError:
                 return False
-        for item, val in self.inventory.items():
-            diff = newinv[item] - val
-            self.global_inventory[item] += diff
-            self.inventory[item] = newinv[item]
         return True
 
     def broadcast(self, msg: str) -> bool: # TODO
@@ -472,7 +511,6 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         self.inventory[obj] += 1
-        self.global_inventory[obj] += 1
         return
 
     def drop_object(self, obj: str) -> bool:
@@ -494,7 +532,6 @@ class Trantorian:
         if obj not in self.inventory:
             return False
         self.inventory[obj] -= 1
-        self.global_inventory[obj] -= 1
         return True
 
     def start_incantation(self) -> bool: # TODO check what happend for player on the same tile

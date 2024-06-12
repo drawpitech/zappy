@@ -128,12 +128,12 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
+            self.asexual_multiplication(queue)
             self.first_level()
             # self.look_around()
             # print(self.known_map)
-            self.asexual_multiplication(queue)
-            while not self.dead:# self.iter(): # all the ai code should be in this loop
-                self.forward()
+            while self.iter(): # all the ai code should be in this loop
+                # self.forward()
                 continue
             print("died")
         except BrokenPipeError:
@@ -182,7 +182,7 @@ class Trantorian:
         if self.inventory["food"] > 5:
             return True
         # TODO look to optimise the search process
-        while self.inventory["food"] < 20: # TODO check that we dont go out of the zone, maybe loo to go faster
+        while self.inventory["food"] < 20:
             if self.dead:
                 return False
             self.forward()

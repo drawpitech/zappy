@@ -15,48 +15,11 @@ def default_map_tile_content() -> dict[str: int]:
         dict: empty dict
     """
     return {
-        "food": 0,
+        "food": 0, "egg": 0,
         "linemate": 0, "deraumere": 0, "sibur": 0,
         "mendiane": 0, "phiras": 0, "thystame": 0,
         "player": 0
     }
-
-@dataclasses.dataclass
-class PlayerMapInfo:
-    """Class for a player map info
-    """
-    direction: int
-    team: int
-
-    def __iter__(self):
-        return iter((self.direction, self.team))
-
-    def __str__(self) -> str:
-        return f'{self.direction}#{self.team}'
-
-    @classmethod
-    def from_str(cls, player_info_str: str) -> "PlayerMapInfo":
-        """create a PlayerMapInfo object from its str representation
-
-        Args:
-            player_info_str (str): str to parse
-
-        Raises:
-            ValueError: Parsing error
-
-        Returns:
-            PlayerMapInfo: resulting object
-        """
-        infos: list = player_info_str.strip().split('#')
-
-        if len(infos) != 2:
-            raise ValueError("Parsing Failed")
-        try:
-            direct = int(infos[0])
-            team = int(infos[1])
-        except ValueError as err:
-            raise ValueError("Parsing error") from err
-        return PlayerMapInfo(direct, team)
 
 @dataclasses.dataclass
 class MapTile:
@@ -66,15 +29,13 @@ class MapTile:
     y: int
     last_update: float
     content: dict
-    player_infos: list[PlayerMapInfo] #TODO remove player infos, it is useless
 
     def __iter__(self):
-        return iter((self.x, self.y, self.last_update, self.content, self.player_infos))
+        return iter((self.x, self.y, self.last_update, self.content))
 
     def __str__(self) -> str:
         total: str = f'{self.x} {self.y} {self.last_update} '
         total += ' '.join(map(str, self.content.values()))
-        total += ' ' + '$' +'$'.join(str(PlayerMapInfo(*info)) for info in self.player_infos)
         return total
 
     def fill_from_str(self, content_str: str) -> None:
@@ -84,7 +45,7 @@ class MapTile:
             content_str (str): string of the content, as it is sended by the server
         """
         objects = content_str.strip().split()
-        self.content = default_map_tile_content() # TODO keep track of the known players
+        self.content = default_map_tile_content()
         for obj in objects:
             if obj not in self.content.keys():
                 continue
@@ -131,16 +92,7 @@ class MapTile:
         except (SyntaxError, ValueError) as err:
             raise SyntaxError("Invalid content dictionary format in MapTile string") from err
 
-        if parts[-1][0] != '$':
-            raise SyntaxError("Invalid string")
-        player_infos: list[PlayerMapInfo] = []
-        try:
-            infos = parts[-1][1:].split('$')
-            if infos[0] != '':
-                player_infos = [PlayerMapInfo.from_str(inf) for inf in infos]
-        except (SyntaxError, ValueError) as err:
-            raise ValueError("Invalid player_infos list format in MapTile string") from err
-        return cls(x, y, last_update, content, player_infos)
+        return cls(x, y, last_update, content)
 
 @dataclasses.dataclass
 class Map:
@@ -240,7 +192,7 @@ def create_default_map(width: int, height: int) -> Map:
     for y in range(height):
         tiles_map.append([])
         for x in range(width):
-            tiles_map[y].append(MapTile(x, y, NEVER_UPDATED, default_map_tile_content(), []))
+            tiles_map[y].append(MapTile(x, y, NEVER_UPDATED, default_map_tile_content()))
     default_map : Map = Map(width, height, tiles_map)
     return default_map
 

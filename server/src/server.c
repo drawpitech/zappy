@@ -25,7 +25,8 @@ const double DENSITIES[] = {
     [SIBUR] = 0.1,
     [MENDIANE] = 0.1,
     [PHIRAS] = 0.08,
-    [THYSTAME] = 0.05
+    [THYSTAME] = 0.05,
+    [EGG] = 0
 };
 
 static int init_server(server_t *serv, int port)

@@ -20,6 +20,7 @@
 #define LEN(x) (sizeof(x) / sizeof*(x))
 #define MOD(x, y) (((x) + (y)) % (y))
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
+#define R_COUNT 8
 
 enum {
     RET_VALID = 0,
@@ -33,7 +34,8 @@ typedef enum {
     SIBUR,
     MENDIANE,
     PHIRAS,
-    THYSTAME
+    THYSTAME,
+    EGG
 } res_name_t;
 
 typedef struct {
@@ -46,17 +48,17 @@ typedef struct {
     int y;
 } vector_t;
 
-extern const double DENSITIES[7];
+extern const double DENSITIES[R_COUNT];
 
 struct cell_s {
     vector_t pos;
-    ressource_t res[7];
+    ressource_t res[R_COUNT];
 };
 
 typedef struct cell_s cell_t;
 
 typedef struct payload_s {
-    ressource_t res[7];
+    ressource_t res[R_COUNT];
 } payload_t;
 
 typedef struct look_payload_s {
@@ -78,7 +80,7 @@ typedef struct context_s {
 typedef struct ai_client_s {
     int s_fd;
     char team[512];
-    ressource_t res[7];
+    ressource_t res[R_COUNT];
     vector_t pos;
     enum {
         NORTH,

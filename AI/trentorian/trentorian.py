@@ -3,6 +3,7 @@
 Module providing the trantorian class
 """
 from enum import IntEnum
+from time import time
 import random
 from warnings import warn
 
@@ -17,8 +18,11 @@ from trentorian.map import (
 
 from utils import (
     determine_direction,
-    check_levelup
+    check_levelup,
+    pack_infos,
+    unpack_infos
 )
+
 # TODO use init file for the module
 
 ############################### UTILS #########################################
@@ -110,7 +114,9 @@ class Trantorian:
         self.y: int = 0
         self.dead: bool = False
         self.unused_slot: int = 1
-        self.others: dict = {} # uid : (inv, x, y, last update)
+        self.others: dict = {} # uid : (inv, lvl, x, y, last update)
+        self.received_messages: list = []
+        self.uid: str = str(time())
         self.inventory: dict = {
             "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
@@ -125,13 +131,20 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            # self.asexual_multiplication(queue)
+            self.asexual_multiplication(queue)
             self.first_level()
-            # self.look_around()
-            # print(self.known_map)
-            while self.iter(): # all the ai code should be in this loop
-                self.wander()
+            self.look_around()
+            self.broadcast("0", "0", ["all"])
+            self.iter()
+            while not self.dead:
+                self.take_object("troll")
                 continue
+            print(self.uid, self.known_map)
+            # self.first_level()
+            # self.look_around()
+            # while self.iter(): # all the ai code should be in this loop
+                # self.wander()
+                # continue
             print("died")
         except BrokenPipeError:
             print("Server closed socket")
@@ -258,11 +271,29 @@ class Trantorian:
 
     def receive_message(self, msg: str) -> None:
         """handle the broadcast reception
+            our messages are composed of :
+            "sender_uuid$receiver_uuid$type$content$infos$map"
 
         Args:
             msg (str): message sent by the server
         """
-        print(msg)
+        parts = msg.strip().split("$")
+        if len(parts) != 6:
+            self.received_messages.append(msg)
+            return
+        sender, receivers, msg_type, content, infos, received_map = parts
+        if receivers != "all" and self.uid not in receivers.split('|'):
+            return
+        info_unpacked = unpack_infos(infos, self.uid)
+        self.merge_others(info_unpacked)
+        try:
+            received_map = Map.from_str(received_map)
+            self.known_map = merge_maps(self.known_map, received_map)
+        except SyntaxError as err:
+            return
+        # TODO parse msg type and content
+        return
+
 
     def handle_eject(self, msg: str) -> None:
         """handle an ejection
@@ -329,12 +360,15 @@ class Trantorian:
         if answer != 'ok':
             return False
         x, y = self.direction.get_offset()
-        self.known_map.tiles[self.y][self.x].content["player"] -= 1
+        # TODO this cause probleme in the map serialization
+        # as the update time is not reset, we came to a point where player = -1
+        # if we update the last_time the objects will be wrong
+        # self.known_map.tiles[self.y][self.x].content["player"] -= 1
         self.x += x
         self.y += y
         self.x %= self.client.size_x
         self.y %= self.client.size_y
-        self.known_map.tiles[self.y][self.x].content["player"] += 1
+        # self.known_map.tiles[self.y][self.x].content["player"] += 1
         return True
 
     def right(self) -> bool:
@@ -432,18 +466,31 @@ class Trantorian:
                 return False
         return True
 
-    def broadcast(self, msg: str) -> bool: # TODO
+    def broadcast(self, msg_type: str, content: str, receivers: list[str]) -> bool: # TODO update the
         """broadcast a message
         time limit : 7/f
+        "sender_uuid$receiver_uuid$type$content$infos$map"
 
         Args:
-            msg (str): message to broadcast
+            msg_type (str): message type ("troll" for trolling)
+            content (str): message content
+            receivers (list[str]): list of receivers (["all"] for all, or [] for troll)
 
         Returns:
             bool: true if ok, otherwise false
         """
         if self.dead:
             return False
+        if receivers == []:
+            msg = self.received_messages.pop(0)
+            self.client.send_cmd("Broadcast " + msg)
+            return self.wait_answer() == 'ok'
+        msg = f'{self.uid}$'
+        msg += '|'.join(receivers) + '$'
+        msg += f'{msg_type}$'
+        msg += f'{content}$'
+        msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}$'
+        msg += str(self.known_map)
         self.client.send_cmd("Broadcast " + msg)
         return self.wait_answer() == 'ok'
 

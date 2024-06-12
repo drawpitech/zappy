@@ -105,13 +105,14 @@ def check_levelup(inventory: dict, level: int, current_players: int) -> bool:
     return True
 
 
-def pack_infos(players: dict, uid: float, inventory: dict, x: int, y: int) -> str:
+def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: int) -> str:
     """convert the playrs infos to a string
 
     Args:
         players (dict): dictionnary of all the teams members
         uid (float): player uid
         inventory (dict): player inventory
+        lvl (int): player level
         x (int): player pos x
         y (int): player pos y
 
@@ -120,10 +121,10 @@ def pack_infos(players: dict, uid: float, inventory: dict, x: int, y: int) -> st
     """
     total: str = ""
     for puid, infos in players:
-        inv, px, py, update = infos
+        inv, plvl, px, py, update = infos
 
-        total += f"{puid} {' '.join(map(str, inv.values()))} {px} {py} {update}|"
-    total += f"{uid} {' '.join(map(str, inventory.values()))} {x} {y} {time()}"
+        total += f"{puid} {' '.join(map(str, inv.values()))} {plvl} {px} {py} {update}|"
+    total += f"{uid} {' '.join(map(str, inventory.values()))} {lvl} {x} {y} {time()}"
 
 def unpack_inventory(msg: str) -> dict:
     """parse a string to an inventory
@@ -165,17 +166,18 @@ def unpack_infos(msg: str, uid: str) -> dict:
     res: dict = {}
     for players in content:
         infos = players.strip().split(' ')
-        if len(infos) != 4:
+        if len(infos) != 5:
             continue              # TODO raise an error
-        uuid, inv, x, y, last_u = infos
+        uuid, inv, lvl, x, y, last_u = infos
         if uuid == uid:
             continue
         try:
             inventory =  unpack_inventory(inv)
+            lvl = int(lvl)
             x = int(x)
             y = int(y)
             last_u = float(last_u)
         except (SyntaxError, ValueError):
             continue
-        res[uuid] = (inventory, x, y, last_u)
+        res[uuid] = (inventory, lvl, x, y, last_u)
     return res

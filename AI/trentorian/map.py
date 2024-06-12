@@ -6,7 +6,7 @@ Module providing the Map class
 import dataclasses
 from time import time
 
-NEVER_UPDATED = -1
+NEVER_UPDATED = 0
 
 def default_map_tile_content() -> dict[str: int]:
     """dictionnary representing an empty tile
@@ -34,8 +34,8 @@ class MapTile:
         return iter((self.x, self.y, self.last_update, self.content))
 
     def __str__(self) -> str:
-        total: str = f'{self.x} {self.y} {self.last_update} '
-        total += ' '.join(map(str, self.content.values()))
+        total: str = f'{self.x}-{self.y}-{self.last_update}-'
+        total += '-'.join(map(str, self.content.values()))
         return total
 
     def fill_from_str(self, content_str: str) -> None:
@@ -44,7 +44,7 @@ class MapTile:
         Args:
             content_str (str): string of the content, as it is sended by the server
         """
-        objects = content_str.strip().split()
+        objects = content_str.strip().split('-')
         self.content = default_map_tile_content()
         for obj in objects:
             if obj not in self.content.keys():
@@ -67,28 +67,28 @@ class MapTile:
         Returns:
             MapTile: tile unoacked from the str
         """
-        parts = map_tile_str.strip().split()
-
+        parts = map_tile_str.strip().split('-')
         if len(parts) != 12:
             raise SyntaxError("Invalid MapTile string format")
 
         try:
             x = int(parts[0])
             y = int(parts[1])
-            last_update = int(parts[2])
+            last_update = float(parts[2])
         except ValueError as err:
             raise SyntaxError("Invalid numerical values in MapTile string") from err
 
         content: dict[str: int] = default_map_tile_content()
         try:
             content["food"] = int(parts[3])
-            content["linemate"] = int(parts[4])
-            content["deraumere"] = int(parts[5])
-            content["sibur"] = int(parts[6])
-            content["mendiane"] = int(parts[7])
-            content["phiras"] = int(parts[8])
-            content["thystame"] = int(parts[9])
-            content["player"] = int(parts[10])
+            content["egg"] = int(parts[4])
+            content["linemate"] = int(parts[5])
+            content["deraumere"] = int(parts[6])
+            content["sibur"] = int(parts[7])
+            content["mendiane"] = int(parts[8])
+            content["phiras"] = int(parts[9])
+            content["thystame"] = int(parts[10])
+            content["player"] = int(parts[11])
         except (SyntaxError, ValueError) as err:
             raise SyntaxError("Invalid content dictionary format in MapTile string") from err
 
@@ -154,9 +154,6 @@ def merge_map_tiles(first_tile: MapTile, second_tile: MapTile) -> MapTile:
     """
     if first_tile.last_update > second_tile.last_update:
         return first_tile
-    if first_tile.last_update == NEVER_UPDATED:
-        return first_tile
-
     return second_tile
 
 def merge_maps(first_map: Map, second_map: Map) -> Map:
@@ -174,7 +171,7 @@ def merge_maps(first_map: Map, second_map: Map) -> Map:
 
     for y in range(first_map.height):
         for x in range(first_map.width):
-            first_map.tiles[y][x] = merge_map_tiles(first_map.tiles[y][x], second_map[y][x])
+            first_map.tiles[y][x] = merge_map_tiles(first_map.tiles[y][x], second_map.tiles[y][x])
 
     return first_map
 

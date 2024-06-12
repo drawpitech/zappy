@@ -1,4 +1,7 @@
 build/*
+note.txt
+test.py
+zappy_ref*/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

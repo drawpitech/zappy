@@ -126,9 +126,11 @@ void ai_cmd_look(server_t *server, ai_client_t *client, UNUSED char *args)
 
     for (size_t i = 0; i < payload->size; ++i) {
         for (short j = 0; j < R_COUNT; ++j) {
-            for (int k = 0; k < R_COUNT; ++k) {
-
+            for (int k = 0; k < client->res[j].quantity; ++k) {
+                dprintf(client->s_fd, "%s", r_name[j]);
             }
+            dprintf(client->s_fd, ", ");
         }
     }
+    dprintf(client->s_fd, "\n");
 }

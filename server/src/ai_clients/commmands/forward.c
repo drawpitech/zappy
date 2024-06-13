@@ -8,21 +8,22 @@
 #include "commands.h"
 #include "server.h"
 
-void ai_cmd_forward(ai_cmd_ctx_t *ctx, UNUSED char *args)
+void ai_cmd_forward(
+    UNUSED server_t *server, ai_client_t *client, UNUSED char *args)
 {
-    switch (ctx->ai->dir) {
+    switch (client->dir) {
         case NORTH:
-            ctx->ai->pos.y = (ctx->ai->pos.y - 1) % (int)ctx->ctx->height;
-            break;
-        case EAST:
-            ctx->ai->pos.x = (ctx->ai->pos.x + 1) % (int)ctx->ctx->width;
+            client->pos.y = (client->pos.y - 1) % (int)server->ctx.height;
             break;
         case SOUTH:
-            ctx->ai->pos.y = (ctx->ai->pos.y + 1) % (int)ctx->ctx->height;
+            client->pos.y = (client->pos.y + 1) % (int)server->ctx.height;
+            break;
+        case EAST:
+            client->pos.x = (client->pos.x + 1) % (int)server->ctx.width;
             break;
         case WEST:
-            ctx->ai->pos.x = (ctx->ai->pos.x - 1) % (int)ctx->ctx->width;
+            client->pos.x = (client->pos.x - 1) % (int)server->ctx.width;
             break;
     }
-    write(ctx->ai->s_fd, "ok\n", 3);
+    write(client->s_fd, "ok\n", 3);
 }

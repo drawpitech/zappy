@@ -7,8 +7,8 @@
 
 #pragma once
 
-#include "../ai_internal.h"
+#include "server.h"
 
-void ai_cmd_forward(ai_cmd_ctx_t *ctx, char *args);
-void ai_cmd_left(ai_cmd_ctx_t *ctx, char *args);
-void ai_cmd_right(ai_cmd_ctx_t *ctx, char *args);
+void ai_cmd_forward(server_t *server, ai_client_t *client, char *args);
+void ai_cmd_left(server_t *server, ai_client_t *client, char *args);
+void ai_cmd_right(server_t *server, ai_client_t *client, char *args);

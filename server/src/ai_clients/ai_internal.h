@@ -19,8 +19,9 @@ typedef struct {
 typedef void (*ai_cmd_func_t)(ai_cmd_ctx_t *, char *);
 
 struct ai_cmd_s {
-    const char *cmd;
-    const ai_cmd_func_t func;
+    char *cmd;
+    ai_cmd_func_t func;
+    size_t time;
 };
 
 extern const struct ai_cmd_s *const AI_CLIENT_COMMANDS;

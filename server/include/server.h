@@ -18,7 +18,7 @@
 #define ATTR(x) __attribute__((x))
 #define UNUSED ATTR(unused)
 #define LEN(x) (sizeof(x) / sizeof*(x))
-#define MOD(x, y) (((x) + (y)) % (y))
+#define MOD(x, y) ((((x) % (y)) + (y)) % (y))
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
 #define R_COUNT 8
 

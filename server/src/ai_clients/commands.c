@@ -17,18 +17,18 @@
 // so we can get the size at compile time.
 // It needs to be sorted for the bsearch function.
 static const struct ai_cmd_s commands[] = {
-    {"Broadcast", NULL},
-    {"Connect_nbr", NULL},
-    {"Eject", NULL},
-    {"Fork", NULL},
-    {"Forward", ai_cmd_forward},
-    {"Get", NULL},
-    {"Incantation", NULL},
-    {"Inventory", NULL},
-    {"Left", ai_cmd_left},
-    {"Look", NULL},
-    {"Right", ai_cmd_right},
-    {"Take", NULL},
+    {"Broadcast", NULL, 7},
+    {"Connect_nbr", NULL, 0},
+    {"Eject", NULL, 7},
+    {"Fork", NULL, 42},
+    {"Forward", ai_cmd_forward, 7},
+    {"Get", NULL, 7},
+    {"Incantation", NULL, 300},
+    {"Inventory", NULL, 1},
+    {"Left", ai_cmd_left, 7},
+    {"Look", NULL, 7},
+    {"Right", ai_cmd_right, 7},
+    {"Take", NULL, 7},
 };
 
 const struct ai_cmd_s *const AI_CLIENT_COMMANDS = commands;

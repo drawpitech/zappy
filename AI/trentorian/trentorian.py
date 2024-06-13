@@ -10,6 +10,7 @@ from warnings import warn
 from multiprocessing import Queue
 from client.client import Client
 
+from parser.concrete.message_type_parser import MessageTypeParser
 from trentorian.map import (
     create_default_map,
     Map,
@@ -123,6 +124,10 @@ class Trantorian:
         }
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.UP
+        self.has_already_reiceived_birth_info: bool = False
+        self.last_birthed: bool = True
+        self.egg_pos: tuple = (0, 0)
+        self.team_size: int = 1
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -291,7 +296,7 @@ class Trantorian:
             self.known_map = merge_maps(self.known_map, received_map)
         except SyntaxError as err:
             return
-        # TODO parse msg type and content
+        MessageTypeParser().deserialize(self, int(msg_type), content)
         return
 
 
@@ -466,7 +471,7 @@ class Trantorian:
                 return False
         return True
 
-    def broadcast(self, msg_type: str, content: str, receivers: list[str]) -> bool: # TODO update the
+    def broadcast(self, msg_type: int, content: str, receivers: list[str]) -> bool: # TODO update the
         """broadcast a message
         time limit : 7/f
         "sender_uuid$receiver_uuid$type$content$infos$map"

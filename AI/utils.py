@@ -54,7 +54,7 @@ def determine_direction(p1, p2, grid_size) -> SoundDirection:
         elif dy > 0 and dx > 0:
             direction = SoundDirection.SOUTH_EAST
         elif dy > 0 and dx < 0:
-            direction = SoundDirection.SOUTH_EAST
+            direction = SoundDirection.SOUTH_WEST
 
     elif abs(dy) >= abs(dx):
         if dy < 0:

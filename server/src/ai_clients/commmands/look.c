@@ -6,10 +6,11 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
+#include "commands.h"
 #include "server.h"
-#include ""
 
 payload_t *get_cell_payload(
     server_t *server, vector_t *pos, payload_t *payload)
@@ -30,7 +31,7 @@ static look_payload_t *init_look_payload(ai_client_t *client)
     payload->size = (size_t)(client->lvl + 1) * (client->lvl + 1);
     payload->cell_content = malloc(sizeof(payload_t) * payload->size);
     for (size_t i = 0; i < payload->size; ++i) {
-        for (size_t j = 0; j < LEN(payload->cell_content[i].res); ++j) {
+        for (size_t j = 0; j < R_COUNT; ++j) {
             payload->cell_content[i].res[j].r_name = j;
             payload->cell_content[i].res[j].quantity = 0;
         }
@@ -98,6 +99,8 @@ look_payload_t *look(server_t *server, ai_client_t *client)
 {
     look_payload_t *payload = init_look_payload(client);
 
+    get_cell_payload(server, &client->pos, &payload->cell_content[0]);
+    payload->idx++;
     if (payload == NULL)
         return NULL;
     switch (client->dir) {
@@ -117,4 +120,15 @@ look_payload_t *look(server_t *server, ai_client_t *client)
     return payload;
 }
 
-void ai_cmd
+void ai_cmd_look(server_t *server, ai_client_t *client, UNUSED char *args)
+{
+    look_payload_t *payload = look(server, client);
+
+    for (size_t i = 0; i < payload->size; ++i) {
+        for (short j = 0; j < R_COUNT; ++j) {
+            for (int k = 0; k < R_COUNT; ++k) {
+
+            }
+        }
+    }
+}

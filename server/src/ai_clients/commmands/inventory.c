@@ -9,18 +9,16 @@
 #include "server.h"
 #include "commands.h"
 
-static const char * const r_name[] = {
-    "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
-};
-
 void ai_cmd_inventory(server_t *server, ai_client_t *client, UNUSED char *args)
 {
     bool a = false;
 
+    dprintf(client->s_fd, "[");
     for (int i = LINEMATE; i < THYSTAME; ++i) {
         if (client->res[i].quantity == 0)
             continue;
-        dprintf(1, "%s%s = %d\n", a ? ", " : "", r_name[i], client->res[i].quantity);
+        dprintf(client->s_fd, "%s%s = %d\n", a ? ", " : "", r_name[i], client->res[i].quantity);
         a = true;
     }
+    dprintf(client->s_fd, "]\n");
 }

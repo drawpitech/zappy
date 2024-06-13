@@ -169,22 +169,10 @@ int server(UNUSED int argc, UNUSED char **argv)
     UNUSED server_t server = {0};
 
     srand(time(NULL));
-
     if (arg_parse(argc, argv, &server.ctx) != RET_VALID
         || init_server(&server, server.ctx.port) != RET_VALID
         || init_map(&server, &server.ctx) != RET_VALID)
         return RET_ERROR;
-
-    // test
-    ai_client_t client = {0};
-    client.lvl = 1;
-    client.pos.x = 5;
-    client.pos.y = 5;
-
-    look_payload_t *payload = look(&server, &client);
-    debug_payload(payload);
-    //
-
     for (int fd = -1;; fd = -1) {
         fd = new_client(&server);
         if (fd != -1)

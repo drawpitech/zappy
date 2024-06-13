@@ -20,11 +20,7 @@
 #define LEN(x) (sizeof(x) / sizeof*(x))
 #define MOD(x, y) ((((x) % (y)) + (y)) % (y))
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
-#define R_COUNT 8
-
-static const char * const r_name[] = {
-    "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
-};
+#define R_COUNT 9
 
 enum {
     RET_VALID = 0,
@@ -39,7 +35,8 @@ typedef enum {
     MENDIANE,
     PHIRAS,
     THYSTAME,
-    EGG
+    EGG,
+    PLAYER,
 } res_name_t;
 
 typedef enum {
@@ -64,6 +61,7 @@ typedef struct {
 } vector_t;
 
 extern const double DENSITIES[R_COUNT];
+extern const char *const r_name[R_COUNT];
 
 struct cell_s {
     vector_t pos;

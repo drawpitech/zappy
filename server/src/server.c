@@ -18,7 +18,7 @@
 #include <string.h>
 #include "array.h"
 
-const double DENSITIES[] = {
+const double DENSITIES[R_COUNT] = {
     [FOOD] = 0.5,
     [LINEMATE] = 0.3,
     [DERAUMERE] = 0.15,
@@ -26,7 +26,20 @@ const double DENSITIES[] = {
     [MENDIANE] = 0.1,
     [PHIRAS] = 0.08,
     [THYSTAME] = 0.05,
-    [EGG] = 0
+    [EGG] = 0,
+    [PLAYER] = 0,
+};
+
+const char *const r_name[R_COUNT] = {
+    [FOOD] = "food",
+    [LINEMATE] = "linemate",
+    [DERAUMERE] = "deraumere",
+    [SIBUR] = "sibur",
+    [MENDIANE] = "mendiane",
+    [PHIRAS] = "phiras",
+    [THYSTAME] = "thystame",
+    [EGG] = "egg",
+    [PLAYER] = "player",
 };
 
 static int init_server(server_t *serv, int port)

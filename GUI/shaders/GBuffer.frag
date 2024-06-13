@@ -20,26 +20,26 @@ uniform bool useNormalMap;
 vec3 getNormalFromMap() {
     vec3 tangentNormal = texture(normalMap, inTexCoords).xyz * 2.0 - 1.0;
 
-    vec3 Q1  = dFdx(inFragPos);
-    vec3 Q2  = dFdy(inFragPos);
+    vec3 Q1 = dFdx(inFragPos);
+    vec3 Q2 = dFdy(inFragPos);
     vec2 st1 = dFdx(inTexCoords);
     vec2 st2 = dFdy(inTexCoords);
 
-    vec3 N   = normalize(inNormal);
-    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
-    vec3 B  = -normalize(cross(N, T));
+    vec3 N = normalize(inNormal);
+    vec3 T = normalize(Q1 *st2.t - Q2 * st1.t);
+    vec3 B = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
     return normalize(TBN * tangentNormal);
 }
 
 void main() {
-    vec4 albedo = useAlbedoMap ? pow(texture(albedoMap, inTexCoords), vec4(2.2)) : vec4(1.0);
+    vec4 albedo = useAlbedoMap ? texture(albedoMap, inTexCoords) : vec4(1.0);
     if (albedo.a < 0.1)
         discard;
 
     outAlbedo = albedo.rgb;
-    outNormal = useNormalMap ? getNormalFromMap() : inNormal;
+    outNormal = useNormalMap ? getNormalFromMap() : normalize(inNormal);
     outPbr = useMetallicRoughnessMap ? texture(metallicRoughnessMap, inTexCoords).gb : vec2(0.0);
     outFragPos = inFragPos;
 }

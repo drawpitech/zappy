@@ -71,7 +71,7 @@ static void handle_ai_client(ai_cmd_ctx_t *ctx)
         ;
 }
 
-int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *team)
+int init_ai_client(server_t *server, int client_fd, char *team)
 {
     ai_client_t *client = malloc(sizeof(ai_client_t));
 
@@ -81,8 +81,8 @@ int init_ai_client(server_t *server, context_t *ctx, int client_fd, char *team)
     strcpy(client->team, team);
     client->s_fd = client_fd;
     client->dir = rand() % 4;
-    client->pos.x = rand() % (int)ctx->width;
-    client->pos.y = rand() % (int)ctx->height;
+    client->pos.x = rand() % (int)server->ctx.width;
+    client->pos.y = rand() % (int)server->ctx.height;
     add_elt_to_array(&server->ai_clients, client);
     dprintf(client_fd, "1\n");
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
@@ -105,7 +105,7 @@ int remove_ai_client(server_t *server, size_t idx)
     return RET_VALID;
 }
 
-int iterate_ai_clients(server_t *server, context_t *ctx)
+int iterate_ai_clients(server_t *server)
 {
     fd_set rfd;
     struct timeval timeout;
@@ -120,7 +120,7 @@ int iterate_ai_clients(server_t *server, context_t *ctx)
         if (select(client->s_fd + 1, &rfd, NULL, NULL, &timeout) < 0 ||
             !FD_ISSET(client->s_fd, &rfd))
             continue;
-        handle_ai_client(&(ai_cmd_ctx_t){server, ctx, i, client});
+        handle_ai_client(&(ai_cmd_ctx_t){server, &server->ctx, i, client});
     }
     return 0;
 }

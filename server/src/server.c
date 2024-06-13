@@ -73,7 +73,7 @@ static int new_client(server_t *serv)
 }
 
 static
-void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
+void handle_waitlist(server_t *serv, size_t i, int client_fd)
 {
     char buffer[DEFAULT_SIZE];
     ssize_t bytes_read = 0;
@@ -91,14 +91,14 @@ void handle_waitlist(server_t *serv, size_t i, int client_fd, context_t *ctx)
         // TODO:
         // - add client to correct team
         // - error handling
-        init_ai_client(serv, ctx, client_fd, buffer);
+        init_ai_client(serv, client_fd, buffer);
         free(serv->waitlist_fd.elements[i]);
         remove_elt_to_array(&serv->waitlist_fd, i);
     }
 }
 
 static
-int iterate_waitlist(server_t *server, context_t *ctx)
+int iterate_waitlist(server_t *server)
 {
     fd_set rfd;
     struct timeval timeout;
@@ -113,7 +113,7 @@ int iterate_waitlist(server_t *server, context_t *ctx)
         if (select(client_fd + 1, &rfd, NULL, NULL, &timeout) < 0)
             continue;
         if (FD_ISSET(client_fd, &rfd))
-            handle_waitlist(server, i, client_fd, ctx);
+            handle_waitlist(server, i, client_fd);
     }
     return 0;
 }
@@ -153,14 +153,13 @@ UNUSED static void debug_payload(look_payload_t *payload)
 
 int server(UNUSED int argc, UNUSED char **argv)
 {
-    context_t ctx = {0};
     UNUSED server_t server = {0};
 
     srand(time(NULL));
 
-    if (arg_parse(argc, argv, &ctx) != RET_VALID
-        || init_server(&server, ctx.port) != RET_VALID
-        || init_map(&server, &ctx) != RET_VALID)
+    if (arg_parse(argc, argv, &server.ctx) != RET_VALID
+        || init_server(&server, server.ctx.port) != RET_VALID
+        || init_map(&server, &server.ctx) != RET_VALID)
         return RET_ERROR;
 
     // test
@@ -169,7 +168,7 @@ int server(UNUSED int argc, UNUSED char **argv)
     client.pos.x = 5;
     client.pos.y = 5;
 
-    look_payload_t *payload = look(&server, &ctx, &client);
+    look_payload_t *payload = look(&server, &client);
     debug_payload(payload);
     //
 
@@ -177,8 +176,8 @@ int server(UNUSED int argc, UNUSED char **argv)
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);
-        iterate_waitlist(&server, &ctx);
-        iterate_ai_clients(&server, &ctx);
+        iterate_waitlist(&server);
+        iterate_ai_clients(&server);
     }
     // close_server(&serv);
     return RET_VALID;

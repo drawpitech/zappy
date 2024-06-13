@@ -11,11 +11,11 @@
 #include "server.h"
 
 payload_t *get_cell_payload(
-    server_t *server, context_t *ctx, vector_t *pos, payload_t *payload)
+    server_t *server, vector_t *pos, payload_t *payload)
 {
     memcpy(
         payload->res,
-        server->map[IDX(pos->x, pos->y, ctx->width, ctx->height)].res,
+        server->map[IDX(pos->x, pos->y, server->ctx.width, server->ctx.height)].res,
         sizeof(payload->res));
     return payload;
 }
@@ -38,13 +38,13 @@ static look_payload_t *init_look_payload(ai_client_t *client)
 }
 
 static look_payload_t *look_north(
-    server_t *server, context_t *ctx, ai_client_t *client,
+    server_t *server, ai_client_t *client,
     look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
             get_cell_payload(
-                server, ctx, &(vector_t){x, client->pos.y - i},
+                server, &(vector_t){x, client->pos.y - i},
                 &payload->cell_content[(payload->idx)++]);
         }
     }
@@ -52,13 +52,13 @@ static look_payload_t *look_north(
 }
 
 static look_payload_t *look_east(
-    server_t *server, context_t *ctx, ai_client_t *client,
+    server_t *server, ai_client_t *client,
     look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
             get_cell_payload(
-                server, ctx, &(vector_t){client->pos.x - i, y},
+                server, &(vector_t){client->pos.x - i, y},
                 &payload->cell_content[(payload->idx)++]);
         }
     }
@@ -66,13 +66,13 @@ static look_payload_t *look_east(
 }
 
 static look_payload_t *look_south(
-    server_t *server, context_t *ctx, ai_client_t *client,
+    server_t *server, ai_client_t *client,
     look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
             get_cell_payload(
-                server, ctx, &(vector_t){x, client->pos.y + i},
+                server, &(vector_t){x, client->pos.y + i},
                 &payload->cell_content[(payload->idx)++]);
         }
     }
@@ -80,20 +80,20 @@ static look_payload_t *look_south(
 }
 
 static look_payload_t *look_west(
-    server_t *server, context_t *ctx, ai_client_t *client,
+    server_t *server, ai_client_t *client,
     look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
             get_cell_payload(
-                server, ctx, &(vector_t){client->pos.x + i, y},
+                server, &(vector_t){client->pos.x + i, y},
                 &payload->cell_content[(payload->idx)++]);
         }
     }
     return payload;
 }
 
-look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client)
+look_payload_t *look(server_t *server, ai_client_t *client)
 {
     look_payload_t *payload = init_look_payload(client);
 
@@ -101,16 +101,16 @@ look_payload_t *look(server_t *server, context_t *ctx, ai_client_t *client)
         return NULL;
     switch (client->dir) {
         case NORTH:
-            payload = look_north(server, ctx, client, payload);
+            payload = look_north(server, client, payload);
             break;
         case EAST:
-            payload = look_east(server, ctx, client, payload);
+            payload = look_east(server, client, payload);
             break;
         case SOUTH:
-            payload = look_south(server, ctx, client, payload);
+            payload = look_south(server, client, payload);
             break;
         case WEST:
-            payload = look_west(server, ctx, client, payload);
+            payload = look_west(server, client, payload);
             break;
     }
     return payload;

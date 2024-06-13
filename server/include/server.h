@@ -22,6 +22,10 @@
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
 #define R_COUNT 8
 
+static const char * const r_name[] = {
+    "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"
+};
+
 enum {
     RET_VALID = 0,
     RET_ERROR = 84,
@@ -37,6 +41,17 @@ typedef enum {
     THYSTAME,
     EGG
 } res_name_t;
+
+typedef enum {
+    S_EAST,
+    S_NORTH_EAST,
+    S_NORTH,
+    S_NORTH_WEST,
+    S_WEST,
+    S_SOUTH_WEST,
+    S_SOUTH,
+    S_SOUTH_EAST
+} sound_direction_t;
 
 typedef struct {
     res_name_t r_name;

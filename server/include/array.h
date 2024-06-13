@@ -22,5 +22,5 @@ typedef struct array_s {
 } array_t;
 
 int add_elt_to_array(array_t *array, void *element);
-int remove_elt_to_array(array_t *array, size_t i);
+void *remove_elt_to_array(array_t *array, size_t i);
 array_t *array_constructor(void);

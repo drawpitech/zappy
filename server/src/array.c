@@ -30,14 +30,14 @@ int add_elt_to_array(array_t *array, void *element)
     return RET_VALID;
 }
 
-int remove_elt_to_array(array_t *array, size_t i)
+void *remove_elt_to_array(array_t *array, size_t i)
 {
     void *tmp = array->elements[i];
 
     array->elements[i] = array->elements[array->nb_elements - 1];
     array->elements[array->nb_elements - 1] = tmp;
     array->nb_elements--;
-    return SUCCESS;
+    return tmp;
 }
 
 array_t *array_constructor(void)

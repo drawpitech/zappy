@@ -22,7 +22,6 @@ UNUSED static void debug_ctx(context_t *ctx)
     printf("Port: %d\n", ctx->port);
     printf("Width: %ld\n", ctx->width);
     printf("Height: %ld\n", ctx->height);
-
     for (size_t i = 0; i < ctx->names->nb_elements; ++i)
         printf("%s\n", (char *)ctx->names->elements[i]);
 }
@@ -38,8 +37,8 @@ static int check_flags(const int *array, char *argv[])
 int arg_parse(int argc, char *argv[], context_t *ctx)
 {
     int adjust =
-        (strcmp(argv[argc - 1], "-v") == 0 ||
-         strcmp(argv[argc - 1], "--verbose") == 0);
+        strcmp(argv[argc - 1], "-v") == 0 ||
+        strcmp(argv[argc - 1], "--verbose") == 0;
     int array[6] = {1, 3, 5, 7, argc - 4 - adjust, argc - 2 - adjust};
 
     if (argc < 13)

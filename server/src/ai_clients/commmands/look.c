@@ -13,11 +13,11 @@
 #include "server.h"
 
 payload_t *get_cell_payload(
-    server_t *server, vector_t *pos, payload_t *payload)
+    server_t *serv, vector_t *pos, payload_t *payload)
 {
     memcpy(
         payload->res,
-        server->map[IDX(pos->x, pos->y, server->ctx.width, server->ctx.height)].res,
+        serv->map[IDX(pos->x, pos->y, serv->ctx.width, serv->ctx.height)].res,
         sizeof(payload->res));
     return payload;
 }

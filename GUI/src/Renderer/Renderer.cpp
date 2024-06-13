@@ -26,7 +26,7 @@ Renderer::Renderer() {
         m_gBufferPass = std::make_unique<GBufferPass>(m_window);
 
         m_ssaoPass = std::make_unique<SSAOPass>(m_window);
-        m_ssaoPass->resize(m_window->getWidth() / 2, m_window->getHeight() / 2);
+        m_ssaoPass->resize(m_window->getWidth(), m_window->getHeight());
 
         m_ssrPass = std::make_unique<SSRPass>(m_window);
         m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
@@ -52,7 +52,7 @@ void Renderer::handleUserInput() noexcept {
     if (m_window->wasResized) {
         m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
         m_gBufferPass->resize(m_window->getWidth(), m_window->getHeight());
-        m_ssaoPass->resize(m_window->getWidth() / 2, m_window->getHeight() / 2);
+        m_ssaoPass->resize(m_window->getWidth(), m_window->getHeight());
         m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
         m_window->wasResized = false;
     }
@@ -188,9 +188,11 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
         m_gBufferPass->getPbrTexture(),
         m_ssaoPass->getSSAOBlurTexture(),
         m_ssrPass->getSSRTexture(),
+        m_camera->getPosition(),
+        m_camera->getViewMatrix(),
+        m_camera->getProjectionMatrix(),
         m_debugView
     );
-    Utils::renderQuad();
 
     drawUi();
     ImGui::Render();

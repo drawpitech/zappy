@@ -27,11 +27,6 @@ void main() {
     }
 
     vec3 fragPos = vec3(view * vec4(texture(positionMap, inTexCoords).xyz, 1.0));
-    if (length(fragPos) > 15) {
-        FragColor = 1.0;
-        return;
-    }
-
     vec3 randomVec = normalize(texture(noiseMap, inTexCoords * noiseScale).xyz);
 
     vec3 tangent = normalize(randomVec - normal * dot(randomVec, normal));

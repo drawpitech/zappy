@@ -25,7 +25,7 @@ class MessageTypeParser():
         """
         message_parser: str = MESSAGE_PARSER[message_type]
         module = importlib.import_module(MODULE_NAME[message_parser])
-        return getattr(module, message_parser)().serialize(trentorian)
+        return str(message_type) + '$' + getattr(module, message_parser)().serialize(trentorian)
 
     def deserialize(self, trentorian, message_type: MessageType, message_content: str):
         """Deserialize the message content, depending on his type

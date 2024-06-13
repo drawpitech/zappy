@@ -10,6 +10,7 @@ from warnings import warn
 from multiprocessing import Queue
 from client.client import Client
 
+from parser.concrete.message_type_parser import MessageType
 from parser.concrete.message_type_parser import MessageTypeParser
 from trentorian.map import (
     create_default_map,
@@ -21,30 +22,11 @@ from utils import (
     determine_direction,
     check_levelup,
     pack_infos,
-    unpack_infos
+    unpack_infos,
+    split_list
 )
 
 # TODO use init file for the module
-
-############################### UTILS #########################################
-def split_list(msg: str) -> list[str]:
-    """convert a string of a list to the corresponding list
-
-    Args:
-        msg (str): intial string
-
-    Returns:
-        list[str]: resulting list
-    """
-    if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
-        print("Parsing failed")
-        return []
-    sp = msg[1:-1].split(',')
-
-    return [e.strip(' ') for e in sp]
-
-
-
 
 #-----------------------------------------------------------------------------#
 ############################### THE CLASS #####################################
@@ -118,6 +100,7 @@ class Trantorian:
         self.others: dict = {} # uid : (inv, lvl, x, y, last update)
         self.received_messages: list = []
         self.uid: str = str(time())
+        self.state: str = ""
         self.inventory: dict = {
             "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
@@ -127,7 +110,8 @@ class Trantorian:
         self.has_already_reiceived_birth_info: bool = False
         self.last_birthed: bool = True
         self.egg_pos: tuple = (0, 0)
-        self.team_size: int = 1
+        self.team_size: int = 0
+        self.last_msg_infos: list = []
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -136,10 +120,11 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            self.asexual_multiplication(queue)
+            self.start_living(queue)
+            # self.asexual_multiplication(queue)
             self.first_level()
             self.look_around()
-            self.broadcast("0", "0", ["all"])
+            # self.broadcast("0", "0", ["all"])
             self.iter()
             while not self.dead:
                 self.take_object("troll")
@@ -225,6 +210,51 @@ class Trantorian:
                 self.right()
         return
 
+    def start_living(self, queue: Queue) -> None:
+        self.broadcast(MessageTypeParser().serialize(MessageType.ASK_BIRTH, self), ["all"])
+        self.state = "just birthed"
+        self.look_around()
+        content = self.known_map.tiles[self.y][self.x].content
+        diff = 10 - sum(content.values())
+        self.take_tile_objects()
+        if diff > 0:
+            for _ in range(diff):
+                self.take_object("food")
+        if self.state == "autism":     # kill the baby if he is retarded
+            self.suicide()
+            return
+        if self.state == 'just birthed':
+            self.get_unused_slot()
+            self.team_size = self.unused_slot + 1
+            self.state = "adult"
+        while not self.birth_process(queue):
+            continue
+        return
+
+    def suicide(self) -> None:
+        """look around until we are dead
+        """
+        while not self.dead:
+            self.look_around()
+        return
+
+
+    def birth_process(self, queue: Queue) -> bool:
+        self.get_unused_slot()
+        self.state = "wait birth"
+        if self.unused_slot == 0:
+            return True
+
+        self.asexual_multiplication(queue)
+        for _ in range(10):
+            self.take_object("food")
+            if self.state == "ask_birth":
+                sender, _, _ = self.last_msg_infos
+                self.broadcast(MessageTypeParser()
+                    .serialize(MessageType.BIRTH_INFO, self), [sender])
+                return True
+        return False
+
 
     def take_tile_objects(self) -> bool:
         """take all the objects on the tile
@@ -274,6 +304,7 @@ class Trantorian:
             self.dead = True
         return answer
 
+
     def receive_message(self, msg: str) -> None:
         """handle the broadcast reception
             our messages are composed of :
@@ -282,6 +313,9 @@ class Trantorian:
         Args:
             msg (str): message sent by the server
         """
+        msg = msg[8:]
+        direct, msg = msg.split(',')
+        direct: int = int(direct)
         parts = msg.strip().split("$")
         if len(parts) != 6:
             self.received_messages.append(msg)
@@ -297,6 +331,7 @@ class Trantorian:
         except SyntaxError as err:
             return
         MessageTypeParser().deserialize(self, int(msg_type), content)
+        self.last_msg_infos = [sender, msg_type, content]
         return
 
 
@@ -312,6 +347,10 @@ class Trantorian:
         off_x, off_y = direct.get_offset()
         self.x = (self.x - off_x) % self.client.size_x # TODO check if the direction is correct
         self.y = (self.y - off_y) % self.client.size_y
+        if self.state == "just birthed":
+            self.state == "autism"
+        # else:
+            # self.state = "ejected"
         return
 
 
@@ -471,13 +510,12 @@ class Trantorian:
                 return False
         return True
 
-    def broadcast(self, msg_type: int, content: str, receivers: list[str]) -> bool: # TODO update the
+    def broadcast(self, content: str, receivers: list[str]) -> bool: # TODO update the
         """broadcast a message
         time limit : 7/f
         "sender_uuid$receiver_uuid$type$content$infos$map"
 
         Args:
-            msg_type (str): message type ("troll" for trolling)
             content (str): message content
             receivers (list[str]): list of receivers (["all"] for all, or [] for troll)
 
@@ -492,7 +530,6 @@ class Trantorian:
             return self.wait_answer() == 'ok'
         msg = f'{self.uid}$'
         msg += '|'.join(receivers) + '$'
-        msg += f'{msg_type}$'
         msg += f'{content}$'
         msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}$'
         msg += str(self.known_map)
@@ -526,13 +563,14 @@ class Trantorian:
         Returns:
             bool: false if self is sterile
         """
+        print("AAAAAAAAAAAAAAAAAAAAAAA")
         if self.dead:
             return False
         self.client.send_cmd("Fork")
         if self.wait_answer() != 'ok':
             return False
         queue.put("birth")
-        # self.broadcast("birth at my pos") # TODO send a message to other
+        self.egg_pos = (self.x, self.y)
         return True
 
     def eject(self) -> bool:

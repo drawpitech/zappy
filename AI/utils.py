@@ -181,3 +181,20 @@ def unpack_infos(msg: str, uid: str) -> dict:
             continue
         res[uuid] = (inventory, lvl, x, y, last_u)
     return res
+
+
+def split_list(msg: str) -> list[str]:
+    """convert a string of a list to the corresponding list
+
+    Args:
+        msg (str): intial string
+
+    Returns:
+        list[str]: resulting list
+    """
+    if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
+        print("Parsing failed")
+        return []
+    sp = msg[1:-1].split(',')
+
+    return [e.strip(' ') for e in sp]

@@ -26,8 +26,8 @@ class MessageBirthInfoParser(IParser):
         The message returned should ressemble something like that:
             "senderx_sendery_reiceiverx_reiceivery_teamSize"
         """
-        return f'{Trantorian.egg_pos[ParamsType.SENDERX]}_{
-            Trantorian.egg_pos[ParamsType.SENDERY]}_{
+        return f'{trentorian.egg_pos[ParamsType.SENDERX]}_{
+            trentorian.egg_pos[ParamsType.SENDERY]}_{
                 trentorian.x}_{
                     trentorian.y}_{
                             trentorian.team_size}'
@@ -35,16 +35,11 @@ class MessageBirthInfoParser(IParser):
     def deserialize(self, trentorian: Trantorian, message_content: str) -> Trantorian:
         """Deserialize the message content, for birth info
         """
-        if trentorian.has_already_reiceived_birth_info:
-            return trentorian
-
         params = message_content.split("_")
 
         if len(params) != 4:
             warn(f"Invalid message content: {message_content}")
             return trentorian
-
-        trentorian.has_already_reiceived_birth_info = True
 
         trentorian.team_size = params[ParamsType.TEAM_SIZE]
 
@@ -54,6 +49,7 @@ class MessageBirthInfoParser(IParser):
 
         trentorian.x = params[ParamsType.REICEIVERX]
         trentorian.y = params[ParamsType.REICEIVERY]
+        self.state = "adult"
 
         return trentorian
 
@@ -72,7 +68,7 @@ class MessageAskBirthParser(IParser):
     def deserialize(self, trentorian: Trantorian, message_content: str) -> Trantorian:
         """Deserialize the message content, for ask birth
         """
-        if not trentorian.last_birthed:
+        if not trentorian.state == "wait birth":
             return trentorian
 
         trentorian.state = "ask_birth"

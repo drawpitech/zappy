@@ -10,7 +10,7 @@
 
 void ai_cmd_forward(server_t *server, ai_client_t *client, UNUSED char *args)
 {
-    CELL(server, client->pos.x, client->pos.y).res[PLAYER].quantity--;
+    CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
     switch (client->dir) {
         case NORTH:
             client->pos.y = (client->pos.y - 1) % (int)server->ctx.height;
@@ -25,6 +25,6 @@ void ai_cmd_forward(server_t *server, ai_client_t *client, UNUSED char *args)
             client->pos.x = (client->pos.x - 1) % (int)server->ctx.width;
             break;
     }
-    CELL(server, client->pos.x, client->pos.y).res[PLAYER].quantity++;
+    CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     write(client->s_fd, "ok\n", 3);
 }

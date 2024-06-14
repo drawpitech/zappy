@@ -84,7 +84,7 @@ int init_ai_client(server_t *server, int client_fd, char *team)
     client->pos.x = rand() % (int)server->ctx.width;
     client->pos.y = rand() % (int)server->ctx.height;
     client->lvl = 1;
-    CELL(server, client->pos.x, client->pos.y).res[PLAYER].quantity++;
+    CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     add_elt_to_array(&server->ai_clients, client);
     dprintf(client_fd, "1\n");
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
@@ -109,6 +109,7 @@ int remove_ai_client(server_t *server, size_t idx)
     client = server->ai_clients.elements[idx];
     if (client) {
         disconnect_ai_client(client);
+        CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
         free(server->ai_clients.elements[idx]);
     }
     remove_elt_to_array(&server->ai_clients, idx);

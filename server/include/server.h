@@ -21,6 +21,7 @@
 #define MOD(x, y) ((((x) % (y)) + (y)) % (y))
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
 #define R_COUNT 9
+#define CELL(s, x, y) s->map[IDX(x, y, s->ctx.width, s->ctx.height)]
 
 enum {
     RET_VALID = 0,

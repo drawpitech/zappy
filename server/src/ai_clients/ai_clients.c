@@ -84,6 +84,7 @@ int init_ai_client(server_t *server, int client_fd, char *team)
     client->pos.x = rand() % (int)server->ctx.width;
     client->pos.y = rand() % (int)server->ctx.height;
     client->lvl = 1;
+    CELL(server, client->pos.x, client->pos.y).res[PLAYER].quantity++;
     add_elt_to_array(&server->ai_clients, client);
     dprintf(client_fd, "1\n");
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);

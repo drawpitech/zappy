@@ -19,7 +19,7 @@
 static const struct ai_cmd_s commands[] = {
     {"Broadcast", ai_cmd_broadcast, 7},
     {"Connect_nbr", NULL, 0},
-    {"Eject", NULL, 7},
+    {"Eject", ai_cmd_eject, 7},
     {"Fork", NULL, 42},
     {"Forward", ai_cmd_forward, 7},
     {"Incantation", NULL, 300},

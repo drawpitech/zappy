@@ -122,3 +122,4 @@ res_name_t get_ressource_type(char *name);
 int iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *server, int client_fd, char *team);
 int remove_ai_client(server_t *server, size_t idx);
+void move_ai_client(server_t *server, ai_client_t *client, int dir);

@@ -42,6 +42,14 @@ const char *const r_name[R_COUNT] = {
     [PLAYER] = "player",
 };
 
+res_name_t get_ressource_type(char *name)
+{
+    for (int i = 0; i < R_COUNT; i++)
+        if (strcmp(name, r_name[i]) == 0)
+            return i;
+    return -1;
+}
+
 static int init_server(server_t *serv, int port)
 {
     serv->s_fd = socket(AF_INET, SOCK_STREAM, 0);

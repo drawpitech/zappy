@@ -129,7 +129,7 @@ class Trantorian:
         try:
             print("live")
             self.start_living(queue)
-            self.beacon(self.others.keys())
+            self.beacon(["all"])
             if self.state == 'going somewhere':
                 self.follow_beacon()
             while not self.dead:
@@ -264,7 +264,7 @@ class Trantorian:
             self.forward()
             # self.look_around()
 
-        self.broadcast(MessageTypeParser().serialize(None, self), [self.last_beacon_uid])
+        self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_READY, self), [self.last_beacon_uid])
 
     def beacon(self, receivers: list) -> None:
         """set ourselves as a beacon to atract the others
@@ -276,8 +276,9 @@ class Trantorian:
 
         while self.iter() and self.state == "beacon":
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
-            if self.number_of_ritual_ready >= LEVELS[self.level - 1]:
+            if self.number_of_ritual_ready >= LEVELS[self.level + 1][0]:
                 #TODO do ritual
+                print("we are ready")
                 break
 
     def start_living(self, queue: Queue) -> None:

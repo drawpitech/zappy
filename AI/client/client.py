@@ -23,7 +23,7 @@ class Client:
             raise RuntimeError("Server did not welcome")
 
         self.send_cmd(self.team)
-        teamnb: str = self.get_answer()
+        team_size: str = self.get_answer()
         coordinates: str = self.get_answer()
         # infos: list = self.get_answer().split('\n')
         # print(infos)
@@ -34,7 +34,7 @@ class Client:
         y: str = -1
         try:
             x, y = coordinates.split()
-            self.team_nb = int(teamnb)
+            self.team_size = int(team_size)
             self.size_x = int(x)
             self.size_y = int(y)
         except ValueError as exc:

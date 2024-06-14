@@ -90,7 +90,7 @@ static look_payload_t *look_west(
     return payload;
 }
 
-look_payload_t *look(server_t *server, ai_client_t *client)
+static look_payload_t *look(server_t *server, ai_client_t *client)
 {
     look_payload_t *payload = init_look_payload(client);
 

@@ -16,3 +16,4 @@ void ai_cmd_inventory(server_t *server, ai_client_t *client, char *args);
 void ai_cmd_look(server_t *server, ai_client_t *client, char *args);
 void ai_cmd_take(server_t *server, ai_client_t *client, char *args);
 void ai_cmd_set(server_t *server, ai_client_t *client, char *args);
+void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args);

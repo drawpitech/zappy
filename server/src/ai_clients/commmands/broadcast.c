@@ -5,9 +5,11 @@
 ** broadcast
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 #include "array.h"
+#include "commands.h"
 #include "server.h"
 
 static int compute(const int a, const int b, const int grid_size)
@@ -24,15 +26,15 @@ static int compute(const int a, const int b, const int grid_size)
     return result;
 }
 
-static
-int compute_dir(const vector_t p1, const vector_t p2, const int grid_size[2])
+static int compute_dir(
+    const vector_t p1, const vector_t p2, const int grid_size[2])
 {
     int dx = 0;
     int dy = 0;
     sound_direction_t result = -1;
 
-    dx = compute(p1.x, p1.x, grid_size[0]);
-    dy = compute(p1.y, p1.y, grid_size[1]);
+    dx = compute(p1.x, p2.x, grid_size[0]);
+    dy = compute(p1.y, p2.y, grid_size[1]);
     if (abs(dx) == abs(dy)) {
         if (dy < 0 && dx > 0)
             result = S_NORTH_EAST;
@@ -58,19 +60,19 @@ int compute_dir(const vector_t p1, const vector_t p2, const int grid_size[2])
     return result;
 }
 
-int broadcast(server_t *serv, const size_t idx, const char *restrict text)
+void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
 {
     int dir = 0;
-    ai_client_t *broadcaster = remove_elt_to_array(&serv->ai_clients, idx);
     ai_client_t *current = NULL;
 
-    if (!broadcaster)
-        return RET_ERROR;
-    for (size_t i = 0; i < serv->ai_clients.nb_elements; ++i) {
-        current = serv->ai_clients.elements[i];
-        dir = compute_dir(broadcaster->pos, current->pos,
-                (int[2]){(int)serv->ctx.width, (int)serv->ctx.height});
-        dprintf(current->s_fd, "message %d, %s\n", dir, text);
+    for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
+        current = server->ai_clients.elements[i];
+        if (current == client)
+            continue;
+        dir = compute_dir(
+            client->pos, current->pos,
+            (int[2]){(int)server->ctx.width, (int)server->ctx.height});
+        dprintf(current->s_fd, "message %d, %s\n", dir, args);
     }
-    return RET_VALID;
+    write(client->s_fd, "ok\n", 3);
 }

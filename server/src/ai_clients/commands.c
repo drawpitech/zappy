@@ -17,7 +17,7 @@
 // so we can get the size at compile time.
 // It needs to be sorted for the bsearch function.
 static const struct ai_cmd_s commands[] = {
-    {"Broadcast", NULL, 7},
+    {"Broadcast", ai_cmd_broadcast, 7},
     {"Connect_nbr", NULL, 0},
     {"Eject", NULL, 7},
     {"Fork", NULL, 42},

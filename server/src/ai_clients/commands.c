@@ -22,14 +22,13 @@ static const struct ai_cmd_s commands[] = {
     {"Eject", NULL, 7},
     {"Fork", NULL, 42},
     {"Forward", ai_cmd_forward, 7},
-    {"Get", ai_cmd_get, 7},
     {"Incantation", NULL, 300},
     {"Inventory", ai_cmd_inventory, 1},
     {"Left", ai_cmd_left, 7},
     {"Look", ai_cmd_look, 7},
     {"Right", ai_cmd_right, 7},
     {"Set", ai_cmd_set, 7},
-    {"Take", NULL, 7},
+    {"Take", ai_cmd_take, 7},
 };
 
 const struct ai_cmd_s *const AI_CLIENT_COMMANDS = commands;

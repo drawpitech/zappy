@@ -8,7 +8,7 @@
 #include "commands.h"
 #include "server.h"
 
-void ai_cmd_get(server_t *server, ai_client_t *client, char *args)
+void ai_cmd_take(server_t *server, ai_client_t *client, char *args)
 {
     res_name_t res = get_ressource_type(args);
     cell_t *cell = CELL(server, client->pos.x, client->pos.y);

@@ -16,7 +16,6 @@
 
 void framebufferResizeCallback(GLFWwindow* window, int width, int height) noexcept {
     auto *self = static_cast<Window *>(glfwGetWindowUserPointer(window));
-    self->wasResized = true;
     self->resize(width, height);
 }
 

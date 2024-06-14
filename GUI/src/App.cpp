@@ -89,6 +89,19 @@ void App::updatePlayers(const std::string& bufferView) {
 
         pos = bufferView.find("ppo", pos);
     }
+
+
+    pos = bufferView.find("pbc");
+    while (pos != std::string::npos) {
+        const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        const std::string message = bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos);
+
+        std::cout << "Player " << playerNumber << " says: " << message << "\n";
+
+        pos = bufferView.find("pbc", pos);
+    }
 }
 
 void App::parseConnectionResponse() {
@@ -177,7 +190,6 @@ void App::createScene() {
         m_scene->animatedActors.push_back({playerMesh, std::make_shared<Animator>(playerAnim), player.position, playerScale, playerRotation});
 
     }
-    
     static const std::shared_ptr<StaticMesh> aircraft = std::make_shared<StaticMesh>("../assets/aircraft.obj");
     m_scene->staticActors.push_back({aircraft, glm::vec3(0, 0, -40), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 0, 0)});
 }

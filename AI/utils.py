@@ -120,11 +120,12 @@ def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: 
         str: packed infos
     """
     total: str = ""
-    for puid, infos in players:
+    for puid, infos in players.items():
         inv, plvl, px, py, update = infos
 
-        total += f"{puid} {' '.join(map(str, inv.values()))} {plvl} {px} {py} {update}|"
-    total += f"{uid} {' '.join(map(str, inventory.values()))} {lvl} {x} {y} {time()}"
+        total += f"{puid}-{'%'.join(map(str, inv.values()))}-{plvl}-{px}-{py}-{update}|"
+    total += f"{uid}-{'%'.join(map(str, inventory.values()))}-{lvl}-{x}-{y}-{time()}"
+    return total
 
 def unpack_inventory(msg: str) -> dict:
     """parse a string to an inventory
@@ -135,7 +136,7 @@ def unpack_inventory(msg: str) -> dict:
     Returns:
         dict: obateined inventory
     """
-    inv = msg.strip().split()
+    inv = msg.strip().split('%')
     res: dict = {
             "food": 0, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
@@ -165,8 +166,8 @@ def unpack_infos(msg: str, uid: str) -> dict:
     content: list = msg.strip().split('|')
     res: dict = {}
     for players in content:
-        infos = players.strip().split(' ')
-        if len(infos) != 5:
+        infos = players.strip().split('-')
+        if len(infos) != 6:
             continue              # TODO raise an error
         uuid, inv, lvl, x, y, last_u = infos
         if uuid == uid:
@@ -193,7 +194,8 @@ def split_list(msg: str) -> list[str]:
         list[str]: resulting list
     """
     if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
-        print("Parsing failed")
+        print(msg)
+        print("List parsing failed")
         return []
     sp = msg[1:-1].split(',')
 

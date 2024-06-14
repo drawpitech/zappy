@@ -44,7 +44,7 @@ class MapTile:
         Args:
             content_str (str): string of the content, as it is sended by the server
         """
-        objects = content_str.strip().split('-')
+        objects = content_str.strip().split(' ')
         self.content = default_map_tile_content()
         for obj in objects:
             if obj not in self.content.keys():

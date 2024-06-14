@@ -15,6 +15,7 @@ from parser.concrete.message_type_parser import MessageTypeParser
 from trentorian.map import (
     create_default_map,
     Map,
+    MapTile,
     merge_maps
 )
 
@@ -51,11 +52,11 @@ class TrantorianDirection(IntEnum):
         if self == 0: # RIGHT
             return 1, 0
         if self == 1: # UP
-            return 0, 1
+            return 0, -1
         if self == 2: # LEFT
             return -1, 0
         if self == 3: # DOWN
-            return 0, -1
+            return 0, 1
         return 0, 0
 
     def __str__(self) -> str:
@@ -113,6 +114,8 @@ class Trantorian:
         self.team_size: int = 0
         self.last_msg_infos: list = []
         self.last_beacon_direction: int = 0
+        # least amount of food needed to go throught the longest distance and do an incantation
+        self.mini_food: int = 12 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -121,21 +124,22 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            self.start_living(queue)
-            # self.asexual_multiplication(queue)
-            self.first_level()
-            self.look_around()
-            # self.broadcast("0", "0", ["all"])
-            self.iter()
-            while not self.dead:
-                self.take_object("troll")
-                continue
-            print(self.uid, self.known_map)
-            # self.first_level()
             # self.look_around()
-            # while self.iter(): # all the ai code should be in this loop
-                # self.wander()
-                # continue
+            # for _ in range(2): # this can be optimised
+                # for _ in range(self.get_current_case().content["food"]):
+                    # if not self.take_object("food"):
+                        # print("ooiioioioioi")
+                # self.forward()
+            # print(self.known_map)
+            # while not self.dead:
+                # self.take_object('sd')
+            print("live")
+            self.start_living(queue)
+            self.first_level()
+            self.broadcast("just$update", ["all"])
+            while self.iter_food():
+                self.wander()
+                continue
             print("died")
         except BrokenPipeError:
             print("Server closed socket")
@@ -145,9 +149,8 @@ class Trantorian:
     def first_level(self) -> None:
         """script to fastly go to level 2 and acquire some food
         """
-        # TODO broadcast our birth to get our position
         ready: bool = False
-        while self.iter() and not ready: # TODO look to know where there is linemate
+        while self.iter_food() and not ready: # TODO look to know where there is linemate
             self.forward()
             self.take_object("linemate")
             direct: int = random.randint(0, 5)
@@ -170,35 +173,60 @@ class Trantorian:
 ##############################  UTILS  #######################################
 
     def iter(self) -> bool:
+        """update the needed values and check if the next iteration is possible (not dead)
+
+        Returns:
+            bool: can do the next iteration
+        """
+        if self.dead:
+            return False
+        self.get_unused_slot()
+        return True
+
+    def iter_food(self) -> bool:
         """check if next iteration is possible, and update the needed values
         if the food is to low, refills it to 15 unit
 
         Returns:
             bool: can do the net iteration
         """
-        if self.dead:
+        if not self.iter():
             return False
-        self.get_unused_slot()
         self.get_inventory()
-        if self.inventory["food"] > 5:
+        if self.inventory["food"] > self.mini_food:
             return True
-        # TODO look to optimise the search process
-        while self.inventory["food"] < 20:
+        while self.iter() and self.inventory["food"] < self.mini_food + 10:
             if self.dead:
                 return False
-            self.forward()
-            self.take_object("food")
+            if not self.look_around():
+                continue
+            for _ in range(self.level): # this can be optimised
+                for _ in range(self.get_current_case().content["food"]):
+                    if not self.take_object("food"):
+                        break
+                if self.dead:
+                    return False
+                self.forward()
             direct: int = random.randint(0, 5)
             if direct == 1:
                 self.left()
             elif direct == 2:
                 self.right()
-        return True
+            self.get_inventory()
+        return not self.dead
+
+    def get_current_case(self) -> MapTile:
+        """get the case we are one
+
+        Returns:
+            MapTile: current maptile
+        """
+        return self.known_map.tiles[self.y % self.client.size_y][self.x % self.client.size_x]
 
     def wander(self) -> None:
         """look and take stuff until inventiry is enought to level up
         """
-        while self.iter() and not check_levelup(self.inventory, self.level + 1, 2):
+        while self.iter_food() and not check_levelup(self.inventory, self.level + 1, 2):
             self.look_around()
             for _ in range(self.level):
                 if not self.take_tile_objects():
@@ -239,24 +267,28 @@ class Trantorian:
             self.receive_message(self.client.get_answer())
 
     def start_living(self, queue: Queue) -> None:
-        self.broadcast(MessageTypeParser().serialize(MessageType.ASK_BIRTH, self), ["all"])
-        self.state = "just birthed"
-        self.look_around()
-        content = self.known_map.tiles[self.y][self.x].content
-        diff = 10 - sum(content.values())
-        self.take_tile_objects()
-        if diff > 0:
-            for _ in range(diff):
-                self.take_object("food")
-        if self.state == "autism":     # kill the baby if he is retarded
-            self.suicide()
-            return
-        if self.state == 'just birthed':
+        """ First step of the life (reproduction)
+
+        Args:
+            queue (Queue): queue to birth other trantorians
+        """
+        self.broadcast("im$alive", ["all"])
+        self.get_unused_slot()
+        self.iter_food()
+        b2, b3 = True, True
+        team_size = len(self.others) + 1
+        nbr = 0
+        while self.iter_food() and b2 and b3:
+            # the objective of all those checks is to work even if the server is broken
+            b2 = team_size < self.client.team_size and nbr < 2
+            b3 = team_size < 2 and self.unused_slot > 0
+            new_size = len(self.others.items()) + 1
+            if new_size == team_size:
+                nbr += 1
+            team_size = new_size
             self.get_unused_slot()
-            self.team_size = self.unused_slot + 1
-            self.state = "adult"
-        while not self.birth_process(queue):
-            continue
+            self.asexual_multiplication(queue)
+            self.broadcast("im$alive", ["all"])
         return
 
     def suicide(self) -> None:
@@ -266,24 +298,6 @@ class Trantorian:
             self.look_around()
         return
 
-
-    def birth_process(self, queue: Queue) -> bool:
-        self.get_unused_slot()
-        self.state = "wait birth"
-        if self.unused_slot == 0:
-            return True
-
-        self.asexual_multiplication(queue)
-        for _ in range(10):
-            self.take_object("food")
-            if self.state == "ask_birth":
-                sender, _, _ = self.last_msg_infos
-                self.broadcast(MessageTypeParser()
-                    .serialize(MessageType.BIRTH_INFO, self), [sender])
-                return True
-        return False
-
-
     def take_tile_objects(self) -> bool:
         """take all the objects on the tile
 
@@ -291,7 +305,7 @@ class Trantorian:
             bool: true if all the object where taken, false if one didn't work
         """
         succes: bool = True
-        content: dict = self.known_map.tiles[self.y][self.x].content
+        content: dict = self.get_current_case().content
         for obj, quantity in content.items():
             if obj == "egg" or obj == "player":
                 continue
@@ -306,7 +320,7 @@ class Trantorian:
         Args:
             received (dict): received informations
         """
-        for uuid, infos in received:
+        for uuid, infos in received.items():
             update = infos[4]
             if uuid not in self.others:
                 self.others[uuid] = infos
@@ -322,7 +336,8 @@ class Trantorian:
             str: last server answer
         """
         answer: str = self.client.get_answer()
-        while answer[:7] == 'message' or answer[:5] == 'eject':
+        # TODO replace with startwith
+        while answer[:7] == 'message' or answer[:5] == 'eject' or answer[:9] == 'Broadcast':
             if answer[:7] == 'message':
                 self.receive_message(answer)
             if answer[:5] == 'eject':
@@ -333,7 +348,7 @@ class Trantorian:
         return answer
 
 
-    def receive_message(self, msg: str) -> None:
+    def receive_message(self, msg: str) -> None: # TODO remove the map
         """handle the broadcast reception
             our messages are composed of :
             "sender_uuid$receiver_uuid$type$content$infos$map"
@@ -345,18 +360,18 @@ class Trantorian:
         direct, msg = msg.split(',')
         direct: int = int(direct)
         parts = msg.strip().split("$")
-        if len(parts) != 6:
+        if len(parts) != 5:
             self.received_messages.append(msg)
             return
-        sender, receivers, msg_type, content, infos, received_map = parts
+        sender, receivers, msg_type, content, infos = parts
         if receivers != "all" and self.uid not in receivers.split('|'):
             return
         info_unpacked = unpack_infos(infos, self.uid)
         self.merge_others(info_unpacked)
         try:
-            received_map = Map.from_str(received_map)
-            self.known_map = merge_maps(self.known_map, received_map)
-        except SyntaxError as err:
+            MessageTypeParser().deserialize(self, int(msg_type), content)
+            self.last_msg_infos = [sender, msg_type, content]
+        except (KeyError, ValueError):
             return
         MessageTypeParser().deserialize(self, int(msg_type), content, direct)
         self.last_msg_infos = [sender, msg_type, content]
@@ -375,10 +390,6 @@ class Trantorian:
         off_x, off_y = direct.get_offset()
         self.x = (self.x - off_x) % self.client.size_x # TODO check if the direction is correct
         self.y = (self.y - off_y) % self.client.size_y
-        if self.state == "just birthed":
-            self.state == "autism"
-        # else:
-            # self.state = "ejected"
         return
 
 
@@ -435,12 +446,12 @@ class Trantorian:
         # TODO this cause probleme in the map serialization
         # as the update time is not reset, we came to a point where player = -1
         # if we update the last_time the objects will be wrong
-        # self.known_map.tiles[self.y][self.x].content["player"] -= 1
+        # self.get_current_case().content["player"] -= 1
         self.x += x
         self.y += y
         self.x %= self.client.size_x
         self.y %= self.client.size_y
-        # self.known_map.tiles[self.y][self.x].content["player"] += 1
+        # self.get_current_case().content["player"] += 1
         return True
 
     def right(self) -> bool:
@@ -485,6 +496,7 @@ class Trantorian:
         if self.dead:
             return False
         self.client.send_cmd("Look")
+
         cases = split_list(self.wait_answer())
         if cases == []:
             return False
@@ -495,11 +507,10 @@ class Trantorian:
             current += 1 + 2 * i
             i += 1
         if nb_case != current:
-            print("Parsing Failed")
             return False
         self.level = i - 1
 
-        self.known_map.tiles[self.y][self.x].fill_from_str(cases.pop(0))
+        self.get_current_case().fill_from_str(cases.pop(0))
         direct: int = -1
         if self.direction in [TrantorianDirection.DOWN, TrantorianDirection.LEFT]:
             direct = 1
@@ -525,8 +536,13 @@ class Trantorian:
         if self.dead:
             return False
         self.client.send_cmd("Inventory")
-        content = split_list(self.wait_answer())
+
+        answer = self.wait_answer()
+        if self.dead:
+            return False
+        content = split_list(answer)
         if content == []:
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         for e in content:
             key, val = e.split()
@@ -538,7 +554,7 @@ class Trantorian:
                 return False
         return True
 
-    def broadcast(self, content: str, receivers: list[str]) -> bool: # TODO update the
+    def broadcast(self, content: str, receivers: list[str]) -> bool: # TODO remove the map
         """broadcast a message
         time limit : 7/f
         "sender_uuid$receiver_uuid$type$content$infos$map"
@@ -559,8 +575,7 @@ class Trantorian:
         msg = f'{self.uid}$'
         msg += '|'.join(receivers) + '$'
         msg += f'{content}$'
-        msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}$'
-        msg += str(self.known_map)
+        msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}'
         self.client.send_cmd("Broadcast " + msg)
         return self.wait_answer() == 'ok'
 
@@ -591,7 +606,6 @@ class Trantorian:
         Returns:
             bool: false if self is sterile
         """
-        print("AAAAAAAAAAAAAAAAAAAAAAA")
         if self.dead:
             return False
         self.client.send_cmd("Fork")
@@ -629,7 +643,7 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         self.inventory[obj] += 1
-        return
+        return True
 
     def drop_object(self, obj: str) -> bool:
         """drop object on the same case

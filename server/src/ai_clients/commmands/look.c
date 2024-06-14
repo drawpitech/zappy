@@ -5,15 +5,14 @@
 ** look
 */
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "commands.h"
 #include "server.h"
 
-payload_t *get_cell_payload(
-    server_t *serv, vector_t *pos, payload_t *payload)
+payload_t *get_cell_payload(server_t *serv, vector_t *pos, payload_t *payload)
 {
     memcpy(
         payload->res,
@@ -40,8 +39,7 @@ static look_payload_t *init_look_payload(ai_client_t *client)
 }
 
 static look_payload_t *look_north(
-    server_t *server, ai_client_t *client,
-    look_payload_t *payload)
+    server_t *server, ai_client_t *client, look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
@@ -54,8 +52,7 @@ static look_payload_t *look_north(
 }
 
 static look_payload_t *look_east(
-    server_t *server, ai_client_t *client,
-    look_payload_t *payload)
+    server_t *server, ai_client_t *client, look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
@@ -68,8 +65,7 @@ static look_payload_t *look_east(
 }
 
 static look_payload_t *look_south(
-    server_t *server, ai_client_t *client,
-    look_payload_t *payload)
+    server_t *server, ai_client_t *client, look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int x = client->pos.x - i; x < client->pos.x + i + 1; ++x) {
@@ -82,8 +78,7 @@ static look_payload_t *look_south(
 }
 
 static look_payload_t *look_west(
-    server_t *server, ai_client_t *client,
-    look_payload_t *payload)
+    server_t *server, ai_client_t *client, look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
         for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
@@ -101,8 +96,6 @@ look_payload_t *look(server_t *server, ai_client_t *client)
 
     get_cell_payload(server, &client->pos, &payload->cell_content[0]);
     payload->idx++;
-    if (payload == NULL)
-        return NULL;
     switch (client->dir) {
         case NORTH:
             payload = look_north(server, client, payload);
@@ -123,15 +116,20 @@ look_payload_t *look(server_t *server, ai_client_t *client)
 void ai_cmd_look(server_t *server, ai_client_t *client, UNUSED char *args)
 {
     look_payload_t *payload = look(server, client);
+    payload_t *cell = NULL;
+    bool space = false;
 
     dprintf(client->s_fd, "[");
     for (size_t i = 0; i < payload->size; ++i) {
+        cell = &payload->cell_content[i];
         for (short j = 0; j < R_COUNT; ++j) {
-            for (int k = 0; k < client->res[j].quantity; ++k) {
-                dprintf(client->s_fd, "%s ", r_name[j]);
+            for (int k = 0; k < cell->res[j].quantity; ++k) {
+                dprintf(client->s_fd, "%s%s", (space) ? " " : "", r_name[j]);
+                space = true;
             }
         }
-        dprintf(client->s_fd, ", ");
+        if (i != 0)
+            dprintf(client->s_fd, ",");
     }
     dprintf(client->s_fd, "]\n");
 }

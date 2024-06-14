@@ -25,10 +25,6 @@ class Client:
         self.send_cmd(self.team)
         team_size: str = self.get_answer()
         coordinates: str = self.get_answer()
-        # infos: list = self.get_answer().split('\n')
-        # print(infos)
-        # if len(infos) != 3:
-            # raise RuntimeError("Server answer didn't match expectation")
 
         x: str = -1
         y: str = -1
@@ -58,7 +54,6 @@ class Client:
                 self.buffer = "dead\n"
             self.buffer += new
         last_answer, self.buffer = self.buffer.split('\n', maxsplit=1)
-        print('----', last_answer)
         return last_answer
 
     def send_cmd(self, cmd: str) -> None:
@@ -69,7 +64,6 @@ class Client:
         """
         if cmd[-1] != '\n':
             cmd += '\n'
-        print('###', cmd)
         self.socket.send(cmd.encode())
 
 if __name__ == "__main__":

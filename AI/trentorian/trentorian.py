@@ -132,6 +132,7 @@ class Trantorian:
             # print(self.known_map)
             # while not self.dead:
                 # self.take_object('sd')
+            print("live")
             self.start_living(queue)
             self.first_level()
             self.broadcast("just$update", ["all"])
@@ -331,19 +332,14 @@ class Trantorian:
         direct, msg = msg.split(',')
         direct: int = int(direct)
         parts = msg.strip().split("$")
-        if len(parts) != 6:
+        if len(parts) != 5:
             self.received_messages.append(msg)
             return
-        sender, receivers, msg_type, content, infos, received_map = parts
+        sender, receivers, msg_type, content, infos = parts
         if receivers != "all" and self.uid not in receivers.split('|'):
             return
         info_unpacked = unpack_infos(infos, self.uid)
         self.merge_others(info_unpacked)
-        # try:
-            # received_map = Map.from_str(received_map)
-            # self.known_map = merge_maps(self.known_map, received_map)
-        # except SyntaxError as err:
-            # return
         try:
             MessageTypeParser().deserialize(self, int(msg_type), content)
             self.last_msg_infos = [sender, msg_type, content]
@@ -511,7 +507,10 @@ class Trantorian:
             return False
         self.client.send_cmd("Inventory")
 
-        content = split_list(self.wait_answer())
+        answer = self.wait_answer()
+        if self.dead:
+            return False
+        content = split_list(answer)
         if content == []:
             print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
@@ -546,9 +545,7 @@ class Trantorian:
         msg = f'{self.uid}$'
         msg += '|'.join(receivers) + '$'
         msg += f'{content}$'
-        msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}$'
-        msg += str(self.known_map)
-        # print(len(msg))
+        msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}'
         self.client.send_cmd("Broadcast " + msg)
         return self.wait_answer() == 'ok'
 

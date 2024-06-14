@@ -24,7 +24,8 @@ from utils import (
     check_levelup,
     pack_infos,
     unpack_infos,
-    split_list
+    split_list,
+    LEVELS
 )
 
 # TODO use init file for the module
@@ -114,6 +115,8 @@ class Trantorian:
         self.team_size: int = 0
         self.last_msg_infos: list = []
         self.last_beacon_direction: int = 0
+        self.last_beacon_uid: str = None
+        self.number_of_ritual_ready: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
         self.mini_food: int = 10 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
 
@@ -261,6 +264,8 @@ class Trantorian:
             self.forward()
             # self.look_around()
 
+        self.broadcast(MessageTypeParser().serialize(None, self), [self.last_beacon_uid])
+
     def beacon(self, receivers: list) -> None:
         """set ourselves as a beacon to atract the others
 
@@ -268,9 +273,12 @@ class Trantorian:
             receivers (list): people to regroup
         """
         self.state = "beacon"
+
         while self.iter() and self.state == "beacon":
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
-        return
+            if self.number_of_ritual_ready >= LEVELS[self.level - 1]:
+                #TODO do ritual
+                break
 
     def start_living(self, queue: Queue) -> None:
         """ First step of the life (reproduction)

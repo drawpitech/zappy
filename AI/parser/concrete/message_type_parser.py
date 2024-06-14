@@ -7,17 +7,20 @@ class MessageType(IntEnum):
     ASK_BIRTH = 0
     BIRTH_INFO = 1
     BEACON = 2
+    RITUAL_READY = 3
 
 MESSAGE_PARSER: dict = {
     MessageType.ASK_BIRTH: "MessageAskBirthParser",
     MessageType.BIRTH_INFO: "MessageBirthInfoParser",
-    MessageType.BEACON: "MessageBeaconParser"
+    MessageType.BEACON: "MessageBeaconParser",
+    MessageType.RITUAL_READY: "MessageRitualParser"
 }
 
 MODULE_NAME: dict = {
     "MessageBirthInfoParser": "parser.concrete.message_birth_parser",
     "MessageAskBirthParser": "parser.concrete.message_birth_parser",
-    "MessageBeaconParser": "parser.concrete.message_beacon_parser"
+    "MessageBeaconParser": "parser.concrete.message_beacon_parser",
+    "MessageRitualParser": "parser.concrete.message_ritual_parser"
 }
 
 class MessageTypeParser():

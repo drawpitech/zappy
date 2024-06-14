@@ -6,6 +6,16 @@ Module providing some utilities for the ai
 from enum import IntEnum
 from time import time
 
+LEVELS = { # contain for each level, nbr player needed and ressource needed
+    2: (1,[1, 0, 0, 0, 0, 0]),
+    3: (2,[1, 1, 1, 0, 0, 0]),
+    4: (2,[2, 0, 1, 0, 2, 0]),
+    5: (4,[1, 1, 2, 0, 1, 0]),
+    6: (4,[1, 2, 1, 3, 0, 0]),
+    7: (6,[1, 2, 3, 0, 1, 0]),
+    8: (6,[2, 2, 2, 2, 2, 1]),
+}
+
 class SoundDirection(IntEnum):
     """Sound direction enum
     """
@@ -85,16 +95,7 @@ def check_levelup(inventory: dict, level: int, current_players: int) -> bool:
     for elt in elements:
         if elt not in inventory:
             return False
-    levels = { # contain for each level, nbr player needed and ressource needed
-        2: (1,[1, 0, 0, 0, 0, 0]),
-        3: (1,[1, 1, 1, 0, 0, 0]),
-        4: (1,[2, 0, 1, 0, 2, 0]),
-        5: (1,[1, 1, 2, 0, 1, 0]),
-        6: (1,[1, 2, 1, 3, 0, 0]),
-        7: (1,[1, 2, 3, 0, 1, 0]),
-        8: (1,[2, 2, 2, 2, 2, 1]),
-    }
-    nbplayers, materials = levels[level]
+    nbplayers, materials = LEVELS[level]
     if nbplayers > current_players:
         return False
     if inventory["food"] < 3 * nbplayers:

@@ -2,6 +2,9 @@ build/*
 .vscode
 compile_flags.txt
 bin/*
+note.txt
+test.py
+zappy_ref*/*
 __pycache__/
 *.py[cod]
 *$py.class

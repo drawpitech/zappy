@@ -4,6 +4,7 @@ Module providing some utilities for the ai
 """
 
 from enum import IntEnum
+from time import time
 
 class SoundDirection(IntEnum):
     """Sound direction enum
@@ -53,7 +54,7 @@ def determine_direction(p1, p2, grid_size) -> SoundDirection:
         elif dy > 0 and dx > 0:
             direction = SoundDirection.SOUTH_EAST
         elif dy > 0 and dx < 0:
-            direction = SoundDirection.SOUTH_EAST
+            direction = SoundDirection.SOUTH_WEST
 
     elif abs(dy) >= abs(dx):
         if dy < 0:
@@ -102,3 +103,100 @@ def check_levelup(inventory: dict, level: int, current_players: int) -> bool:
         if inventory[elements[i + 1]] < materials[i]:
             return False
     return True
+
+
+def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: int) -> str:
+    """convert the playrs infos to a string
+
+    Args:
+        players (dict): dictionnary of all the teams members
+        uid (float): player uid
+        inventory (dict): player inventory
+        lvl (int): player level
+        x (int): player pos x
+        y (int): player pos y
+
+    Returns:
+        str: packed infos
+    """
+    total: str = ""
+    for puid, infos in players.items():
+        inv, plvl, px, py, update = infos
+
+        total += f"{puid}-{'%'.join(map(str, inv.values()))}-{plvl}-{px}-{py}-{update}|"
+    total += f"{uid}-{'%'.join(map(str, inventory.values()))}-{lvl}-{x}-{y}-{time()}"
+    return total
+
+def unpack_inventory(msg: str) -> dict:
+    """parse a string to an inventory
+
+    Args:
+        msg (str): string to parse
+
+    Returns:
+        dict: obateined inventory
+    """
+    inv = msg.strip().split('%')
+    res: dict = {
+            "food": 0, "linemate": 0, "deraumere": 0,
+            "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
+    }
+    try:
+        res["food"] = int(inv[0])
+        res["linemate"] = int(inv[1])
+        res["deraumere"] = int(inv[2])
+        res["sibur"] = int(inv[3])
+        res["mendiane"] = int(inv[4])
+        res["phiras"] = int(inv[5])
+        res["thystame"] = int(inv[6])
+    except (SyntaxError, ValueError, IndexError) as err:
+        raise SyntaxError("Invalid dictionary format") from err
+    return res
+
+def unpack_infos(msg: str, uid: str) -> dict:
+    """convert a string to a dic of the others players infos
+
+    Args:
+        msg (str): string to parse
+        uid (str): player uuid to skip
+
+    Returns:
+        dict: result
+    """
+    content: list = msg.strip().split('|')
+    res: dict = {}
+    for players in content:
+        infos = players.strip().split('-')
+        if len(infos) != 6:
+            continue              # TODO raise an error
+        uuid, inv, lvl, x, y, last_u = infos
+        if uuid == uid:
+            continue
+        try:
+            inventory =  unpack_inventory(inv)
+            lvl = int(lvl)
+            x = int(x)
+            y = int(y)
+            last_u = float(last_u)
+        except (SyntaxError, ValueError):
+            continue
+        res[uuid] = (inventory, lvl, x, y, last_u)
+    return res
+
+
+def split_list(msg: str) -> list[str]:
+    """convert a string of a list to the corresponding list
+
+    Args:
+        msg (str): intial string
+
+    Returns:
+        list[str]: resulting list
+    """
+    if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
+        print(msg)
+        print("List parsing failed")
+        return []
+    sp = msg[1:-1].split(',')
+
+    return [e.strip(' ') for e in sp]

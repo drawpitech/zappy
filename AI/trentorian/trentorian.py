@@ -115,7 +115,7 @@ class Trantorian:
         self.last_msg_infos: list = []
         self.last_beacon_direction: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
-        self.mini_food: int = 12 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
+        self.mini_food: int = 10 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -124,26 +124,23 @@ class Trantorian:
             queue (Queue): process shared queu (for birth)
         """
         try:
-            # self.look_around()
-            # for _ in range(2): # this can be optimised
-                # for _ in range(self.get_current_case().content["food"]):
-                    # if not self.take_object("food"):
-                        # print("ooiioioioioi")
-                # self.forward()
-            # print(self.known_map)
-            # while not self.dead:
-                # self.take_object('sd')
             print("live")
             self.start_living(queue)
-            self.first_level()
-            self.broadcast("just$update", ["all"])
-            while self.iter_food():
-                self.wander()
-                continue
-            print("died")
+            self.beacon(self.others.keys())
+            if self.state == 'going somewhere':
+                self.follow_beacon()
+            while not self.dead:
+                self.look_around()
+
+            # self.first_level()
+            # self.broadcast("just$update", ["all"])
+            # while self.iter_food():
+                # self.wander()
+                # continue
         except BrokenPipeError:
             print("Server closed socket")
             self.dead = True
+        print("died")
         return
 
     def first_level(self) -> None:
@@ -195,7 +192,10 @@ class Trantorian:
         self.get_inventory()
         if self.inventory["food"] > self.mini_food:
             return True
-        while self.iter() and self.inventory["food"] < self.mini_food + 10:
+        max_reached: bool = True
+        state_change: bool = True
+        under_mini: bool = True
+        while self.iter() and (under_mini or (max_reached and state_change)):
             if self.dead:
                 return False
             if not self.look_around():
@@ -213,6 +213,9 @@ class Trantorian:
             elif direct == 2:
                 self.right()
             self.get_inventory()
+            max_reached: bool =  self.inventory["food"] < self.mini_food + 10
+            state_change: bool = self.state != "going somewhere"
+            under_mini: bool = self.inventory["food"] < self.mini_food
         return not self.dead
 
     def get_current_case(self) -> MapTile:
@@ -242,7 +245,7 @@ class Trantorian:
     def follow_beacon(self) -> None:
         """follow the beacon to make a ritual
         """
-        while self.state == "going somewhere":
+        while self.iter() and self.state == "going somewhere":
             if self.last_beacon_direction == 0:
                 self.state = "ritual_prep"
                 break
@@ -252,19 +255,22 @@ class Trantorian:
             elif self.last_beacon_direction == 5:
                 self.left()
                 self.left()
-            else:
+            elif self.last_beacon_direction > 5:
                 self.right()
 
             self.forward()
+            # self.look_around()
 
-            self.receive_message(self.client.get_answer())
+    def beacon(self, receivers: list) -> None:
+        """set ourselves as a beacon to atract the others
 
-    def beacon(self) -> None:
-        """make a ritual
+        Args:
+            receivers (list): people to regroup
         """
-        while self.state == "beacon":
-            self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), ["all"])
-            self.receive_message(self.client.get_answer())
+        self.state = "beacon"
+        while self.iter() and self.state == "beacon":
+            self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
+        return
 
     def start_living(self, queue: Queue) -> None:
         """ First step of the life (reproduction)
@@ -272,9 +278,9 @@ class Trantorian:
         Args:
             queue (Queue): queue to birth other trantorians
         """
+        self.iter_food()
         self.broadcast("im$alive", ["all"])
         self.get_unused_slot()
-        self.iter_food()
         b2, b3 = True, True
         team_size = len(self.others) + 1
         nbr = 0
@@ -289,6 +295,7 @@ class Trantorian:
             self.get_unused_slot()
             self.asexual_multiplication(queue)
             self.broadcast("im$alive", ["all"])
+        self.broadcast("ready$tolive", ["all"])
         return
 
     def suicide(self) -> None:
@@ -369,7 +376,7 @@ class Trantorian:
         info_unpacked = unpack_infos(infos, self.uid)
         self.merge_others(info_unpacked)
         try:
-            MessageTypeParser().deserialize(self, int(msg_type), content)
+            MessageTypeParser().deserialize(self, int(msg_type), content, direct)
             self.last_msg_infos = [sender, msg_type, content]
         except (KeyError, ValueError):
             return

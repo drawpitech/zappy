@@ -35,7 +35,7 @@ class MessageBeaconParser(IParser):
                 warn(f"Invalid message content for beacon message: {message_content}")
                 return trentorian
 
-        trentorian.state = "going_somewhere"
+        trentorian.state = "going somewhere"
         trentorian.last_beacon_direction = message_hitpoint
 
         return trentorian

@@ -32,7 +32,7 @@ class MessageBirthInfoParser(IParser):
                     trentorian.y}_{
                             trentorian.team_size}'
 
-    def deserialize(self, trentorian: Trantorian, message_content: str) -> Trantorian:
+    def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the message content, for birth info
         """
         params = message_content.split("_")
@@ -65,7 +65,7 @@ class MessageAskBirthParser(IParser):
         """
         return ""
 
-    def deserialize(self, trentorian: Trantorian, message_content: str) -> Trantorian:
+    def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the message content, for ask birth
         """
         if not trentorian.state == "wait birth":

@@ -17,7 +17,7 @@ class IParser:
         """
 
     @abstractmethod
-    def deserialize(self, trentorian: Trantorian, message_content: str) -> Trantorian:
+    def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the data
 
         Args:

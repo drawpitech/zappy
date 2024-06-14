@@ -112,6 +112,7 @@ class Trantorian:
         self.egg_pos: tuple = (0, 0)
         self.team_size: int = 0
         self.last_msg_infos: list = []
+        self.last_beacon_direction: int = 0
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -209,6 +210,33 @@ class Trantorian:
             elif direct == 2:
                 self.right()
         return
+
+    def follow_beacon(self) -> None:
+        """follow the beacon to make a ritual
+        """
+        while self.state == "going somewhere":
+            if self.last_beacon_direction == 0:
+                self.state = "ritual_prep"
+                break
+
+            if self.last_beacon_direction < 5 and self.last_beacon_direction != 1:
+                self.left()
+            elif self.last_beacon_direction == 5:
+                self.left()
+                self.left()
+            else:
+                self.right()
+
+            self.forward()
+
+            self.receive_message(self.client.get_answer())
+
+    def beacon(self) -> None:
+        """make a ritual
+        """
+        while self.state == "beacon":
+            self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), ["all"])
+            self.receive_message(self.client.get_answer())
 
     def start_living(self, queue: Queue) -> None:
         self.broadcast(MessageTypeParser().serialize(MessageType.ASK_BIRTH, self), ["all"])
@@ -330,7 +358,7 @@ class Trantorian:
             self.known_map = merge_maps(self.known_map, received_map)
         except SyntaxError as err:
             return
-        MessageTypeParser().deserialize(self, int(msg_type), content)
+        MessageTypeParser().deserialize(self, int(msg_type), content, direct)
         self.last_msg_infos = [sender, msg_type, content]
         return
 

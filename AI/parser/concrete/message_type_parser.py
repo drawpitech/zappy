@@ -6,15 +6,18 @@ class MessageType(IntEnum):
     """
     ASK_BIRTH = 0
     BIRTH_INFO = 1
+    BEACON = 2
 
 MESSAGE_PARSER: dict = {
     MessageType.ASK_BIRTH: "MessageAskBirthParser",
-    MessageType.BIRTH_INFO: "MessageBirthInfoParser"
+    MessageType.BIRTH_INFO: "MessageBirthInfoParser",
+    MessageType.BEACON: "MessageBeaconParser"
 }
 
 MODULE_NAME: dict = {
     "MessageBirthInfoParser": "parser.concrete.message_birth_parser",
-    "MessageAskBirthParser": "parser.concrete.message_birth_parser"
+    "MessageAskBirthParser": "parser.concrete.message_birth_parser",
+    "MessageBeaconParser": "parser.concrete.message_beacon_parser"
 }
 
 class MessageTypeParser():
@@ -27,10 +30,10 @@ class MessageTypeParser():
         module = importlib.import_module(MODULE_NAME[message_parser])
         return str(message_type) + '$' + getattr(module, message_parser)().serialize(trentorian)
 
-    def deserialize(self, trentorian, message_type: MessageType, message_content: str):
+    def deserialize(self, trentorian, message_type: MessageType, message_content: str, message_hitpoint: int):
         """Deserialize the message content, depending on his type
         """
         message_parser: str = MESSAGE_PARSER[message_type]
         module = importlib.import_module(MODULE_NAME[message_parser])
-        getattr(module, message_parser)().deserialize(trentorian, message_content)
+        getattr(module, message_parser)().deserialize(trentorian, message_content, message_hitpoint)
         return trentorian

@@ -307,7 +307,8 @@ class Trantorian:
             str: last server answer
         """
         answer: str = self.client.get_answer()
-        while answer[:7] == 'message' or answer[:5] == 'eject':
+        # TODO replace with startwith
+        while answer[:7] == 'message' or answer[:5] == 'eject' or answer[:9] == 'Broadcast':
             if answer[:7] == 'message':
                 self.receive_message(answer)
             if answer[:5] == 'eject':
@@ -547,6 +548,7 @@ class Trantorian:
         msg += f'{content}$'
         msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}$'
         msg += str(self.known_map)
+        # print(len(msg))
         self.client.send_cmd("Broadcast " + msg)
         return self.wait_answer() == 'ok'
 

@@ -106,6 +106,11 @@ typedef struct ai_client_s {
     char buffer[4096];
 } ai_client_t;
 
+typedef struct gui_client_s {
+    int s_fd;
+    char buffer[4096];
+} gui_client_t;
+
 typedef struct server_s {
     int s_fd;
     struct sockaddr_in s_addr;
@@ -122,3 +127,4 @@ look_payload_t *look(server_t *server, ai_client_t *client);
 int iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *server, int client_fd, char *team);
 int remove_ai_client(server_t *server, size_t idx);
+char **my_str_to_word_array(const char *str, char const *separator);

@@ -12,66 +12,6 @@
 #include "ai_internal.h"
 #include "server.h"
 
-// TODO:
-// - There will be some big issues if a users tries to send > 4096 bytes
-// without a \n.
-
-static void exec_ai_cmd(server_t *server, ai_client_t *client, char *buffer)
-{
-    char *content = NULL;
-    struct ai_cmd_s *cmd = NULL;
-
-    content = strchr(buffer, ' ');
-    if (content != NULL) {
-        *content = '\0';
-        content++;
-    } else {
-        content = "";
-    }
-    cmd = get_ai_cmd(buffer);
-    if (cmd == NULL || cmd->func == NULL) {
-        write(client->s_fd, "ko\n", 3);
-        return;
-    }
-    cmd->func(server, client, content);
-}
-
-static bool process_ai_cmd(server_t *server, ai_client_t *client, char **ptr)
-{
-    char *buffer = *ptr;
-    char *newline = strchr(buffer, '\n');
-
-    if (newline == NULL) {
-        strcat(client->buffer, buffer);
-        return false;
-    }
-    *newline = '\0';
-    if (buffer != newline && *(newline - 1) == '\r')
-        *(newline - 1) = '\0';
-    exec_ai_cmd(server, client, buffer);
-    *ptr = newline + 1;
-    return true;
-}
-
-static void handle_ai_client(server_t *server, ai_client_t *client)
-{
-    char buffer[sizeof client->buffer];
-    ssize_t bytes_read = 0;
-    size_t offset = 0;
-
-    strcpy(buffer, client->buffer);
-    offset = strlen(buffer);
-    client->buffer[0] = '\0';
-    bytes_read = read(client->s_fd, buffer + offset, sizeof buffer - offset);
-    if (bytes_read <= 0) {
-        disconnect_ai_client(client);
-        return;
-    }
-    buffer[bytes_read] = '\0';
-    for (char *ptr = buffer; process_ai_cmd(server, client, &ptr);)
-        ;
-}
-
 void move_ai_client(server_t *server, ai_client_t *client, int dir)
 {
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;

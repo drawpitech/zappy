@@ -20,5 +20,5 @@ struct ai_cmd_s {
 extern const struct ai_cmd_s *const AI_CLIENT_COMMANDS;
 extern const size_t AI_CLIENT_COMMANDS_LEN;
 
-struct ai_cmd_s *get_ai_cmd(const char *cmd);
 void disconnect_ai_client(ai_client_t *ai);
+void handle_ai_client(server_t *server, ai_client_t *client);

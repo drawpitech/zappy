@@ -57,9 +57,10 @@ static void handle_ai_client(server_t *server, ai_client_t *client)
 {
     char buffer[sizeof client->buffer];
     ssize_t bytes_read = 0;
-    size_t offset = strlen(buffer);
+    size_t offset = 0;
 
     strcpy(buffer, client->buffer);
+    offset = strlen(buffer);
     client->buffer[0] = '\0';
     bytes_read = read(client->s_fd, buffer + offset, sizeof buffer - offset);
     if (bytes_read <= 0) {
@@ -83,7 +84,7 @@ int init_ai_client(server_t *server, int client_fd, char *team)
     client->dir = rand() % 4;
     client->pos.x = rand() % (int)server->ctx.width;
     client->pos.y = rand() % (int)server->ctx.height;
-    client->lvl = 1;
+    client->lvl = 4;
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     add_elt_to_array(&server->ai_clients, client);
     dprintf(client_fd, "1\n");

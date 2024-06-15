@@ -25,7 +25,8 @@ from utils import (
     pack_infos,
     unpack_infos,
     split_list,
-    LEVELS
+    LEVELS,
+    get_incantation_team
 )
 
 # TODO use init file for the module
@@ -129,6 +130,29 @@ class Trantorian:
         try:
             print("live")
             self.start_living(queue)
+            self.first_level()
+            while self.iter_food() and self.level:
+                can_level_up = self.wander()
+                if can_level_up:
+                    self.beacon(can_level_up)
+                    self.drop_stuff()
+                    for _ in range(4): #TODO now wait for all do drop their stuff
+                        self.look_around()
+                    self.start_incantation()
+                elif self.state == 'going somewhere':
+                    self.follow_beacon()
+                    self.drop_stuff()
+                ans = ""
+                while not self.dead and ans.startswith("Current level"): # TODO do that better
+                    ans = self.wait_answer()
+                    print(ans.startswith("Current level"))
+                print("-------------------", ans, self.dead)
+                lvl = ans.strip().split(' ')[1]
+                self.level = int(lvl)
+                print("new level: ", lvl)
+                self.broadcast("just$update", ["all"])
+
+
             self.beacon(["all"])
             if self.state == 'going somewhere':
                 self.follow_beacon()
@@ -158,7 +182,7 @@ class Trantorian:
                 self.left()
             elif direct == 2:
                 self.right()
-            ready = check_levelup(self.inventory, 2, 1)
+            ready = check_levelup(self.inventory, 2, {})
         if self.dead:
             return
         if self.inventory["linemate"] == 0:
@@ -229,10 +253,16 @@ class Trantorian:
         """
         return self.known_map.tiles[self.y % self.client.size_y][self.x % self.client.size_x]
 
-    def wander(self) -> None:
-        """look and take stuff until inventiry is enought to level up
+    def wander(self) -> list[str]:
+        """look and take stuff until we can do an incantation, or we are called
+
+        Returns:
+            list[str]: list of players to do the incantation
         """
-        while self.iter_food() and not check_levelup(self.inventory, self.level + 1, 2):
+        self.state = "wander"
+        can_level_up = []
+        i = 0
+        while self.iter_food() and self.state == "wander" and not can_level_up:
             self.look_around()
             for _ in range(self.level):
                 if not self.take_tile_objects():
@@ -243,7 +273,12 @@ class Trantorian:
                 self.left()
             elif direct == 2:
                 self.right()
-        return
+            can_level_up = get_incantation_team(self.inventory, self.level + 1, self.others)
+            i += 1
+            if i % 4:
+                self.broadcast("just$update", ["all"])
+        print(can_level_up)
+        return can_level_up
 
     def follow_beacon(self) -> None:
         """follow the beacon to make a ritual
@@ -277,9 +312,8 @@ class Trantorian:
         while self.iter() and self.state == "beacon":
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
             if self.number_of_ritual_ready >= LEVELS[self.level + 1][0]:
-                #TODO do ritual
                 print("we are ready")
-                break
+                self.state = "ready"
 
     def start_living(self, queue: Queue) -> None:
         """ First step of the life (reproduction)
@@ -440,6 +474,15 @@ class Trantorian:
         self.direction = TrantorianDirection(sound_direction / 2)
 
         return True
+
+
+    def drop_stuff(self): # TODO drop only what's needed for levelup
+        for obj, val in self.inventory.items():
+            if obj == 'food':
+                return
+            for _ in range(val):
+                self.drop_object(obj)
+        return
 
 ##################################  COMMANDS  ##################################
 

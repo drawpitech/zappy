@@ -5,6 +5,7 @@ Module providing some utilities for the ai
 
 from enum import IntEnum
 from time import time
+from itertools import combinations
 
 LEVELS = { # contain for each level, nbr player needed and ressource needed
     2: (1,[1, 0, 0, 0, 0, 0]),
@@ -80,30 +81,35 @@ def determine_direction(p1, p2, grid_size) -> SoundDirection:
 
     return direction
 
-def check_levelup(inventory: dict, level: int, current_players: int) -> bool:
+def check_levelup(inventory: dict, level: int, current_players: dict) -> bool:
     """check if the level up is possible given the current ressources
 
     Args:
-        inventory (dict): current ressources
+        inventory (dict): player inventory
         level (int): objective level
-        current_players (int): number of player on the same level
+        current_players (dict): team
 
     Returns:
         bool: true if incantation is possible
     """
-    elements = ["food", "linemate", "deraumere", "sibur", "mendiane", "phiras", "thystame"]
-    for elt in elements:
-        if elt not in inventory:
-            return False
+    if level > 8:
+        return False
     nbplayers, materials = LEVELS[level]
-    if nbplayers > current_players:
+    global_inv = {"food":0, "linemate":0, "deraumere":0,
+                  "sibur":0, "mendiane":0, "phiras":0, "thystame":0}
+    if nbplayers > len(current_players) + 1:
         return False
-    if inventory["food"] < 3 * nbplayers:
+    for key in global_inv:
+        global_inv[key] += inventory[key]
+        global_inv[key] += sum(p[0][key] for p in current_players.values())
+    if global_inv["food"] < 3 * nbplayers:
         return False
-    for i in range(len(elements) - 1):
-        if inventory[elements[i + 1]] < materials[i]:
-            return False
-    return True
+
+    global_val = list(global_inv.values()) # 1: to eject the food
+    global_val.pop(0) # remove the food
+    if len(global_val) != len(materials):
+        return False
+    return all(a >= b for a, b in zip(global_val, materials))
 
 
 def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: int) -> str:
@@ -195,8 +201,53 @@ def split_list(msg: str) -> list[str]:
         list[str]: resulting list
     """
     if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
+        print(msg)
         print("List parsing failed")
         return []
     sp = msg[1:-1].split(',')
 
     return [e.strip(' ') for e in sp]
+
+def get_all_subsets(data: list, n: int) -> list[list]:
+    """
+    This function iteratively generates all subsets of size n from the given list.
+
+    Args:
+        data: The list from which to generate subsets.
+        n: The desired size of the subsets.
+
+    Returns:
+        A list containing all subsets of size n from the input list.
+    """
+    subsets = []
+    for i in range(len(data) ** n):  # Iterate through all possible combinations of indices
+        subset = []
+        # Convert index to base-n representation (digits represent chosen elements)
+        index_str = bin(i)[2:].zfill(n)  # Pad with zeros to ensure n digits
+        for j in range(n):
+            if index_str[j] == '1':
+                subset.append(data[j])
+    subsets.append(subset)
+    return subsets
+
+def get_incantation_team(inventory: dict, level: int, current_players: int) -> list:
+    """get the list of players for the incantation
+
+    Args:
+        inventory (dict): player inventory
+        level (int): objective level
+        current_players (int): players of the team
+
+    Returns:
+        list: uid of the players needed for the incantation, empty if no one
+    """
+    if level > 8:
+        return []
+    same_levels: dict = dict(filter(lambda item: item[1][1] == level - 1, current_players.items()))
+    possibilities = combinations(same_levels.items(), LEVELS[level][0])
+
+    for possible in possibilities:
+        possible = dict(possible)
+        if check_levelup(inventory, level, possible):
+            return list(possible.keys())
+    return []

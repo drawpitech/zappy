@@ -61,6 +61,11 @@ typedef struct {
     int y;
 } vector_t;
 
+typedef struct {
+    vector_t pos;
+    char *team;
+} egg_t;
+
 extern const double DENSITIES[R_COUNT];
 extern const char *const r_name[R_COUNT];
 
@@ -111,6 +116,7 @@ typedef struct server_s {
     struct sockaddr_in s_addr;
     array_t ai_clients;
     array_t waitlist_fd;
+    array_t eggs;
     cell_t *map;
     context_t ctx;
 } server_t;

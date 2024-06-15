@@ -50,8 +50,6 @@ class Client:
                 new = self.socket.recv(1024).decode()
             except ConnectionResetError:
                 self.buffer = "dead\n"
-            if new == "":
-                self.buffer = "dead\n"
             self.buffer += new
         last_answer, self.buffer = self.buffer.split('\n', maxsplit=1)
         # print('#######', last_answer)

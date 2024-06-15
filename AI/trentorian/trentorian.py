@@ -119,7 +119,7 @@ class Trantorian:
         self.last_beacon_uid: str = None
         self.number_of_ritual_ready: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
-        self.mini_food: int = 10 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
+        self.mini_food: int = 20 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -131,44 +131,63 @@ class Trantorian:
             print("live")
             self.start_living(queue)
             self.first_level()
-            while self.iter_food() and self.level:
+            while self.iter_food() and self.level: # TODO deadlook if two calls the same
                 can_level_up = self.wander()
-                if can_level_up:
-                    self.beacon(can_level_up)
-                    self.drop_stuff()
-                    for _ in range(4): #TODO now wait for all do drop their stuff
-                        self.look_around()
-                    self.start_incantation()
-                elif self.state == 'going somewhere':
-                    self.follow_beacon()
-                    self.drop_stuff()
-                ans = ""
-                while not self.dead and ans.startswith("Current level"): # TODO do that better
-                    ans = self.wait_answer()
-                    print(ans.startswith("Current level"))
-                print("-------------------", ans, self.dead)
-                lvl = ans.strip().split(' ')[1]
-                self.level = int(lvl)
-                print("new level: ", lvl)
+                if self.state == "shaman":
+                    a = self.be_the_shaman(can_level_up)
+                    print(self.uid, "incantation end", a)
+                if self.state == 'going somewhere':
+                    self.follow_the_leader()
                 self.broadcast("just$update", ["all"])
-
-
-            self.beacon(["all"])
-            if self.state == 'going somewhere':
-                self.follow_beacon()
-            while not self.dead:
-                self.look_around()
-
-            # self.first_level()
-            # self.broadcast("just$update", ["all"])
-            # while self.iter_food():
-                # self.wander()
-                # continue
         except BrokenPipeError:
             print("Server closed socket")
             self.dead = True
         print("died")
         return
+
+    def be_the_shaman(self, can_do_incant: list) -> bool:
+        """call the others and do the incantation process
+
+        Args:
+            can_do_incant (list): trants to do the incantation with
+
+        Returns:
+            bool: incantation's success
+        """
+        self.beacon(can_do_incant)
+        if self.state != "ready": # in case an other one calls him
+            return False
+
+        self.drop_stuff()
+        for _ in range(4): #TODO now wait for all to drop their stuff
+            self.look_around()
+        # TODO look to check the conditions
+        return self.start_incantation()
+
+
+    def follow_the_leader(self) -> bool:
+        """go and do the incantation whit the one who called
+
+        Returns:
+            bool: incantation's succes
+        """
+        print(self.uid, 'Follow leader')
+        self.follow_beacon()
+        self.drop_stuff() # TODO send message to tell we are ready
+        ans = ""
+        print(self.uid, "wait incant", self.last_beacon_uid)
+        while not self.dead and not ans.startswith("Current level"): # TODO do that better
+            ans = self.wait_answer()
+            if ans == "incantation end":
+                print(self.uid, "Incantation failed")
+                return False
+        if self.dead:
+            return False
+        print(self.uid, "incant end", ans)
+        lvl = ans.strip().split(' ')[1] # TODO do this shit better
+        self.level = int(lvl)
+        print(self.uid, "incantation done new level: ", lvl)
+        return True
 
     def first_level(self) -> None:
         """script to fastly go to level 2 and acquire some food
@@ -264,7 +283,7 @@ class Trantorian:
         i = 0
         while self.iter_food() and self.state == "wander" and not can_level_up:
             self.look_around()
-            for _ in range(self.level):
+            for _ in range(self.level): # TODO maybe some pririty order here
                 if not self.take_tile_objects():
                     break
                 self.forward()
@@ -277,7 +296,8 @@ class Trantorian:
             i += 1
             if i % 4:
                 self.broadcast("just$update", ["all"])
-        print(can_level_up)
+        if can_level_up and self.state != "going somewhere":
+            self.state = "shaman"
         return can_level_up
 
     def follow_beacon(self) -> None:
@@ -311,7 +331,7 @@ class Trantorian:
 
         while self.iter() and self.state == "beacon":
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
-            if self.number_of_ritual_ready >= LEVELS[self.level + 1][0]:
+            if self.number_of_ritual_ready >= LEVELS[self.level + 1][0] - 1:
                 print("we are ready")
                 self.state = "ready"
 
@@ -330,7 +350,7 @@ class Trantorian:
         while self.iter_food() and b2 and b3:
             # the objective of all those checks is to work even if the server is broken
             b2 = team_size < self.client.team_size and nbr < 2
-            b3 = team_size < 2 and self.unused_slot > 0
+            b3 = team_size < 5 and self.unused_slot > 0 # TODO must be 8
             new_size = len(self.others.items()) + 1
             if new_size == team_size:
                 nbr += 1
@@ -387,7 +407,7 @@ class Trantorian:
         """
         answer: str = self.client.get_answer()
         # TODO replace with startwith
-        while answer[:7] == 'message' or answer[:5] == 'eject' or answer[:9] == 'Broadcast':
+        while answer[:7] == 'message' or answer[:5] == 'eject':
             if answer[:7] == 'message':
                 self.receive_message(answer)
             if answer[:5] == 'eject':
@@ -476,10 +496,12 @@ class Trantorian:
         return True
 
 
-    def drop_stuff(self): # TODO drop only what's needed for levelup
+    def drop_stuff(self) -> None: # TODO drop only what's needed for levelup
+        """drops all our stuff
+        """
         for obj, val in self.inventory.items():
             if obj == 'food':
-                return
+                continue
             for _ in range(val):
                 self.drop_object(obj)
         return
@@ -736,9 +758,11 @@ class Trantorian:
             return False
         self.client.send_cmd("Incantation")
         if self.wait_answer() != "Elevation underway":
+            print("elev failed")
             return False
         answer = self.wait_answer()
         if len(answer) < 16 or answer[:15] != "Current level: " or answer[15] not in "12345678":
+            print("level failed")
             return False
         self.level = int(answer[15])
         return True

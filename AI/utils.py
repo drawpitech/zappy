@@ -244,7 +244,7 @@ def get_incantation_team(inventory: dict, level: int, current_players: int) -> l
     if level > 8:
         return []
     same_levels: dict = dict(filter(lambda item: item[1][1] == level - 1, current_players.items()))
-    possibilities = combinations(same_levels.items(), LEVELS[level][0])
+    possibilities = combinations(same_levels.items(), LEVELS[level][0] - 1)
 
     for possible in possibilities:
         possible = dict(possible)

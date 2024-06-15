@@ -6,17 +6,18 @@
 */
 
 #include "server.h"
-#include "arg_parse.h"
-#include "time.h"
 
 #include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
-#include <string.h>
+
+#include "arg_parse.h"
 #include "array.h"
+#include "time.h"
 
 const double DENSITIES[R_COUNT] = {
     [FOOD] = 0.5,
@@ -55,8 +56,7 @@ static int init_server(server_t *serv, int port)
     serv->s_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (serv->s_fd == -1)
         return RET_ERROR;
-    if (setsockopt(serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)
-        ) == -1)
+    if (setsockopt(serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
         return RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
@@ -93,8 +93,42 @@ static int new_client(server_t *serv)
     return accept(serv->s_fd, (struct sockaddr *)&serv->s_addr, &len);
 }
 
-static
-void handle_waitlist(server_t *serv, size_t i, int client_fd)
+static bool team_valid(server_t *serv, char *team)
+{
+    char *newline = strchr(team, '\n');
+
+    if (newline != NULL) {
+        *newline = '\0';
+        if (team != newline && *(newline - 1) == '\r')
+            *(newline - 1) = '\0';
+    }
+    for (size_t i = 0; i < serv->ctx.names->nb_elements; i++)
+        if (strcmp(team, serv->ctx.names->elements[i]) == 0)
+            return true;
+    return false;
+}
+
+static void connect_ai_client(
+    server_t *serv, size_t i, int client_fd, char *team)
+{
+    size_t team_len = 0;
+
+    if (!team_valid(serv, team)) {
+        write(client_fd, "ko\n", 3);
+        return;
+    }
+    for (size_t i = 0; i < serv->ai_clients.nb_elements; i++)
+        team_len +=
+            !strcmp(team, ((ai_client_t *)serv->ai_clients.elements[i])->team);
+    if (team_len < serv->ctx.client_nb) {
+        write(client_fd, "ko\n", 3);
+        return;
+    }
+    init_ai_client(serv, client_fd, team);
+    free(remove_elt_to_array(&serv->waitlist_fd, i));
+}
+
+static void handle_waitlist(server_t *serv, size_t i, int client_fd)
 {
     char buffer[DEFAULT_SIZE];
     ssize_t bytes_read = 0;
@@ -109,24 +143,18 @@ void handle_waitlist(server_t *serv, size_t i, int client_fd)
         write(client_fd, "ko\n", 3);
         // TODO implement GUI client
     } else {
-        // TODO:
-        // - add client to correct team
-        // - error handling
-        init_ai_client(serv, client_fd, buffer);
-        free(serv->waitlist_fd.elements[i]);
-        remove_elt_to_array(&serv->waitlist_fd, i);
+        connect_ai_client(serv, i, client_fd, buffer);
     }
 }
 
-static
-int iterate_waitlist(server_t *server)
+static int iterate_waitlist(server_t *server)
 {
     fd_set rfd;
     struct timeval timeout;
     int client_fd = 0;
 
     for (size_t i = 0; i < server->waitlist_fd.nb_elements; ++i) {
-        client_fd = ((int*)server->waitlist_fd.elements[i])[0];
+        client_fd = *((int *)server->waitlist_fd.elements[i]);
         timeout.tv_sec = 0;
         timeout.tv_usec = 1000;
         FD_ZERO(&rfd);
@@ -177,9 +205,9 @@ int server(UNUSED int argc, UNUSED char **argv)
     UNUSED server_t server = {0};
 
     srand(time(NULL));
-    if (arg_parse(argc, argv, &server.ctx) != RET_VALID
-        || init_server(&server, server.ctx.port) != RET_VALID
-        || init_map(&server, &server.ctx) != RET_VALID)
+    if (arg_parse(argc, argv, &server.ctx) != RET_VALID ||
+        init_server(&server, server.ctx.port) != RET_VALID ||
+        init_map(&server, &server.ctx) != RET_VALID)
         return RET_ERROR;
     for (int fd = -1;; fd = -1) {
         fd = new_client(&server);

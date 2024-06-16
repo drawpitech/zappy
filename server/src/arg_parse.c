@@ -22,8 +22,8 @@ UNUSED static void debug_ctx(context_t *ctx)
     printf("Port: %d\n", ctx->port);
     printf("Width: %ld\n", ctx->width);
     printf("Height: %ld\n", ctx->height);
-    for (size_t i = 0; i < ctx->names->nb_elements; ++i)
-        printf("%s\n", (char *)ctx->names->elements[i]);
+    for (size_t i = 0; i < ctx->names.nb_elements; ++i)
+        printf("%s\n", (char *)ctx->names.elements[i]);
 }
 
 static int check_flags(const int *array, char *argv[])
@@ -45,13 +45,13 @@ int arg_parse(int argc, char *argv[], context_t *ctx)
         return RET_ERROR;
     if (check_flags(array, argv) != RET_VALID)
         return RET_ERROR;
-    ctx->names = array_constructor();
     // TODO error handling with atoi (maybe port under 1024 ?)
     ctx->port = atoi(argv[2]);
     ctx->width = atoi(argv[4]);
     ctx->height = atoi(argv[6]);
     for (int i = 8; i < array[4]; ++i)
-        add_elt_to_array(ctx->names, argv[i]);
+        if (add_elt_to_array(&ctx->names, argv[i]) == RET_ERROR)
+            return RET_ERROR;
     debug_ctx(ctx);
     return RET_VALID;
 }

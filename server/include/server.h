@@ -22,6 +22,7 @@
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
 #define R_COUNT 9
 #define CELL(s, x, y) (&s->map[IDX(x, y, s->ctx.width, s->ctx.height)])
+#define OOM (void)write(STDERR_FILENO, "Out of memory\n", 14)
 
 enum {
     RET_VALID = 0,
@@ -91,7 +92,7 @@ typedef struct context_s {
     size_t width;
     size_t height;
     size_t map_size;
-    array_t *names;
+    array_t names;
     size_t client_nb;
     double freq;
 } context_t;

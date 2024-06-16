@@ -34,11 +34,11 @@ void move_ai_client(server_t *server, ai_client_t *client, int dir)
 
 int init_ai_client(server_t *server, int client_fd, char *team)
 {
-    ai_client_t *client = malloc(sizeof(ai_client_t));
+    ai_client_t *client = malloc(sizeof *client);
 
     if (client == NULL)
-        return RET_ERROR;
-    memset(client, 0, sizeof(ai_client_t));
+        return OOM, RET_ERROR;
+    memset(client, 0, sizeof *client);
     strcpy(client->team, team);
     client->s_fd = client_fd;
     client->dir = rand() % 4;
@@ -46,7 +46,8 @@ int init_ai_client(server_t *server, int client_fd, char *team)
     client->pos.y = rand() % (int)server->ctx.height;
     client->lvl = 4;
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
-    add_elt_to_array(&server->ai_clients, client);
+    if (add_elt_to_array(&server->ai_clients, client) == RET_ERROR)
+        return free(client), OOM, RET_ERROR;
     dprintf(client_fd, "1\n");
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
     return RET_VALID;

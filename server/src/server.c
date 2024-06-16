@@ -56,7 +56,8 @@ static int init_server(server_t *serv, int port)
     serv->s_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (serv->s_fd == -1)
         return RET_ERROR;
-    if (setsockopt(serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
+    if (setsockopt(
+            serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
         return RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
@@ -72,8 +73,18 @@ static void add_client(server_t *serv, int fd)
 {
     int *fd_ptr = malloc(sizeof(int));
 
+    if (!fd_ptr) {
+        OOM;
+        write(fd, "ko\n", 3);
+        close(fd);
+        return;
+    }
     *fd_ptr = fd;
-    add_elt_to_array(&serv->waitlist_fd, fd_ptr);
+    if (add_elt_to_array(&serv->waitlist_fd, fd_ptr) == RET_ERROR) {
+        write(fd, "ko\n", 3);
+        close(fd);
+        return;
+    }
     dprintf(fd, "WELCOME\n");
 }
 
@@ -102,14 +113,14 @@ static bool team_valid(server_t *serv, char *team)
         if (team != newline && *(newline - 1) == '\r')
             *(newline - 1) = '\0';
     }
-    for (size_t i = 0; i < serv->ctx.names->nb_elements; i++)
-        if (strcmp(team, serv->ctx.names->elements[i]) == 0)
+    for (size_t i = 0; i < serv->ctx.names.nb_elements; i++)
+        if (strcmp(team, serv->ctx.names.elements[i]) == 0)
             return true;
     return false;
 }
 
 static void connect_ai_client(
-    server_t *serv, size_t i, int client_fd, char *team)
+    server_t *serv, size_t idx, int client_fd, char *team)
 {
     size_t team_len = 0;
 
@@ -124,8 +135,11 @@ static void connect_ai_client(
         write(client_fd, "ko\n", 3);
         return;
     }
-    init_ai_client(serv, client_fd, team);
-    free(remove_elt_to_array(&serv->waitlist_fd, i));
+    free(remove_elt_to_array(&serv->waitlist_fd, idx));
+    if (init_ai_client(serv, client_fd, team) == RET_ERROR) {
+        write(client_fd, "ko\n", 3);
+        close(client_fd);
+    }
 }
 
 static void handle_waitlist(server_t *serv, size_t i, int client_fd)
@@ -135,7 +149,7 @@ static void handle_waitlist(server_t *serv, size_t i, int client_fd)
 
     bytes_read = read(client_fd, buffer, DEFAULT_SIZE);
     if (bytes_read <= 0) {
-        remove_elt_to_array(&serv->waitlist_fd, i);
+        remove_ai_client(serv, i);
         return;
     }
     buffer[bytes_read] = '\0';
@@ -188,7 +202,7 @@ static int init_map(server_t *server, context_t *ctx)
     ctx->map_size = ctx->width * ctx->height;
     server->map = malloc(sizeof(cell_t) * ctx->map_size);
     if (server->map == NULL)
-        return RET_ERROR;
+        return OOM, RET_ERROR;
     refill_map(server, ctx);
     return RET_VALID;
 }
@@ -200,9 +214,9 @@ UNUSED static void debug_payload(look_payload_t *payload)
     }
 }
 
-int server(UNUSED int argc, UNUSED char **argv)
+int server(int argc, char **argv)
 {
-    UNUSED server_t server = {0};
+    server_t server = {0};
 
     srand(time(NULL));
     if (arg_parse(argc, argv, &server.ctx) != RET_VALID ||

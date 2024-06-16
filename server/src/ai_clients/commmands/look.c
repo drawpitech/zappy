@@ -23,12 +23,14 @@ payload_t *get_cell_payload(server_t *serv, vector_t *pos, payload_t *payload)
 
 static look_payload_t *init_look_payload(ai_client_t *client)
 {
-    look_payload_t *payload = malloc(sizeof(look_payload_t));
+    size_t size = (size_t)(client->lvl + 1) * (client->lvl + 1);
+    look_payload_t *payload =
+        malloc(sizeof *payload + (sizeof *payload->cell_content * size));
 
     if (payload == NULL)
-        return NULL;
-    payload->size = (size_t)(client->lvl + 1) * (client->lvl + 1);
-    payload->cell_content = malloc(sizeof(payload_t) * payload->size);
+        return OOM, NULL;
+    payload->size = size;
+    payload->cell_content = (payload_t *)(payload + 1);
     for (size_t i = 0; i < payload->size; ++i) {
         for (size_t j = 0; j < R_COUNT; ++j) {
             payload->cell_content[i].res[j].r_name = j;
@@ -94,6 +96,8 @@ static look_payload_t *look(server_t *server, ai_client_t *client)
 {
     look_payload_t *payload = init_look_payload(client);
 
+    if (payload == NULL)
+        return NULL;
     get_cell_payload(server, &client->pos, &payload->cell_content[0]);
     payload->idx++;
     switch (client->dir) {
@@ -119,6 +123,10 @@ void ai_cmd_look(server_t *server, ai_client_t *client, UNUSED char *args)
     payload_t *cell = NULL;
     bool space = false;
 
+    if (payload == NULL) {
+        write(client->s_fd, "[]\n", 3);
+        return;
+    }
     dprintf(client->s_fd, "[");
     for (size_t i = 0; i < payload->size; ++i) {
         cell = &payload->cell_content[i];

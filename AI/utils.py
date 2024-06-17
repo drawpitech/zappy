@@ -112,7 +112,7 @@ def check_levelup(inventory: dict, level: int, current_players: dict) -> bool:
     return all(a >= b for a, b in zip(global_val, materials))
 
 
-def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: int) -> str:
+def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: int, incant: bool) -> str:
     """convert the playrs infos to a string
 
     Args:
@@ -122,16 +122,17 @@ def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: 
         lvl (int): player level
         x (int): player pos x
         y (int): player pos y
+        incant (bool): disponibility for incantation
 
     Returns:
         str: packed infos
     """
     total: str = ""
     for puid, infos in players.items():
-        inv, plvl, px, py, update = infos
+        inv, plvl, px, py, update, pincant = infos
 
-        total += f"{puid}-{'%'.join(map(str, inv.values()))}-{plvl}-{px}-{py}-{update}|"
-    total += f"{uid}-{'%'.join(map(str, inventory.values()))}-{lvl}-{x}-{y}-{time()}"
+        total += f"{puid}-{'%'.join(map(str, inv.values()))}-{plvl}-{px}-{py}-{update}-{pincant}|"
+    total += f"{uid}-{'%'.join(map(str, inventory.values()))}-{lvl}-{x}-{y}-{time()}-{incant}"
     return total
 
 def unpack_inventory(msg: str) -> dict:
@@ -174,9 +175,9 @@ def unpack_infos(msg: str, uid: str) -> dict:
     res: dict = {}
     for players in content:
         infos = players.strip().split('-')
-        if len(infos) != 6:
+        if len(infos) != 7:
             continue              # TODO raise an error
-        uuid, inv, lvl, x, y, last_u = infos
+        uuid, inv, lvl, x, y, last_u, incant = infos
         if uuid == uid:
             continue
         try:
@@ -185,9 +186,10 @@ def unpack_infos(msg: str, uid: str) -> dict:
             x = int(x)
             y = int(y)
             last_u = float(last_u)
+            incant = incant == 'True'
         except (SyntaxError, ValueError):
             continue
-        res[uuid] = (inventory, lvl, x, y, last_u)
+        res[uuid] = (inventory, lvl, x, y, last_u, incant)
     return res
 
 
@@ -243,7 +245,8 @@ def get_incantation_team(inventory: dict, level: int, current_players: int) -> l
     """
     if level > 8:
         return []
-    same_levels: dict = dict(filter(lambda item: item[1][1] == level - 1, current_players.items()))
+    same_levels: dict = dict(
+        filter(lambda item: item[1][1] == level - 1 and item[1][5], current_players.items()))
     possibilities = combinations(same_levels.items(), LEVELS[level][0] - 1)
 
     for possible in possibilities:

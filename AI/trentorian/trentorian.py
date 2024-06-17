@@ -135,6 +135,7 @@ class Trantorian:
                 can_level_up = self.wander()
                 if self.state == "shaman":
                     a = self.be_the_shaman(can_level_up)
+                    self.broadcast(MessageTypeParser.serialize(MessageType.RITUAL_FINISH), "all")
                     print(self.uid, "incantation end", a)
                 if self.state == 'going somewhere':
                     self.follow_the_leader()
@@ -183,6 +184,7 @@ class Trantorian:
                 return False
         if self.dead:
             return False
+        self.broadcast(MessageTypeParser.serialize(MessageType.RITUAL_FINISH), "all")
         print(self.uid, "incant end", ans)
         lvl = ans.strip().split(' ')[1] # TODO do this shit better
         self.level = int(lvl)
@@ -434,6 +436,9 @@ class Trantorian:
             self.received_messages.append(msg)
             return
         sender, receivers, msg_type, content, infos = parts
+        if msg_type == MessageType.BEACON:
+            for uid in receivers.split('|'):
+                self.others[uid][5] = False
         if receivers != "all" and self.uid not in receivers.split('|'):
             return
         info_unpacked = unpack_infos(infos, self.uid)

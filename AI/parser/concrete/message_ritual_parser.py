@@ -15,7 +15,7 @@ class MessageRitualParser(IParser):
         """Return the message string for creting a birth info message
 
         The message returned should ressemble something like that:
-            "trentorianUid"
+            "None"
         """
         return "None"
 
@@ -26,3 +26,20 @@ class MessageRitualParser(IParser):
             trentorian.number_of_ritual_ready += 1
 
         return trentorian
+
+class MessageRitualFinishParser(IParser):
+    """class for message of type ritual finish parsing
+    """
+
+    def serialize(self, trentorian: Trantorian) -> str:
+        """Return the message string for creting a ritual finish message
+
+        The message returned should ressemble something like that:
+            "trentorianUid"
+        """
+        return trentorian.uid
+
+    def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
+        """Deserialize the message content, for ritual finish
+        """
+        self.other[message_content][5] = True

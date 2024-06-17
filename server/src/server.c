@@ -121,16 +121,19 @@ static bool team_valid(server_t *serv, char *team)
 static void connect_ai_client(
     server_t *serv, size_t idx, int client_fd, char *team)
 {
-    size_t team_len = 0;
+    size_t eggs_c = 0;
+    size_t team_c = 0;
 
     if (!team_valid(serv, team)) {
         write(client_fd, "ko\n", 3);
         return;
     }
     for (size_t i = 0; i < serv->ai_clients.nb_elements; i++)
-        team_len +=
+        team_c +=
             !strcmp(team, ((ai_client_t *)serv->ai_clients.elements[i])->team);
-    if (team_len < serv->ctx.client_nb) {
+    for (size_t i = 0; i < serv->eggs.nb_elements; i++)
+        eggs_c += !strcmp(team, ((ai_client_t *)serv->eggs.elements[i])->team);
+    if (team_c >= serv->ctx.client_nb || eggs_c <= 0) {
         write(client_fd, "ko\n", 3);
         return;
     }

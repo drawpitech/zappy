@@ -18,7 +18,7 @@
 // It needs to be sorted for the bsearch function.
 static const struct ai_cmd_s commands[] = {
     {"Broadcast", ai_cmd_broadcast, 7},
-    {"Connect_nbr", NULL, 0},
+    {"Connect_nbr", ai_cmd_connect_nbr, 0},
     {"Eject", ai_cmd_eject, 7},
     {"Fork", ai_cmd_fork, 42},
     {"Forward", ai_cmd_forward, 7},

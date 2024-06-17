@@ -118,22 +118,31 @@ static bool team_valid(server_t *serv, char *team)
     return false;
 }
 
+static size_t count_team(server_t *serv, char *team)
+{
+    size_t count = 0;
+    ai_client_t *ai_client = NULL;
+
+    for (size_t i = 0; i < serv->ai_clients.nb_elements; ++i) {
+        ai_client = (ai_client_t *)serv->ai_clients.elements[i];
+        if (ai_client->s_fd > 0 && strcmp(team, ai_client->team) == 0)
+            count += 1;
+    }
+    return count;
+}
+
 static void connect_ai_client(
     server_t *serv, size_t idx, int client_fd, char *team)
 {
     size_t eggs_c = 0;
-    size_t team_c = 0;
 
     if (!team_valid(serv, team)) {
         write(client_fd, "ko\n", 3);
         return;
     }
-    for (size_t i = 0; i < serv->ai_clients.nb_elements; i++)
-        team_c +=
-            !strcmp(team, ((ai_client_t *)serv->ai_clients.elements[i])->team);
     for (size_t i = 0; i < serv->eggs.nb_elements; i++)
         eggs_c += !strcmp(team, ((egg_t *)serv->eggs.elements[i])->team);
-    if (team_c >= serv->ctx.client_nb || eggs_c <= 0) {
+    if (count_team(serv, team) >= serv->ctx.client_nb || eggs_c <= 0) {
         write(client_fd, "ko\n", 3);
         return;
     }

@@ -64,7 +64,7 @@ void App::updatePlayers(const std::string& bufferView) {
         const std::string teamName = bufferView.substr(pos, bufferView.find('\n', pos) - pos);
 
         m_players[playerNumber] = Player {
-            .position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]),
+            .position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] + m_tileSize[1])),
             .orientation = orientation,
             .team = teamName,
             .level = level
@@ -89,12 +89,12 @@ void App::updatePlayers(const std::string& bufferView) {
             position = (position - m_mapSize / 2);
 
             // Add to to the logs if the player moved
-            glm::vec3 oldPos = m_players[playerNumber].position / m_tileSpacing;
+            glm::vec3 oldPos = m_players[playerNumber].position / glm::vec3(m_tileSpacing[0] + m_tileSize[0], 0, m_tileSpacing[1] + m_tileSize[1]);
             glm::ivec2 oldPosI = {static_cast<int>(oldPos[0]), static_cast<int>(oldPos[2])};
             if (oldPosI != position)
                 LOG("Player [" + std::to_string(playerNumber) + "] moved forward", BLUE);
 
-            m_players[playerNumber].position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]);
+            m_players[playerNumber].position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] +  + m_tileSize[1]));
         }
 
 
@@ -160,7 +160,7 @@ void App::createIslands() {
     static std::shared_ptr<StaticMesh> islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
-            m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0]), (m_tileHeight), static_cast<float>(j) * (m_tileSize[2] + m_tileSpacing[1])), m_tileSize, glm::vec3(0, 0, 0)}));
+            m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0]), m_tileHeight, static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])), m_tileSize, glm::vec3(0, 0, 0)}));
 }
 
 void App::createScene() {
@@ -193,7 +193,7 @@ void App::createScene() {
             };
 
             for (const auto& [ressourceType, offset] : ressourceOffset) {
-                const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_resourceHeight, (static_cast<float>(j) * (m_tileSize[2] + m_tileSpacing[1])));
+                const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_resourceHeight, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])));
                 static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
 
                 for (int nb = 0; nb < tile.ressources[ressourceType]; nb++)
@@ -218,8 +218,6 @@ void App::createScene() {
         m_scene->animatedActors.push_back({playerMesh, std::make_shared<Animator>(playerAnim), player.position, playerScale, playerRotation});
     }
 
-    static const std::shared_ptr<StaticMesh> aircraft = std::make_shared<StaticMesh>("../assets/aircraft.obj");
-    m_scene->staticActors.push_back({aircraft, glm::vec3(0, 0, -40), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 0, 0)});
 }
 
 void App::updateMap(const std::string& bufferView) {

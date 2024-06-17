@@ -1,12 +1,13 @@
 stages:
   - build
-  - integration
+
+default:
+  image: epitechcontent/epitest-docker
 
 compile:
   stage: build
   tags:
     - arch
-  image: epitechcontent/epitest-docker
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:

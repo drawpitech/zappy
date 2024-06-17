@@ -7,6 +7,7 @@
 
 #include "commmands/commands.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -31,10 +32,6 @@ static const struct ai_cmd_s commands[] = {
     {"Take", ai_cmd_take, 7},
 };
 
-// TODO:
-// - There will be some big issues if a users tries to send > 4096 bytes
-// without a \n.
-
 const struct ai_cmd_s *const AI_CLIENT_COMMANDS = commands;
 const size_t AI_CLIENT_COMMANDS_LEN = LEN(commands);
 
@@ -53,19 +50,19 @@ static struct ai_cmd_s *get_ai_cmd(const char *cmd)
         (int (*)(const void *, const void *))compare);
 }
 
-static void exec_ai_cmd(server_t *server, ai_client_t *client, char *buffer)
+static void exec_ai_cmd(server_t *server, ai_client_t *client)
 {
     char *content = NULL;
     struct ai_cmd_s *cmd = NULL;
 
-    content = strchr(buffer, ' ');
+    content = strchr(client->buffer.str, ' ');
     if (content != NULL) {
         *content = '\0';
         content++;
     } else {
         content = "";
     }
-    cmd = get_ai_cmd(buffer);
+    cmd = get_ai_cmd(client->buffer.str);
     if (cmd == NULL || cmd->func == NULL) {
         write(client->s_fd, "ko\n", 3);
         return;
@@ -73,38 +70,64 @@ static void exec_ai_cmd(server_t *server, ai_client_t *client, char *buffer)
     cmd->func(server, client, content);
 }
 
-static bool process_ai_cmd(server_t *server, ai_client_t *client, char **ptr)
+static bool process_ai_cmd(server_t *server, ai_client_t *client)
 {
-    char *buffer = *ptr;
-    char *newline = strchr(buffer, '\n');
+    char *newline = strchr(client->buffer.str, '\n');
+    size_t offset = 0;
 
     if (newline == NULL) {
-        strcat(client->buffer, buffer);
         return false;
     }
     *newline = '\0';
-    if (buffer != newline && *(newline - 1) == '\r')
+    if (client->buffer.str != newline && *(newline - 1) == '\r')
         *(newline - 1) = '\0';
-    exec_ai_cmd(server, client, buffer);
-    *ptr = newline + 1;
+    exec_ai_cmd(server, client);
+    offset = newline - client->buffer.str + 1;
+    client->buffer.size -= offset;
+    memmove(client->buffer.str, newline + 1, client->buffer.size);
+    client->buffer.str[client->buffer.size] = '\0';
     return true;
+}
+
+static int resize_buffer(ai_client_t *client, size_t size)
+{
+    char *tmp = NULL;
+
+    if (client->buffer.str == NULL) {
+        client->buffer.str = calloc(size, sizeof(char));
+        if (client->buffer.str == NULL)
+            return OOM, RET_ERROR;
+        client->buffer.alloc = size;
+        return RET_VALID;
+    }
+    if (client->buffer.size + size >= client->buffer.alloc) {
+        tmp = realloc(client->buffer.str, client->buffer.alloc + size);
+        if (tmp == NULL)
+            return OOM, RET_ERROR;
+        client->buffer.str = tmp;
+        client->buffer.alloc += size;
+    }
+    return RET_VALID;
 }
 
 void handle_ai_client(server_t *server, ai_client_t *client)
 {
-    char buffer[sizeof client->buffer];
+    const size_t bufsiz = 512;
     ssize_t bytes_read = 0;
-    size_t offset = 0;
+    char *ptr = NULL;
 
-    strcpy(buffer, client->buffer);
-    offset = strlen(buffer);
-    client->buffer[0] = '\0';
-    bytes_read = read(client->s_fd, buffer + offset, sizeof buffer - offset);
+    if (resize_buffer(client, bufsiz) == RET_ERROR) {
+        write(client->s_fd, "ko\n", 3);
+        return;
+    }
+    ptr = client->buffer.str + client->buffer.size;
+    bytes_read = read(client->s_fd, ptr, bufsiz);
     if (bytes_read <= 0) {
         disconnect_ai_client(client);
         return;
     }
-    buffer[bytes_read] = '\0';
-    for (char *ptr = buffer; process_ai_cmd(server, client, &ptr);)
+    client->buffer.size += bytes_read;
+    ptr[bytes_read] = '\0';
+    for (; process_ai_cmd(server, client);)
         ;
 }

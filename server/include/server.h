@@ -118,8 +118,14 @@ typedef struct ai_client_s {
         WEST
     } dir;
     int lvl;
-    char buffer[4096];
+    struct {
+        char *str;
+        size_t size;
+        size_t alloc;
+    } buffer;
     int id;
+    array_t q_cmds;
+    size_t last_cmd;
 } ai_client_t;
 
 typedef struct gui_client_s {

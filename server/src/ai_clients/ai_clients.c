@@ -72,6 +72,8 @@ int remove_ai_client(server_t *server, size_t idx)
     if (client) {
         disconnect_ai_client(client);
         CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
+        if (client->buffer.str != NULL)
+            free(client->buffer.str);
         free(server->ai_clients.elements[idx]);
     }
     remove_elt_to_array(&server->ai_clients, idx);

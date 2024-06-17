@@ -17,6 +17,13 @@ struct ai_cmd_s {
     size_t time;
 };
 
+typedef struct {
+    ai_cmd_func_t func;
+    char *args;
+    size_t time;
+} queued_cmd_t;
+
+
 extern const struct ai_cmd_s *const AI_CLIENT_COMMANDS;
 extern const size_t AI_CLIENT_COMMANDS_LEN;
 

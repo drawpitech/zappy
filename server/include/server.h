@@ -65,6 +65,7 @@ typedef struct {
 typedef struct {
     vector_t pos;
     char *team;
+    int id;
 } egg_t;
 
 extern const double DENSITIES[R_COUNT];
@@ -110,6 +111,7 @@ typedef struct ai_client_s {
     } dir;
     int lvl;
     char buffer[4096];
+    int id;
 } ai_client_t;
 
 typedef struct gui_client_s {
@@ -125,6 +127,8 @@ typedef struct server_s {
     array_t eggs;
     cell_t *map;
     context_t ctx;
+    int ai_id;
+    int egg_id;
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);
@@ -137,3 +141,6 @@ int init_ai_client(server_t *server, int client_fd, char *team);
 int remove_ai_client(server_t *server, size_t idx);
 void move_ai_client(server_t *server, ai_client_t *client, int dir);
 char **my_str_to_word_array(const char *str, char const *separator);
+ai_client_t *get_client_by_id(server_t *server, int client_id);
+egg_t *get_egg_by_id(server_t *server, int egg_id);
+void free_array(void **array);

@@ -132,17 +132,21 @@ class Trantorian:
             self.dprint("live")
             self.start_living(queue)
             self.first_level()
-            while self.iter_food() and self.level: # TODO deadlook if two calls the same
+            while self.iter_food(): # TODO deadlook if two calls the same
                 can_level_up = self.wander()
+
                 if self.state == "shaman":
                     self.dprint("start incant with:", can_level_up)
-                    a = self.be_the_shaman(can_level_up)
-                    self.dprint("incantation end", a)
+                    success = self.be_the_shaman(can_level_up)
                     self.number_of_ritual_ready = 0
+
                 if self.state == 'going somewhere':
-                    self.follow_the_leader()
+                    success = self.follow_the_leader()
+
+                self.dprint("incantation end", success)
                 self.dispo_incant = True
                 self.broadcast("just$update", ["all"])
+
         except BrokenPipeError:
             self.dprint("Server closed socket")
             self.dead = True
@@ -174,25 +178,21 @@ class Trantorian:
         """
         self.dprint('Follow leader', self.last_beacon_uid)
         self.dispo_incant = False
-        self.broadcast("just$update", "all")
+        self.broadcast("just$update", ["all"])
         self.follow_beacon()
         self.drop_stuff()
         self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_READY, self), [self.last_beacon_uid])
         ans = ""
-        self.dprint("wait incant", self.last_beacon_uid)
         while not self.dead and not ans.startswith("Current level"): # TODO do that better
             ans = self.wait_answer()
             if ans == "incantation end":
-                self.dprint("Incantation failed")
                 return False
         if self.dead or len(ans) != 16:
             return False
         self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_FINISH, self), "all")
-        self.dprint("incant end", ans)
         lvl = int(ans[15]) # TODO do this shit better
         self.dprint("lvl:", lvl)
         self.level = int(ans[15])
-        self.dprint("incantation done new level: ", lvl)
         return True
 
     def first_level(self) -> None:
@@ -223,7 +223,9 @@ class Trantorian:
 
 
     def dprint(self, *args, **kwargs):
-        print(self.uid, *args, **kwargs)
+        """a print with the uid
+        """
+        print(self.uid[-6:], ':', *args, **kwargs)
 
     def iter(self) -> bool:
         """update the needed values and check if the next iteration is possible (not dead)
@@ -513,7 +515,7 @@ class Trantorian:
         for obj, val in self.inventory.items():
             if obj == 'food':
                 continue
-            to_drop = max(val, needed[idx])
+            to_drop = min(val, needed[idx])
             for _ in range(to_drop):
                 self.drop_object(obj)
             idx += 1
@@ -593,6 +595,7 @@ class Trantorian:
 
         cases = split_list(self.wait_answer())
         if cases == []:
+            self.dprint("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         nb_case: int = len(cases)
         i: int = 1
@@ -636,7 +639,7 @@ class Trantorian:
             return False
         content = split_list(answer)
         if content == []:
-            # print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+            self.dprint("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         for e in content:
             key, val = e.split()

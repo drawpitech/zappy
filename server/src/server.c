@@ -57,7 +57,7 @@ static int init_server(server_t *serv, int port)
     if (serv->s_fd == -1)
         return RET_ERROR;
     if (setsockopt(
-            serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
+        serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
         return RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
@@ -132,7 +132,7 @@ static void connect_ai_client(
         team_c +=
             !strcmp(team, ((ai_client_t *)serv->ai_clients.elements[i])->team);
     for (size_t i = 0; i < serv->eggs.nb_elements; i++)
-        eggs_c += !strcmp(team, ((ai_client_t *)serv->eggs.elements[i])->team);
+        eggs_c += !strcmp(team, ((egg_t *)serv->eggs.elements[i])->team);
     if (team_c >= serv->ctx.client_nb || eggs_c <= 0) {
         write(client_fd, "ko\n", 3);
         return;
@@ -206,6 +206,9 @@ static int init_map(server_t *server, context_t *ctx)
     if (server->map == NULL)
         return OOM, RET_ERROR;
     refill_map(server, ctx);
+    for (size_t i = 0; i < server->ctx.names.nb_elements; ++i)
+        for (size_t j = 0; j < server->ctx.client_nb; ++j)
+            spawn_egg(server, server->ctx.names.elements[i]);
     return RET_VALID;
 }
 
@@ -214,6 +217,28 @@ UNUSED static void debug_payload(look_payload_t *payload)
     for (size_t i = 0; i < payload->size; ++i) {
         printf("%d\n", payload->cell_content[i].res[FOOD].quantity);
     }
+}
+
+bool spawn_egg(server_t *server, char *team)
+{
+    egg_t *egg = malloc(sizeof *egg);
+
+    if (!egg) {
+        OOM;
+        return false;
+    }
+    egg->pos = (vector_t){
+        .x = rand() % (int)server->ctx.width,
+        .y = rand() % (int)server->ctx.height,
+    };
+    egg->team = team;
+    if (add_elt_to_array(&server->eggs, egg) == RET_ERROR) {
+        free(egg);
+        OOM;
+        return false;
+    }
+    CELL(server, egg->pos.x, egg->pos.y)->res[EGG].quantity += 1;
+    return true;
 }
 
 int server(int argc, char **argv)

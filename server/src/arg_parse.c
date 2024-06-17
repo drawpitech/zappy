@@ -49,6 +49,8 @@ int arg_parse(int argc, char *argv[], context_t *ctx)
     ctx->port = atoi(argv[2]);
     ctx->width = atoi(argv[4]);
     ctx->height = atoi(argv[6]);
+    ctx->client_nb = atoi(argv[argc - 3 - adjust]);
+    ctx->freq = atoi(argv[argc - 1 - adjust]);
     for (int i = 8; i < array[4]; ++i)
         if (add_elt_to_array(&ctx->names, argv[i]) == RET_ERROR)
             return RET_ERROR;

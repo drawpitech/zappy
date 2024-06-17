@@ -130,6 +130,7 @@ typedef struct server_s {
 int server(UNUSED int argc, UNUSED char **argv);
 payload_t *get_cell_payload(server_t *serv, vector_t *pos, payload_t *payload);
 res_name_t get_ressource_type(char *name);
+bool spawn_egg(server_t *server, char *team);
 
 int iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *server, int client_fd, char *team);

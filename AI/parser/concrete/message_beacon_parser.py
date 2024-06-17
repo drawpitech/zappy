@@ -29,22 +29,27 @@ class MessageBeaconParser(IParser):
     def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the message content, for birth info
         """
+        params = message_content.split("_")
+
+        if len(params)!= 2:
+            warn(f"Invalid message content for beacon message: {message_content}")
+            return trentorian
         if trentorian.state == "beacon":
             try:
-                if float(trentorian.uid) < float(message_content[ParamsType.SENDER_UID]):
+                if float(trentorian.uid) < float(params[ParamsType.SENDER_UID]):
                     return trentorian
             except ValueError:
                 warn(f"Invalid message content for beacon message: {message_content}")
                 return trentorian
 
-        if message_content[ParamsType.MESSAGE_UID] == trentorian.last_beacon_message_uid:
+        if params[ParamsType.MESSAGE_UID] == trentorian.last_beacon_message_uid:
             trentorian.state = "wander"
             return trentorian
 
-        trentorian.last_beacon_message_uid = message_content[ParamsType.MESSAGE_UID]
+        trentorian.last_beacon_message_uid = params[ParamsType.MESSAGE_UID]
 
         trentorian.state = "going somewhere"
-        trentorian.last_beacon_uid = message_content[ParamsType.SENDER_UID]
+        trentorian.last_beacon_uid = params[ParamsType.SENDER_UID]
         trentorian.last_beacon_direction = message_hitpoint
 
         return trentorian

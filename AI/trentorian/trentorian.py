@@ -118,6 +118,7 @@ class Trantorian:
         self.last_msg_infos: list = []
         self.last_beacon_direction: int = 0
         self.last_beacon_uid: str = None
+        self.last_beacon_message_uid: str = None
         self.number_of_ritual_ready: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
         self.mini_food: int = 20 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)

@@ -10,7 +10,7 @@ from time import time
 class ParamsType(IntEnum):
     """Sound direction enum
     """
-    SENDER_UID = 0,
+    SENDER_UID = 0
     MESSAGE_UID = 1
 
 
@@ -24,7 +24,7 @@ class MessageBeaconParser(IParser):
         The message returned should ressemble something like that:
             "trentorianUid"
         """
-        return f"{trentorian.uid}_{str(time())}"
+        return f'{trentorian.uid}_{str(time())}'
 
     def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the message content, for birth info

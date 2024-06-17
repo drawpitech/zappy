@@ -154,13 +154,13 @@ void App::createScene() {
             };
 
             static const std::map<RessourceType, const std::shared_ptr<StaticMesh>> ressourceMesh = {
-                {FOOD, std::make_shared<StaticMesh>("../assets/Gonstre.obj")},
-                {LINEMATE, std::make_shared<StaticMesh>("../assets/pink.obj")},
-                {DERAUMERE, std::make_shared<StaticMesh>("../assets/orange.obj")},
-                {SIBUR, std::make_shared<StaticMesh>("../assets/blue.obj")},
-                {MENDIANE, std::make_shared<StaticMesh>("../assets/green.obj")},
-                {PHIRAS, std::make_shared<StaticMesh>("../assets/red.obj")},
-                {THYSTAME, std::make_shared<StaticMesh>("../assets/red.obj")}
+                {FOOD, std::make_shared<StaticMesh>("../assets/Ressources/Gonstre.obj")},
+                {LINEMATE, std::make_shared<StaticMesh>("../assets/Ressources/pink.obj")},
+                {DERAUMERE, std::make_shared<StaticMesh>("../assets/Ressources/orange.obj")},
+                {SIBUR, std::make_shared<StaticMesh>("../assets/Ressources/blue.obj")},
+                {MENDIANE, std::make_shared<StaticMesh>("../assets/Ressources/green.obj")},
+                {PHIRAS, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")},
+                {THYSTAME, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")}
             };
 
             for (const auto& [ressourceType, offset] : ressourceOffset) {
@@ -182,8 +182,8 @@ void App::createScene() {
     }
 
     for (const auto& [playerNumber, player] : m_players) {
-        static const std::shared_ptr<SkeletalMesh> playerMesh = std::make_shared<SkeletalMesh>("../assets/Dancing_Twerk/Dancing Twerk.dae");
-        static const std::shared_ptr<Animation> playerAnim = std::make_shared<Animation>("../assets/Dancing_Twerk/Dancing Twerk.dae", playerMesh);
+        static const std::shared_ptr<SkeletalMesh> playerMesh = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
+        static const std::shared_ptr<Animation> playerAnim = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", playerMesh);
         static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         static constexpr glm::vec3 playerRotation = glm::vec3(0, 0, 0);
 

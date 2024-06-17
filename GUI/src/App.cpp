@@ -11,6 +11,8 @@
 #include "Models/SkeletalMesh.hpp"
 #include "Models/StaticMesh.hpp"
 #include "Renderer/Renderer.hpp"
+#include "glm/ext/vector_float3.hpp"
+#include "glm/ext/vector_int2.hpp"
 #include "glm/gtx/quaternion.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -63,7 +65,7 @@ void App::updatePlayers(const std::string& bufferView) {
 
         m_players[playerNumber] = Player {
             .position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]),
-            .direction = glm::vec2(orientation, 0),
+            .orientation = orientation,
             .team = teamName,
             .level = level
         };
@@ -77,19 +79,43 @@ void App::updatePlayers(const std::string& bufferView) {
         const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
 
-        glm::ivec2 position;
-        position[0] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
-        pos = bufferView.find(' ', pos) + 1;
-        position[1] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
-        pos = bufferView.find(' ', pos) + 1;
-        position = (position - m_mapSize / 2);
 
-        const int orientation = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
-        pos = bufferView.find(' ', pos) + 1;
+        {   // Get the new position
+            glm::ivec2 position;
+            position[0] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+            pos = bufferView.find(' ', pos) + 1;
+            position[1] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+            pos = bufferView.find(' ', pos) + 1;
+            position = (position - m_mapSize / 2);
 
-        m_players[playerNumber].position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]);
-        m_players[playerNumber].direction = glm::vec2(orientation, 0);
+            // Add to to the logs if the player moved
+            glm::vec3 oldPos = m_players[playerNumber].position / m_tileSpacing;
+            glm::ivec2 oldPosI = {static_cast<int>(oldPos[0]), static_cast<int>(oldPos[2])};
+            if (oldPosI != position)
+                LOG("Player [" + std::to_string(playerNumber) + "] moved forward", BLUE);
 
+            m_players[playerNumber].position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]);
+        }
+
+
+        {   // Get the new orientation
+            const int newOrientation = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+            pos = bufferView.find(' ', pos) + 1;
+
+            // Add to the logs if the player changed orientation
+            const int oldOrientation = m_players[playerNumber].orientation;
+            if (oldOrientation != newOrientation) {
+                if (newOrientation == (oldOrientation + 1) % 4)
+                    LOG("Player [" + std::to_string(playerNumber) + "] turned right", BLUE);
+                else if (newOrientation == (oldOrientation + 3) % 4)
+                    LOG("Player [" + std::to_string(playerNumber) + "] turned left", BLUE);
+            }
+
+            m_players[playerNumber].orientation = newOrientation;
+        }
+
+
+        // Get the next player
         pos = bufferView.find("ppo", pos);
     }
 
@@ -188,11 +214,11 @@ void App::createScene() {
         static const std::shared_ptr<SkeletalMesh> playerMesh = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
         static const std::shared_ptr<Animation> playerAnim = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", playerMesh);
         static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
-        static constexpr glm::vec3 playerRotation = glm::vec3(0, 0, 0);
+        const glm::vec3 playerRotation = glm::vec3(0, (player.orientation - 1) * 90, 0);
 
         m_scene->animatedActors.push_back({playerMesh, std::make_shared<Animator>(playerAnim), player.position, playerScale, playerRotation});
-
     }
+
     static const std::shared_ptr<StaticMesh> aircraft = std::make_shared<StaticMesh>("../assets/aircraft.obj");
     m_scene->staticActors.push_back({aircraft, glm::vec3(0, 0, -40), glm::vec3(0.5, 0.5, 0.5), glm::vec3(0, 0, 0)});
 }
@@ -238,6 +264,8 @@ void App::connectToServer(int port) {
 
     if (write(m_socket, "GRAPHIC\n", 8) < 0)
         throw std::runtime_error("Write failed");
+
+    LOG("Connected to server", GREEN);
 }
 
 glm::ivec2 App::parseMapSize(const std::string& bufferView) {
@@ -256,30 +284,51 @@ glm::ivec2 App::parseMapSize(const std::string& bufferView) {
 }
 
 void App::run() {
+    // Load imgui settings
+    ImGui::LoadIniSettingsFromDisk("../imgui.ini");
 
-    // Animated mesh example
+    // Buffer to store the data received from the server
+    std::array<char, BUFFER_SIZE> buffer{};
 
     while (!m_renderer->shouldStop()) {
+        // Check if there is data to read from the server
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(m_socket, &readfds);
         timeval timeout { .tv_sec = 0, .tv_usec = 0 };
         if (select(m_socket + 1, &readfds, nullptr, nullptr, &timeout) > 0) {
-            std::array<char, BUFFER_SIZE> buffer{};
+            // Read the data from the server
             buffer.fill(0);
             if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
                 throw std::runtime_error("Read failed");
 
             const std::string& bufferView(buffer.data());
 
+            // Update the map and players
             updateMap(bufferView);
             updatePlayers(bufferView);
             createScene();
         }
 
+        // Begin UI rendering
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGui::DockSpaceOverViewport();
+
+        // Add logs to the UI
+        ImGui::Begin("Logs");
+        for (const auto& log : m_logs) {
+            std::array<char, 9> timeStr{};
+            strftime(timeStr.data(), 9, "%H:%M:%S", localtime(&log.getTime()));
+            ImGui::TextColored(log.getColor(), "[%s] %s", timeStr.data(), log.getMessage().c_str());
+        }
+        ImGui::End();
+
+        // Render the scene
         m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
+
+    // TODO: remove this
+    // ImGui::SaveIniSettingsToDisk("../imgui.ini");
 }

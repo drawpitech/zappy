@@ -16,7 +16,6 @@
 
 #include <memory>
 #include <stdexcept>
-#include <iostream>
 
 Renderer::Renderer() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
@@ -34,7 +33,7 @@ Renderer::Renderer() {
         m_ssrPass->resize(m_lightingPass->getViewportSize());
     }
 
-    m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize().x) / static_cast<float>(m_lightingPass->getViewportSize().y), 0.01, 100.0);
+    m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 100.0);
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
@@ -114,13 +113,10 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
     updateDeltaTime();
     handleUserInput();
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 
     {   // Static meshes
         m_gBufferPass->bindFramebuffer();
-        glViewport(0, 0, static_cast<GLsizei>(m_lightingPass->getViewportSize().x), static_cast<GLsizei>(m_lightingPass->getViewportSize().y));
+        glViewport(0, 0, static_cast<GLsizei>(m_lightingPass->getViewportSize()[0]), static_cast<GLsizei>(m_lightingPass->getViewportSize()[1]));
 
         m_gBufferPass->bindStaticShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
         for (const auto& actor : scene->staticActors) {

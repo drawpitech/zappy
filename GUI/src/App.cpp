@@ -12,6 +12,9 @@
 #include "Models/StaticMesh.hpp"
 #include "Renderer/Renderer.hpp"
 #include "glm/gtx/quaternion.hpp"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "imgui.h"
 
 #include <memory>
 #include <sys/select.h>
@@ -59,7 +62,7 @@ void App::updatePlayers(const std::string& bufferView) {
         const std::string teamName = bufferView.substr(pos, bufferView.find('\n', pos) - pos);
 
         m_players[playerNumber] = Player {
-            .position = glm::vec3(position[0] * m_tileSpacing.x, m_playerHeight, position[1] * m_tileSpacing.z),
+            .position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]),
             .direction = glm::vec2(orientation, 0),
             .team = teamName,
             .level = level
@@ -84,7 +87,7 @@ void App::updatePlayers(const std::string& bufferView) {
         const int orientation = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
 
-        m_players[playerNumber].position = glm::vec3(position[0] * m_tileSpacing.x, m_playerHeight, position[1] * m_tileSpacing.z);
+        m_players[playerNumber].position = glm::vec3(static_cast<float>(position[0]) * m_tileSpacing[0], m_playerHeight, static_cast<float>(position[1]) * m_tileSpacing[2]);
         m_players[playerNumber].direction = glm::vec2(orientation, 0);
 
         pos = bufferView.find("ppo", pos);
@@ -131,7 +134,7 @@ void App::createIslands() {
     static std::shared_ptr<StaticMesh> islandMesh = std::make_shared<StaticMesh>("../assets/grid.obj");
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
-            m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(i * m_tileSpacing.x, m_tileSpacing.y, j * m_tileSpacing.z), m_tileSize, glm::vec3(0, 0, 0)}));
+            m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(static_cast<float>(i) * m_tileSpacing[0], m_tileSpacing[1], static_cast<float>(j) * m_tileSpacing[2]), m_tileSize, glm::vec3(0, 0, 0)}));
 }
 
 void App::createScene() {
@@ -164,7 +167,7 @@ void App::createScene() {
             };
 
             for (const auto& [ressourceType, offset] : ressourceOffset) {
-                const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * m_tileSpacing.x + offset[0]), m_resourceHeight, (static_cast<float>(j) * m_tileSpacing.z + offset[1]));
+                const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * m_tileSpacing[0] + offset[0]), m_resourceHeight, (static_cast<float>(j) * m_tileSpacing[2] + offset[1]));
                 static glm::vec3 ressourceScale = m_resourceSize;
                 static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
 
@@ -274,6 +277,9 @@ void App::run() {
             createScene();
         }
 
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
         m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
 }

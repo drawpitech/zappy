@@ -13,7 +13,9 @@
 void gui_cmd_pfk(server_t *server, gui_client_t *client, char *args)
 {
     char **cmd = my_str_to_word_array(args, " \n#");
-    int client_idx = atoi(*cmd);
+    if (!cmd || !cmd[0])
+        return;
 
-    dprintf(client->s_fd, "pfk #%d\n", client_idx);
+    dprintf(client->s_fd, "pfk #%d\n", atoi(cmd[0]));
+    free_array((void **)cmd);
 }

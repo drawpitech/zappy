@@ -18,7 +18,7 @@ void gui_cmd_bct(server_t *server, gui_client_t *client, char *args)
     size_t w = server->ctx.width;
     size_t h = server->ctx.height;
 
-    if (cmd == NULL)
+    if (cmd == NULL || !cmd[0] || !cmd[1])
         return;
     cell.x = atoi(cmd[0]);
     cell.y = atoi(cmd[1]);
@@ -32,4 +32,5 @@ void gui_cmd_bct(server_t *server, gui_client_t *client, char *args)
             server->map[IDX(cell.x, cell.y, w, h)].res[PHIRAS].quantity,
             server->map[IDX(cell.x, cell.y, w, h)].res[THYSTAME].quantity
            );
+    free_array((void **)cmd);
 }

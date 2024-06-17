@@ -17,12 +17,20 @@
 
 #define ATTR(x) __attribute__((x))
 #define UNUSED ATTR(unused)
-#define LEN(x) (sizeof(x) / sizeof*(x))
 #define MOD(x, y) ((((x) % (y)) + (y)) % (y))
+#define LEN(x) (sizeof(x) / sizeof*(x))
+#define UNPACK(x) (x), sizeof(x)
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
+// Print error messages
+#define __header __FILE_NAME__ ":" TOSTRING(__LINE__)
+#define ERR(x) (void)write(STDERR_FILENO, UNPACK(__header " (" x ")\n"))
+#define OOM ERR("Out of memory")
+
 #define IDX(x, y, w, h) (MOD(y, h) * (w) + MOD(x, w))
 #define R_COUNT 9
 #define CELL(s, x, y) (&s->map[IDX(x, y, s->ctx.width, s->ctx.height)])
-#define OOM (void)write(STDERR_FILENO, "Out of memory\n", 14)
 
 enum {
     RET_VALID = 0,

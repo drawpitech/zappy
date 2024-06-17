@@ -38,6 +38,7 @@ if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     -Wunreachable-code
     -Wstrict-prototypes -Wmissing-prototypes
     -Waggregate-return -Wcast-qual
+    -g3
   )
 endif()
 

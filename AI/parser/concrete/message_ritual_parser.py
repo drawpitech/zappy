@@ -42,5 +42,7 @@ class MessageRitualFinishParser(IParser):
     def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the message content, for ritual finish
         """
-        trentorian.others[message_content][5] = True
+        temp_list = list(trentorian.others[message_content])
+        temp_list[5] = False
+        trentorian.others[message_content] = tuple(temp_list)
         return trentorian

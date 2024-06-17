@@ -186,7 +186,7 @@ class Trantorian:
                 return False
         if self.dead or len(ans) != 16:
             return False
-        self.broadcast(MessageTypeParser.serialize(MessageType.RITUAL_FINISH), "all")
+        self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_FINISH, self), "all")
         print(self.uid, "incant end", ans)
         lvl = int(ans[15]) # TODO do this shit better
         print("lvl:", lvl)

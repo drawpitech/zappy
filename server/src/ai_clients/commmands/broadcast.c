@@ -67,7 +67,7 @@ void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
 
     for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
         current = server->ai_clients.elements[i];
-        if (current == client)
+        if (current->s_fd < 0 || current == client)
             continue;
         dir = compute_dir(
             client->pos, current->pos,

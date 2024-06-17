@@ -10,6 +10,6 @@
 
 void ai_cmd_fork(server_t *server, ai_client_t *client, UNUSED char *args)
 {
-    if (spawn_egg(server, client->team))
-        write(client->s_fd, "ok\n", 3);
+    spawn_egg(server, client->team);
+    write(client->s_fd, "ok\n", 3);
 }

@@ -77,7 +77,6 @@ static void add_client(server_t *serv, int fd)
         OOM;
         write(fd, "ko\n", 3);
         close(fd);
-        return;
     }
     *fd_ptr = fd;
     if (add_elt_to_array(&serv->waitlist_fd, fd_ptr) == RET_ERROR) {

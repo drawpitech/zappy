@@ -137,7 +137,7 @@ class Trantorian:
                 if self.state == "shaman":
                     print(self.uid, "start incant with:", can_level_up)
                     a = self.be_the_shaman(can_level_up)
-                    self.broadcast(MessageTypeParser.serialize(MessageType.RITUAL_FINISH), "all")
+                    self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_FINISH, self), ["all"])
                     print(self.uid, "incantation end", a)
                 if self.state == 'going somewhere':
                     self.follow_the_leader()

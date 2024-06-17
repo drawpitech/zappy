@@ -100,10 +100,11 @@ class Trantorian:
         self.y: int = 0
         self.dead: bool = False
         self.unused_slot: int = 1
-        self.others: dict = {} # uid : (inv, lvl, x, y, last update)
+        self.others: dict = {} # uid : (inv, lvl, x, y, last update, free for incant)
         self.received_messages: list = []
         self.uid: str = str(time())
         self.state: str = ""
+        self.dispo_incant: bool = True # disponibility for an incantation
         self.inventory: dict = {
             "food": 10, "linemate": 0, "deraumere": 0,
             "sibur": 0, "mendiane": 0, "phiras": 0, "thystame": 0
@@ -134,6 +135,7 @@ class Trantorian:
             while self.iter_food() and self.level: # TODO deadlook if two calls the same
                 can_level_up = self.wander()
                 if self.state == "shaman":
+                    print(self.uid, "start incant with:", can_level_up)
                     a = self.be_the_shaman(can_level_up)
                     print(self.uid, "incantation end", a)
                 if self.state == 'going somewhere':
@@ -171,7 +173,7 @@ class Trantorian:
         Returns:
             bool: incantation's succes
         """
-        print(self.uid, 'Follow leader')
+        print(self.uid, 'Follow leader', self.last_beacon_uid)
         self.follow_beacon()
         self.drop_stuff() # TODO send message to tell we are ready
         ans = ""
@@ -181,11 +183,12 @@ class Trantorian:
             if ans == "incantation end":
                 print(self.uid, "Incantation failed")
                 return False
-        if self.dead:
+        if self.dead or len(ans) != 16:
             return False
         print(self.uid, "incant end", ans)
-        lvl = ans.strip().split(' ')[1] # TODO do this shit better
-        self.level = int(lvl)
+        lvl = int(ans[15]) # TODO do this shit better
+        print("lvl:", lvl)
+        self.level = int(ans[15])
         print(self.uid, "incantation done new level: ", lvl)
         return True
 
@@ -656,7 +659,8 @@ class Trantorian:
         msg = f'{self.uid}$'
         msg += '|'.join(receivers) + '$'
         msg += f'{content}$'
-        msg += f'{pack_infos(self.others, self.uid, self.inventory, self.level, self.x, self.y)}'
+        msg += f'{pack_infos(
+            self.others, self.uid, self.inventory, self.level, self.x, self.y, self.dispo_incant)}'
         self.client.send_cmd("Broadcast " + msg)
         return self.wait_answer() == 'ok'
 
@@ -757,8 +761,9 @@ class Trantorian:
         if self.dead:
             return False
         self.client.send_cmd("Incantation")
-        if self.wait_answer() != "Elevation underway":
-            print("elev failed")
+        answer = self.wait_answer()
+        if answer != "Elevation underway":
+            print(self.uid, "elev failed", answer)
             return False
         answer = self.wait_answer()
         if len(answer) < 16 or answer[:15] != "Current level: " or answer[15] not in "12345678":

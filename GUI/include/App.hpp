@@ -52,11 +52,13 @@ class App {
 
         glm::ivec2 m_mapSize = {0, 0};
         unsigned int m_speed = 0;
+        int m_ressourceLayer = 4;
         std::vector<std::vector<TileContent>> m_map;
-        glm::vec3 m_tileSize = {1, 0.1, 1};
-        glm::vec3 m_tileSpacing = {1.95, 0.1, 1.95};
-        float m_playerHeight = 0.5;
-        float m_resourceHeight = 0.5;
+        glm::vec3 m_tileSize = {4, 4, 4};
+        glm::vec2 m_tileSpacing = {0.5, 0.5};
+        float m_tileHeight = 0;
+        float m_playerHeight = 0;
+        float m_resourceHeight = 0;
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
         std::map<int, Player> m_players;
 

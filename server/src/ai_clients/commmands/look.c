@@ -29,6 +29,8 @@ static look_payload_t *init_look_payload(ai_client_t *client)
         return NULL;
     payload->size = (size_t)(client->lvl + 1) * (client->lvl + 1);
     payload->cell_content = malloc(sizeof(payload_t) * payload->size);
+    if (payload->cell_content == NULL)
+        return NULL;
     for (size_t i = 0; i < payload->size; ++i) {
         for (size_t j = 0; j < R_COUNT; ++j) {
             payload->cell_content[i].res[j].r_name = j;

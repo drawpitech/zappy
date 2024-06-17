@@ -61,6 +61,8 @@ static char *get_word(char *tab, const char *str, int i, char const *separator)
         i = i + 1;
     }
     tab = malloc(sizeof(char) * (len + 1));
+    if (tab == NULL)
+        return NULL;
     tab[len] = '\0';
     for (int j = 0; j < len; j = j + 1) {
         tab[j] = str[index];
@@ -102,6 +104,8 @@ char **my_str_to_word_array(char const *str, char const *separator)
     while (i < nbr_mot) {
         index = getindex((i), str, separator);
         tab[i] = get_word(tab[i], str, index, separator);
+        if (tab[i] == NULL)
+            return NULL;
         i = i + 1;
     }
     return (tab);

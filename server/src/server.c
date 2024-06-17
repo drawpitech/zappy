@@ -64,6 +64,10 @@ static void add_client(server_t *serv, int fd)
 {
     int *fd_ptr = malloc(sizeof(int));
 
+    if (fd_ptr == NULL) {
+        dprintf(fd, "ko\n");
+        return;
+    }
     *fd_ptr = fd;
     add_elt_to_array(&serv->waitlist_fd, fd_ptr);
     dprintf(fd, "WELCOME\n");

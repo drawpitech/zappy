@@ -67,7 +67,8 @@ static void exec_ai_cmd(server_t *server, ai_client_t *client)
         write(client->s_fd, "ko\n", 3);
         return;
     }
-    cmd->func(server, client, content);
+    queue_add_cmd(
+        client, &(queued_cmd_t){cmd->func, cmd->time, strdup(content)});
 }
 
 static bool process_ai_cmd(server_t *server, ai_client_t *client)

@@ -103,8 +103,10 @@ typedef struct context_s {
     size_t map_size;
     array_t names;
     size_t client_nb;
-    double freq;
+    long freq;
 } context_t;
+
+typedef struct queued_cmd_s queued_cmd_t;
 
 typedef struct ai_client_s {
     int s_fd;
@@ -124,8 +126,9 @@ typedef struct ai_client_s {
         size_t alloc;
     } buffer;
     int id;
-    array_t q_cmds;
-    size_t last_cmd;
+    queued_cmd_t *q_cmds;
+    size_t q_size;
+    time_t last_cmd;
 } ai_client_t;
 
 typedef struct gui_client_s {

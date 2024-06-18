@@ -6,6 +6,7 @@
 */
 
 #include "commands.h"
+#include "../../gui_protocols/commands/commands.h"
 #include "server.h"
 
 void ai_cmd_set(server_t *server, ai_client_t *client, char *args)
@@ -20,4 +21,5 @@ void ai_cmd_set(server_t *server, ai_client_t *client, char *args)
     client->res[res].quantity--;
     cell->res[res].quantity++;
     write(client->s_fd, "ok\n", 3);
+    gui_cmd_pdr(server, server->gui_client, client->id, res);
 }

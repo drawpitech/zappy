@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "commands.h"
+#include "../../gui_protocols/commands/commands.h"
 #include "server.h"
 
 void ai_cmd_eject(server_t *server, ai_client_t *client, UNUSED char *args)
@@ -23,4 +24,5 @@ void ai_cmd_eject(server_t *server, ai_client_t *client, UNUSED char *args)
     }
     CELL(server, client->pos.x, client->pos.y)->res[EGG].quantity = 0;
     write(client->s_fd, "ok\n", 3);
+    gui_cmd_pex(server, server->gui_client, client->id);
 }

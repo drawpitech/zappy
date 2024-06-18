@@ -10,12 +10,9 @@
 
 #include "commands.h"
 
-void gui_cmd_pex(UNUSED server_t *server, gui_client_t *client, char *args)
+void gui_cmd_pex(UNUSED server_t *server, gui_client_t *client, int ai_id)
 {
-    char **cmd = my_str_to_word_array(args, " \n#");
-    int client_idx = atoi(*cmd);
-
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "pex #%d\n", client_idx);
+    dprintf(client->s_fd, "pex #%d\n", ai_id);
 }

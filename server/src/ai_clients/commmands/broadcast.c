@@ -10,6 +10,7 @@
 
 #include "array.h"
 #include "commands.h"
+#include "../../gui_protocols/commands/commands.h"
 #include "server.h"
 
 static int compute(const int a, const int b, const int grid_size)
@@ -75,4 +76,5 @@ void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
         dprintf(current->s_fd, "message %d, %s\n", dir, args);
     }
     write(client->s_fd, "ok\n", 3);
+    gui_cmd_pbc(server, server->gui_client, client->id, args);
 }

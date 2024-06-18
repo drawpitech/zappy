@@ -1,20 +1,18 @@
 /*
 ** EPITECH PROJECT, 2024
-** g
+** commands
 ** File description:
-** gui_cmd_pbc
+** gui_cmd_pie
 */
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "commands.h"
 #include "server.h"
 
-void
-gui_cmd_pbc(UNUSED server_t *server, gui_client_t *client, int ai_id, char *m)
+void gui_cmd_pie(server_t *server, gui_client_t *client, vector_t pos, bool r)
 {
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "pbc #%d %s\n", ai_id, m);
+    dprintf(client->s_fd, "pie %d %d %d\n", pos.x, pos.y, r);
 }

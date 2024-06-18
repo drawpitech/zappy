@@ -173,8 +173,12 @@ static void handle_waitlist(server_t *serv, size_t i, int client_fd)
     }
     buffer[bytes_read] = '\0';
     if (strncmp(buffer, "GRAPHIC\n", bytes_read) == 0) {
-        write(client_fd, "ko\n", 3);
-        // TODO implement GUI client
+        if (serv->gui_client.s_fd > 0) {
+            write(client_fd, "ko\n", 3);
+            ERR("GUI client is already connected");
+            return;
+        }
+        serv->gui_client.s_fd = client_fd;
     } else {
         connect_ai_client(serv, i, client_fd, buffer);
     }

@@ -26,7 +26,7 @@ Model::Model(const std::string& modelPath) {
         aiProcess_ValidateDataStructure | aiProcess_GlobalScale
     );
 
-    if ((scene == nullptr) || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0) || (scene->mRootNode == nullptr))
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         throw std::runtime_error("Failed to load model: " + std::string(importer.GetErrorString()));
 
     loadMaterials(scene, modelPath);
@@ -36,7 +36,7 @@ Model::Model(const std::string& modelPath) {
 Model::~Model() {
 }
 
-void Model::draw(const std::shared_ptr<ShaderProgram>& shaderProgram) const noexcept {
+void Model::draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept {
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glEnable(GL_CULL_FACE);
@@ -72,7 +72,7 @@ void Model::draw(const std::shared_ptr<ShaderProgram>& shaderProgram) const noex
 
         shaderProgram->setMat4("model", submesh.transform);
         glBindVertexArray(submesh.vao);
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(submesh.indexCount), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, submesh.indexCount, GL_UNSIGNED_INT, nullptr);
     }
 
     glDisable(GL_CULL_FACE);
@@ -85,19 +85,17 @@ void Model::loadTexture(const std::string& texturePath, const std::string& model
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
 
-    int width = 0;
-    int height = 0;
-    int channels = 0;
-    stbi_set_flip_vertically_on_load(static_cast<int>(true));
+    int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
     unsigned char *data = stbi_load(filePath.c_str(), &width, &height, &channels, 0);
-    if (data == nullptr)
+    if (!data)
         throw std::runtime_error("Failed to load texture: " + filePath);
 
     GLenum format = GL_RGB;
     if (channels == 4)
         format = GL_RGBA;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLsizei>(format), width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
@@ -107,12 +105,12 @@ void Model::loadTexture(const std::string& texturePath, const std::string& model
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     {   // Anisotropic filtering
-        GLfloat value = 0;
-        constexpr GLfloat max_anisotropy = 8.0;
+        GLfloat value, max_anisotropy = 8.0f;
+        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, & value);
 
-        glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &value);
         value = (value > max_anisotropy) ? max_anisotropy : value;
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, value);
+
         glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, value);
     }
 
@@ -121,7 +119,7 @@ void Model::loadTexture(const std::string& texturePath, const std::string& model
 
 void Model::loadMaterials(const aiScene *scene, const std::string& modelPath) {
     for (std::size_t i = 0; i < scene->mNumMaterials; ++i) {
-        const aiMaterial *assimpMat = scene->mMaterials[i]; // NOLINT
+        const aiMaterial *assimpMat = scene->mMaterials[i];
         Material material = {};
 
         aiString texturePath;
@@ -141,12 +139,12 @@ void Model::loadMaterials(const aiScene *scene, const std::string& modelPath) {
 void Model::processNode(const aiNode *node, const aiScene *scene) {
     for (std::size_t i = 0; i < node->mNumMeshes; ++i) {
         const aiMatrix4x4 transform = node->mTransformation;
-        const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];  // NOLINT
+        const aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         processMesh(mesh, glm::make_mat4(&transform.a1));
     }
 
     for (std::size_t i = 0; i < node->mNumChildren; ++i)
-        processNode(node->mChildren[i], scene); // NOLINT
+        processNode(node->mChildren[i], scene);
 }
 
 void Model::processMesh(const aiMesh *mesh, const glm::mat4& transform) {
@@ -155,18 +153,18 @@ void Model::processMesh(const aiMesh *mesh, const glm::mat4& transform) {
 
     for (uint32_t i = 0; i < mesh->mNumVertices; i++) {
         Vertex vertex = {
-            .position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z },   // NOLINT
-            .normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z },        // NOLINT
-            .texCoords = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y }         // NOLINT
+            .position = { mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z },
+            .normal = { mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z },
+            .texCoords = { mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y }
         };
 
         vertices.push_back(vertex);
     }
 
     for (uint32_t i = 0; i < mesh->mNumFaces; i++) {
-        const aiFace& face = mesh->mFaces[i];       // NOLINT
+        const aiFace& face = mesh->mFaces[i];
         for (uint32_t j = 0; j < face.mNumIndices; j++)
-            indices.push_back(face.mIndices[j]);    // NOLINT
+            indices.push_back(face.mIndices[j]);
     }
 
     Submesh submesh = {
@@ -183,20 +181,20 @@ void Model::processMesh(const aiMesh *mesh, const glm::mat4& transform) {
 
     glGenBuffers(1, &submesh.vbo);
     glBindBuffer(GL_ARRAY_BUFFER, submesh.vbo);
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizei>(vertices.size() * sizeof(Vertex)), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
     glGenBuffers(1, &submesh.ibo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, submesh.ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizei>(indices.size() * sizeof(uint32_t)), indices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void* )(offsetof(Vertex, position)));  // NOLINT
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, position)));
 
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void* )(offsetof(Vertex, normal)));    // NOLINT
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, normal)));
 
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void* )(offsetof(Vertex, texCoords))); // NOLINT
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, texCoords)));
 
     glBindVertexArray(0);
     m_submeshes.push_back(submesh);

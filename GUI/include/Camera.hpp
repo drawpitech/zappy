@@ -21,9 +21,6 @@ class Camera {
         Camera(const Camera&) = delete;
         Camera& operator=(const Camera&) = delete;
 
-        Camera(Camera&&) = default;
-        Camera& operator=(Camera&&) = delete;
-
         /**
          * @brief Update the camera's position and view matrix
          * depending on the user's input.
@@ -47,7 +44,7 @@ class Camera {
          * window to avoid sudden camera movements.
          * This function should be used after showing the cursor if it was hidden.
          */
-        static void resetMousePosition() noexcept;
+        void resetMousePosition() noexcept;
 
         /**
          * @brief Disable the cursor callback to avoid camera movement
@@ -55,7 +52,7 @@ class Camera {
          *
          * @param lock If true, the cursor will be locked in the center of the window.
          */
-        static void disableCursorCallback(bool lock) noexcept;
+        void disableCursorCallback(bool lock) noexcept;
 
         /* Getters */
         [[nodiscard]] const glm::mat4& getViewMatrix() const noexcept { return m_viewMatrix; }
@@ -63,7 +60,7 @@ class Camera {
         [[nodiscard]] const glm::vec3& getPosition() const noexcept { return m_position; }
 
     private:
-        std::shared_ptr<Window> m_window;
+        std::shared_ptr<Window>& m_window;
 
         glm::vec3 m_position {0, 0, 0};
         glm::vec3 m_upVector {0, 1, 0};

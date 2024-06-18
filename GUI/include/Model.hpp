@@ -13,9 +13,9 @@
 #include "assimp/scene.h"
 
 #include <cstdint>
-#include <memory>
 #include <string>
 #include <vector>
+#include <memory>
 
 class Model {
     public:
@@ -25,10 +25,7 @@ class Model {
         Model(const Model&) = delete;
         Model& operator=(const Model&) = delete;
 
-        Model(Model&&) = default;
-        Model& operator=(Model&&) = delete;
-
-        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram) const noexcept;
+        void draw(std::shared_ptr<ShaderProgram> shaderProgram) const noexcept;
 
     private:
         struct Material {
@@ -52,11 +49,12 @@ class Model {
             glm::mat4 transform;
         };
 
+    private:
         std::vector<Submesh> m_submeshes;
         std::vector<Material> m_materials;
 
         void loadMaterials(const aiScene *scene, const std::string& modelPath);
-        static void loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture);
+        void loadTexture(const std::string& texturePath, const std::string& modelPath, uint32_t& texture);
         void processNode(const aiNode *node, const aiScene *scene);
         void processMesh(const aiMesh *mesh, const glm::mat4& transform);
 };

@@ -16,7 +16,7 @@
 #include <stdexcept>
 
 ShaderProgram::ShaderProgram(const std::string &vertexShaderPath, const std::string &fragmentShaderPath) {
-    m_program = glCreateProgram();  // NOLINT
+    m_program = glCreateProgram();
 
     GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
     loadShader(vertexShaderPath, vertexShaderID);
@@ -35,11 +35,11 @@ ShaderProgram::~ShaderProgram() {
     glDeleteProgram(m_program);
 }
 
-void ShaderProgram::use() const noexcept {
+void ShaderProgram::use() noexcept {
     glUseProgram(m_program);
 }
 
-void ShaderProgram::loadShader(const std::string &shaderPath, GLuint shaderID) const {
+void ShaderProgram::loadShader(const std::string &shaderPath, GLuint shaderID) {
     std::ifstream shaderFile;
     shaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 
@@ -66,35 +66,35 @@ void ShaderProgram::loadShader(const std::string &shaderPath, GLuint shaderID) c
 void ShaderProgram::checkShader(GLuint shaderID) {
     int success = 0;
     glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-    if (success == 0) {
-        std::array<char, 512> infoLog{};
-        glGetShaderInfoLog(shaderID, 512, nullptr, infoLog.data());
-        throw std::runtime_error("Failed to compile shader: " + std::string(infoLog.data()));
+    if (!success) {
+        char infoLog[512];
+        glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
+        throw std::runtime_error("Failed to compile shader: " + std::string(infoLog));
     }
 }
 
-void ShaderProgram::checkProgram() const {
+void ShaderProgram::checkProgram() {
     int success = 0;
     glGetProgramiv(m_program, GL_LINK_STATUS, &success);
-    if (success == 0) {
-        std::array<char, 512> infoLog{};
-        glGetProgramInfoLog(m_program, 512, NULL, infoLog.data());
-        throw std::runtime_error("Failed to link shader program: " + std::string(infoLog.data()));
+    if (!success) {
+        char infoLog[512];
+        glGetProgramInfoLog(m_program, 512, NULL, infoLog);
+        throw std::runtime_error("Failed to link shader program: " + std::string(infoLog));
     }
 }
 
-void ShaderProgram::setMat4(const std::string &name, const glm::mat4 &value) const noexcept {
+void ShaderProgram::setMat4(const std::string &name, const glm::mat4 &value) noexcept {
     glUniformMatrix4fv(glGetUniformLocation(m_program, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void ShaderProgram::setBool(const std::string &name, bool value) const noexcept {
+void ShaderProgram::setBool(const std::string &name, bool value) noexcept {
     glUniform1i(glGetUniformLocation(m_program, name.c_str()), static_cast<int>(value));
 }
 
-void ShaderProgram::setInt(const std::string &name, int value) const noexcept {
+void ShaderProgram::setInt(const std::string &name, int value) noexcept {
     glUniform1i(glGetUniformLocation(m_program, name.c_str()), value);
 }
 
-void ShaderProgram::setVec3(const std::string &name, glm::vec3 value) const noexcept {
+void ShaderProgram::setVec3(const std::string &name, glm::vec3 value) noexcept {
     glUniform3fv(glGetUniformLocation(m_program, name.c_str()), 1, glm::value_ptr(value));
 }

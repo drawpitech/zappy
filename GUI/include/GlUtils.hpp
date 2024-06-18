@@ -10,4 +10,4 @@
 namespace GlUtils {
     void renderQuad();
     void renderCube();
-} // namespace GlUtils
+};

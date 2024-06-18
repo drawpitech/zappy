@@ -7,7 +7,7 @@
 
 #include "LightingPass.hpp"
 
-LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
+LightingPass::LightingPass(std::shared_ptr<Window> window) : m_window(window) {
     m_shaderProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/Lighting.frag");
 }
 
@@ -16,7 +16,7 @@ LightingPass::~LightingPass() {
 
 void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture) const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     m_shaderProgram->use();
 

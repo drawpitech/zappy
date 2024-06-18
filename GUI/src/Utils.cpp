@@ -7,14 +7,12 @@
 
 #include "Utils.hpp"
 
-#include <ranges>
-
 void DeletionQueue::add(std::function<void()>&& function) {
-    deletors.push_back(std::move(function));
+    deletors.push_back(function);
 }
 
 void DeletionQueue::flush() {
-    for (auto & deletor : std::ranges::reverse_view(deletors))
-        deletor();
+    for (auto it = deletors.rbegin(); it != deletors.rend(); it++)
+        (*it)();
     deletors.clear();
 }

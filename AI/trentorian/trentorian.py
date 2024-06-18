@@ -133,7 +133,9 @@ class Trantorian:
             self.start_living(queue)
             self.first_level()
             while self.iter_food(): # TODO deadlook if two calls the same
+                self.dprint("start loop")
                 can_level_up = self.wander()
+                self.dprint("wander done")
 
                 if self.state == "shaman":
                     self.dprint("start incant with:", can_level_up)
@@ -145,14 +147,14 @@ class Trantorian:
                 if self.state == 'going somewhere':
                     success = self.follow_the_leader()
 
-                self.dprint("incantation end", success)
+                self.dprint("incantation end", success, time())
                 self.dispo_incant = True
                 self.broadcast("just$update", ["all"])
 
         except BrokenPipeError:
             self.dprint("Server closed socket")
             self.dead = True
-        self.dprint("died")
+        self.dprint("died", time)
         return
 
     def be_the_shaman(self, can_do_incant: list) -> bool:
@@ -185,11 +187,14 @@ class Trantorian:
         self.drop_stuff()
         self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_READY, self), [self.last_beacon_uid])
         ans = ""
+        self.dprint("wait incant", time())
         while not self.dead and not ans.startswith("Current level"): # TODO do that better
-            ans = self.wait_answer()
+            ans = self.get_answer()
             if self.state == "wander":
+                self.dprint("wander", time(), ans)
                 return False
             if ans == "incantation end":
+                self.dprint("rrrr")
                 return False
         if self.dead or len(ans) != 16:
             return False
@@ -238,6 +243,7 @@ class Trantorian:
             bool: can do the next iteration
         """
         if self.dead:
+            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         self.get_unused_slot()
         return True
@@ -249,6 +255,7 @@ class Trantorian:
         Returns:
             bool: can do the net iteration
         """
+        self.dprint('start food', time())
         if not self.iter():
             return False
         self.get_inventory()
@@ -258,6 +265,7 @@ class Trantorian:
         state_change: bool = True
         under_mini: bool = True
         while self.iter() and (under_mini or (max_reached and state_change)):
+            # self.dprint('iter food')
             if self.dead:
                 return False
             if not self.look_around():
@@ -333,7 +341,9 @@ class Trantorian:
                 self.right()
 
             self.forward()
-            # self.look_around()
+            self.state = "wait"
+            while self.state == "wait":
+                self.get_answer()
         return
 
     def beacon(self, receivers: list) -> None:
@@ -432,6 +442,21 @@ class Trantorian:
             self.dead = True
         return answer
 
+    def get_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
+        """wait for an answer, handle the message and eject
+
+        Returns:
+            str: last server answer
+        """
+        answer: str = self.client.get_answer()
+        # TODO replace with startwith
+        if answer[:7] == 'message':
+            self.receive_message(answer)
+        if answer[:5] == 'eject':
+            self.handle_eject(answer)
+        if answer[:4] == "dead":
+            self.dead = True
+        return answer
 
     def receive_message(self, msg: str) -> None: # TODO remove the map
         """handle the broadcast reception

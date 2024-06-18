@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 """
 Module providing some utilities for the ai
 """

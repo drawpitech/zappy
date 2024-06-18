@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 """
 Module providing the argument parsing functions
 """

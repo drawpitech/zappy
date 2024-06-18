@@ -44,7 +44,7 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     client->s_fd = client_fd;
     client->dir = rand() % 4;
     client->pos = egg->pos;
-    client->lvl = 4;
+    client->lvl = 1;
     if (add_elt_to_array(&serv->ai_clients, client) == RET_ERROR)
         return free(client), OOM, RET_ERROR;
     remove_elt_to_array(&serv->eggs, egg_idx);
@@ -94,7 +94,8 @@ int iterate_ai_clients(server_t *server)
             remove_ai_client(server, i);
             continue;
         }
-        queue_pop_cmd(server, client);
+        if (!client->freezed)
+            queue_pop_cmd(server, client);
         FD_ZERO(&rfd);
         FD_SET(client->s_fd, &rfd);
         if (select(

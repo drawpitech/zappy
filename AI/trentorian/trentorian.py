@@ -133,9 +133,8 @@ class Trantorian:
             self.start_living(queue)
             self.first_level()
             while self.iter_food(): # TODO deadlook if two calls the same
-                self.dprint("start loop")
                 can_level_up = self.wander()
-                self.dprint("wander done")
+                success = False
 
                 if self.state == "shaman":
                     self.dprint("start incant with:", can_level_up)
@@ -154,7 +153,7 @@ class Trantorian:
         except BrokenPipeError:
             self.dprint("Server closed socket")
             self.dead = True
-        self.dprint("died", time)
+        self.dprint("died", time())
         return
 
     def be_the_shaman(self, can_do_incant: list) -> bool:
@@ -187,14 +186,12 @@ class Trantorian:
         self.drop_stuff()
         self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_READY, self), [self.last_beacon_uid])
         ans = ""
-        self.dprint("wait incant", time())
         while not self.dead and not ans.startswith("Current level"): # TODO do that better
             ans = self.get_answer()
             if self.state == "wander":
                 self.dprint("wander", time(), ans)
                 return False
             if ans == "incantation end":
-                self.dprint("rrrr")
                 return False
         if self.dead or len(ans) != 16:
             return False
@@ -265,7 +262,6 @@ class Trantorian:
         state_change: bool = True
         under_mini: bool = True
         while self.iter() and (under_mini or (max_reached and state_change)):
-            # self.dprint('iter food')
             if self.dead:
                 return False
             if not self.look_around():

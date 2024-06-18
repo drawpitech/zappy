@@ -22,6 +22,7 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <thread>
 #include <unistd.h>
 #include <iostream>
 #include <cstdio>
@@ -171,6 +172,8 @@ void App::updatePlayers(const std::string& bufferView) {
 void App::parseConnectionResponse() {
     std::array<char, BUFFER_SIZE> buffer{};
     buffer.fill(0);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     size_t readSize = 0;
     while (readSize < BUFFER_SIZE) {

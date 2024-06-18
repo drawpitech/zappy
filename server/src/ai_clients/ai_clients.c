@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "ai_internal.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 void move_ai_client(server_t *server, ai_client_t *client, int dir)
@@ -52,8 +53,8 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     remove_elt_to_array(&serv->eggs, egg_idx);
     CELL(serv, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     CELL(serv, client->pos.x, client->pos.y)->res[EGG].quantity--;
-    dprintf(
-        client_fd, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
+    gui_cmd_pnw(serv, serv->gui_client, client);
+    dprintf(client_fd, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
     return RET_VALID;
 }

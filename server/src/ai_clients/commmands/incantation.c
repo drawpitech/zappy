@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-#include "../../gui_protocols/commands/commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "../ai_internal.h"
 #include "commands.h"
 #include "server.h"

@@ -13,7 +13,7 @@ void gui_cmd_msz(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_bct(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_mct(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_tna(server_t *server, gui_client_t *client, char *args);
-void gui_cmd_pnw(server_t *server, gui_client_t *client, char *args);
+void gui_cmd_pnw(server_t *server, gui_client_t *client, ai_client_t *new);
 void gui_cmd_ppo(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_plv(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_pin(server_t *server, gui_client_t *client, char *args);

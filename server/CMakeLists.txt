@@ -11,7 +11,7 @@ file(GLOB_RECURSE SOURCES "${SOURCE_DIR}/*.c")
 add_executable(zappy_server ${SOURCES})
 set_target_properties(zappy_server PROPERTIES C_STANDARD 99)
 
-target_include_directories(zappy_server PRIVATE ${INCLUDE_DIR})
+target_include_directories(zappy_server PRIVATE ${INCLUDE_DIR} ${SOURCE_DIR})
 
 if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
   # Sanitizers

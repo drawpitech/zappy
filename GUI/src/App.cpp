@@ -126,8 +126,7 @@ void App::updatePlayers(const std::string& bufferView) {
         pos = bufferView.find(' ', pos) + 1;
 
         const std::string message = bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos);
-
-        std::cout << "Player " << playerNumber << " says: " << message << "\n";
+        LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, RED);
 
         pos = bufferView.find("pbc", pos);
     }
@@ -316,9 +315,13 @@ void App::run() {
         // Add logs to the UI
         ImGui::Begin("Logs");
         for (const auto& log : m_logs) {
+            // Make the time a string
             std::array<char, 9> timeStr{};
             strftime(timeStr.data(), 9, "%H:%M:%S", localtime(&log.getTime()));
+
+            // Display the log
             ImGui::TextColored(log.getColor(), "[%s] %s", timeStr.data(), log.getMessage().c_str());
+            ImGui::SetScrollHereY(1);   // To scroll to the bottom
         }
         ImGui::End();
 

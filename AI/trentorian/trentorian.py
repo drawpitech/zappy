@@ -342,8 +342,8 @@ class Trantorian:
 
             self.forward()
             self.state = "wait"
-            while self.state == "wait":
-                self.get_answer()
+            while not self.dead and self.state == "wait":
+                self.get_answer() #TODO do something to not get stuck
         return
 
     def beacon(self, receivers: list) -> None:
@@ -359,6 +359,7 @@ class Trantorian:
             if self.number_of_ritual_ready >= LEVELS[self.level + 1][0] - 1:
                 self.dprint("we are ready", receivers)
                 self.state = "ready"
+        return
 
     def start_living(self, queue: Queue) -> None:
         """ First step of the life (reproduction)

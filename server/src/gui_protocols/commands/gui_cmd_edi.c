@@ -11,11 +11,13 @@
 #include "commands.h"
 #include "server.h"
 
-void gui_cmd_edi(server_t *server, gui_client_t *client, char *args)
+void gui_cmd_edi(UNUSED server_t *server, gui_client_t *client, char *args)
 {
     char **cmd = my_str_to_word_array(args, " ");
     int egg_id = 0;
 
+    if (client == NULL)
+        return;
     if (!cmd || !cmd[0])
         return;
     egg_id = atoi(cmd[0]);

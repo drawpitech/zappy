@@ -161,6 +161,24 @@ static void connect_ai_client(
     }
 }
 
+static void connect_gui_client(server_t *serv, int client_fd)
+{
+    if (serv->gui_client != NULL) {
+        write(client_fd, "ko\n", 3);
+        ERR("GUI client is already connected");
+        close(client_fd);
+        return;
+    }
+    serv->gui_client = calloc(1, sizeof *serv->gui_client);
+    if (serv->gui_client == NULL) {
+        write(client_fd, "ko\n", 3);
+        OOM;
+        close(client_fd);
+        return;
+    }
+    serv->gui_client->s_fd = client_fd;
+}
+
 static void handle_waitlist(server_t *serv, size_t i, int client_fd)
 {
     char buffer[DEFAULT_SIZE];
@@ -173,12 +191,7 @@ static void handle_waitlist(server_t *serv, size_t i, int client_fd)
     }
     buffer[bytes_read] = '\0';
     if (strncmp(buffer, "GRAPHIC\n", bytes_read) == 0) {
-        if (serv->gui_client.s_fd > 0) {
-            write(client_fd, "ko\n", 3);
-            ERR("GUI client is already connected");
-            return;
-        }
-        serv->gui_client.s_fd = client_fd;
+        connect_gui_client(serv, client_fd);
     } else {
         connect_ai_client(serv, i, client_fd, buffer);
     }

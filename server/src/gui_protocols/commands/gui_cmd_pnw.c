@@ -12,11 +12,13 @@
 
 void gui_cmd_pnw(server_t *server, gui_client_t *client, UNUSED char *args)
 {
-    size_t client_nb = server->ai_clients.size;
-    ai_client_t *last_client = server->ai_clients.elements[client_nb];
+    ai_client_t *last_client = NULL;
 
+    if (client == NULL || server->ai_clients.size == 0)
+        return;
+    last_client = server->ai_clients.elements[server->ai_clients.size - 1];
     dprintf(
-        client->s_fd, "#%ld %d %d %d %d %s\n", client_nb, last_client->pos.x,
-        last_client->pos.y, last_client->dir, last_client->lvl,
-        last_client->team);
+        client->s_fd, "#%ld %d %d %d %d %s\n", server->ai_clients.size,
+        last_client->pos.x, last_client->pos.y, last_client->dir,
+        last_client->lvl, last_client->team);
 }

@@ -10,7 +10,8 @@
 
 #include "commands.h"
 
-void gui_cmd_spb(server_t *server, gui_client_t *client, char *args)
+void gui_cmd_spb(
+    UNUSED server_t *server, UNUSED gui_client_t *client, UNUSED char *args)
 {
     return;
 }

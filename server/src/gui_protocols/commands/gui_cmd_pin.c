@@ -17,6 +17,8 @@ void gui_cmd_pin(server_t *server, gui_client_t *client, char *args)
     int client_id = atoi(*cmd);
     ai_client_t *current = get_client_by_id(server, client_id);
 
+    if (client == NULL)
+        return;
     if (!current) {
         dprintf(client->s_fd, "ko\n");
         return;

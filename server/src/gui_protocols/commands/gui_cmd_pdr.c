@@ -11,12 +11,14 @@
 #include "commands.h"
 #include "server.h"
 
-void gui_cmd_pdr(server_t *server, gui_client_t *client, char *args)
+void gui_cmd_pdr(UNUSED server_t *server, gui_client_t *client, char *args)
 {
     char **cmd = my_str_to_word_array(args, " \n#");
     int client_idx = 0;
     int res = 0;
 
+    if (client == NULL)
+        return;
     if (!cmd || !cmd[0] || !cmd[1])
         return;
     client_idx = atoi(cmd[0]);

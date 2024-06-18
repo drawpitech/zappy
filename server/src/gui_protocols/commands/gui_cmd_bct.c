@@ -13,24 +13,20 @@
 
 void gui_cmd_bct(server_t *server, gui_client_t *client, char *args)
 {
-    char **cmd = my_str_to_word_array(args, " ");
-    vector_t cell = {0};
-    size_t w = server->ctx.width;
-    size_t h = server->ctx.height;
+    char **cmd = NULL;
+    cell_t *cell = NULL;
 
+    if (client == NULL)
+        return;
+    cmd = my_str_to_word_array(args, " ");
     if (cmd == NULL || !cmd[0] || !cmd[1])
         return;
-    cell.x = atoi(cmd[0]);
-    cell.y = atoi(cmd[1]);
+    cell = CELL(server, atoi(cmd[0]), atoi(cmd[1]));
     dprintf(
-            client->s_fd, "bct %d %d %d %d %d %d %d %d %d\n", cell.x, cell.y,
-            server->map[IDX(cell.x, cell.y, w, h)].res[FOOD].quantity,
-            server->map[IDX(cell.x, cell.y, w, h)].res[LINEMATE].quantity,
-            server->map[IDX(cell.x, cell.y, w, h)].res[DERAUMERE].quantity,
-            server->map[IDX(cell.x, cell.y, w, h)].res[SIBUR].quantity,
-            server->map[IDX(cell.x, cell.y, w, h)].res[MENDIANE].quantity,
-            server->map[IDX(cell.x, cell.y, w, h)].res[PHIRAS].quantity,
-            server->map[IDX(cell.x, cell.y, w, h)].res[THYSTAME].quantity
-           );
+        client->s_fd, "bct %d %d %d %d %d %d %d %d %d\n", cell->pos.x,
+        cell->pos.y, cell->res[FOOD].quantity, cell->res[LINEMATE].quantity,
+        cell->res[DERAUMERE].quantity, cell->res[SIBUR].quantity,
+        cell->res[MENDIANE].quantity, cell->res[PHIRAS].quantity,
+        cell->res[THYSTAME].quantity);
     free_array((void **)cmd);
 }

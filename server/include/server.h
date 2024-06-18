@@ -140,7 +140,7 @@ typedef struct gui_client_s {
 typedef struct server_s {
     int s_fd;
     struct sockaddr_in s_addr;
-    gui_client_t gui_client;
+    gui_client_t *gui_client;
     array_t ai_clients;
     array_t waitlist_fd;
     array_t eggs;

@@ -16,6 +16,8 @@ void gui_cmd_plv(server_t *server, gui_client_t *client, char *args)
     int client_idx = atoi(*cmd);
     ai_client_t *current = NULL;
 
+    if (client == NULL)
+        return;
     if ((size_t)client_idx > server->ai_clients.size) {
         dprintf(client->s_fd, "ko\n");
         return;

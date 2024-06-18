@@ -118,7 +118,7 @@ static bool team_valid(server_t *serv, char *team)
     return false;
 }
 
-static size_t count_team(server_t *serv, char *team)
+size_t count_team(server_t *serv, char *team)
 {
     size_t count = 0;
     ai_client_t *ai_client = NULL;
@@ -131,23 +131,31 @@ static size_t count_team(server_t *serv, char *team)
     return count;
 }
 
+static long get_egg(server_t *serv, const char *team)
+{
+    for (size_t i = 0; i < serv->eggs.nb_elements; i++)
+        if (strcmp(team, ((egg_t *)serv->eggs.elements[i])->team) == 0)
+            return (long)i;
+    return -1;
+}
+
 static void connect_ai_client(
     server_t *serv, size_t idx, int client_fd, char *team)
 {
-    size_t eggs_c = 0;
+    long egg = -1;
 
     if (!team_valid(serv, team)) {
         write(client_fd, "ko\n", 3);
         return;
     }
-    for (size_t i = 0; i < serv->eggs.nb_elements; i++)
-        eggs_c += !strcmp(team, ((egg_t *)serv->eggs.elements[i])->team);
-    if (count_team(serv, team) >= serv->ctx.client_nb || eggs_c <= 0) {
+    egg = get_egg(serv, team);
+    if (count_team(serv, team) >= serv->ctx.client_nb || egg == -1) {
+        ERR("team is full");
         write(client_fd, "ko\n", 3);
         return;
     }
     free(remove_elt_to_array(&serv->waitlist_fd, idx));
-    if (init_ai_client(serv, client_fd, team) == RET_ERROR) {
+    if (init_ai_client(serv, client_fd, team, egg) == RET_ERROR) {
         write(client_fd, "ko\n", 3);
         close(client_fd);
     }

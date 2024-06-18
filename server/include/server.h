@@ -152,9 +152,10 @@ int server(UNUSED int argc, UNUSED char **argv);
 payload_t *get_cell_payload(server_t *serv, vector_t *pos, payload_t *payload);
 res_name_t get_ressource_type(char *name);
 bool spawn_egg(server_t *server, char *team);
+size_t count_team(server_t *serv, char *team);
 
 int iterate_ai_clients(server_t *server);
-int init_ai_client(server_t *server, int client_fd, char *team);
+int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx);
 int remove_ai_client(server_t *server, size_t idx);
 void move_ai_client(server_t *server, ai_client_t *client, int dir);
 char **my_str_to_word_array(const char *str, char const *separator);

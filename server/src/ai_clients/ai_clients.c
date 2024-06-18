@@ -32,9 +32,10 @@ void move_ai_client(server_t *server, ai_client_t *client, int dir)
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
 }
 
-int init_ai_client(server_t *server, int client_fd, char *team)
+int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
 {
     ai_client_t *client = malloc(sizeof *client);
+    egg_t *egg = serv->eggs.elements[egg_idx];
 
     if (client == NULL)
         return OOM, RET_ERROR;
@@ -42,13 +43,15 @@ int init_ai_client(server_t *server, int client_fd, char *team)
     strcpy(client->team, team);
     client->s_fd = client_fd;
     client->dir = rand() % 4;
-    client->pos.x = rand() % (int)server->ctx.width;
-    client->pos.y = rand() % (int)server->ctx.height;
+    client->pos = egg->pos;
     client->lvl = 4;
-    CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
-    if (add_elt_to_array(&server->ai_clients, client) == RET_ERROR)
+    if (add_elt_to_array(&serv->ai_clients, client) == RET_ERROR)
         return free(client), OOM, RET_ERROR;
-    dprintf(client_fd, "1\n");
+    remove_elt_to_array(&serv->eggs, egg_idx);
+    CELL(serv, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
+    CELL(serv, client->pos.x, client->pos.y)->res[EGG].quantity--;
+    dprintf(
+        client_fd, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
     dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
     return RET_VALID;
 }

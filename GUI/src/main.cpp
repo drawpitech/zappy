@@ -14,7 +14,10 @@ int main(int argc, char* argv[]) {
     (void) argv;
 
     try {
-        App app;
+        if (argc != 2)
+            throw std::runtime_error("Usage: ./zappy_gui [port]");
+
+        App app(std::stoi(argv[1]));
         app.run();
     } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;

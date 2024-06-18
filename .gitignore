@@ -4,6 +4,7 @@
 .idea/
 
 # Build
+compile_flags.txt
 build/
 .build/
 result
@@ -14,3 +15,9 @@ result
 /zappy_ai
 /asan
 /prof
+bin/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class

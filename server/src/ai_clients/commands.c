@@ -12,6 +12,7 @@
 #include <string.h>
 
 #include "ai_internal.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 // Here we define the commands in a static array
@@ -21,7 +22,7 @@ static const struct ai_cmd_s commands[] = {
     {"Broadcast", ai_cmd_broadcast, 7},
     {"Connect_nbr", ai_cmd_connect_nbr, 0},
     {"Eject", ai_cmd_eject, 7},
-    {"Fork", ai_cmd_fork, 42},
+    {"Fork", ai_cmd_fork, 0},
     {"Forward", ai_cmd_forward, 7},
     {"Incantation", ai_cmd_incantation, 0},
     {"Inventory", ai_cmd_inventory, 1},
@@ -64,6 +65,7 @@ static void exec_ai_cmd(server_t *server, ai_client_t *client)
     }
     cmd = get_ai_cmd(client->buffer.str);
     if (cmd == NULL || cmd->func == NULL) {
+        gui_cmd_suc(server, server->gui_client);
         write(client->s_fd, "ko\n", 3);
         return;
     }
@@ -124,7 +126,7 @@ void handle_ai_client(server_t *server, ai_client_t *client)
     ptr = client->buffer.str + client->buffer.size;
     bytes_read = read(client->s_fd, ptr, bufsiz);
     if (bytes_read <= 0) {
-        disconnect_ai_client(client);
+        disconnect_ai_client(server, client);
         return;
     }
     client->buffer.size += bytes_read;

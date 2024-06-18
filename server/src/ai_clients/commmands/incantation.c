@@ -9,16 +9,10 @@
 
 #include <stdio.h>
 
-#include "gui_protocols/commands/commands.h"
 #include "../ai_internal.h"
 #include "commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
-
-static void incantation_end(
-    UNUSED server_t *server, ai_client_t *client, UNUSED char *args)
-{
-    dprintf(client->s_fd, "Current level: %d\n", client->lvl);
-}
 
 static bool can_incantation(ai_client_t *client, const cell_t *cell)
 {
@@ -36,6 +30,20 @@ static void consume_ressources(ai_client_t *client, cell_t *cell)
         return;
     for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res); ++i)
         cell->res[i].quantity -= INC_NEEDS[client->lvl - 1].res[i].quantity;
+}
+
+static void incantation_end(
+    server_t *server, ai_client_t *client, UNUSED char *args)
+{
+    cell_t *cell = CELL(server, client->pos.x, client->pos.y);
+
+    if (!can_incantation(client, cell)) {
+        dprintf(client->s_fd, "ko\n");
+        return;
+    }
+    consume_ressources(client, cell);
+    dprintf(client->s_fd, "Current level: %d\n", client->lvl);
+    gui_cmd_pie(server, server->gui_client, client->pos, 1);
 }
 
 void ai_cmd_incantation(

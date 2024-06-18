@@ -253,13 +253,13 @@ UNUSED static void debug_payload(look_payload_t *payload)
     }
 }
 
-bool spawn_egg(server_t *server, char *team)
+egg_t *spawn_egg(server_t *server, char *team)
 {
     egg_t *egg = malloc(sizeof *egg);
 
     if (!egg) {
         OOM;
-        return false;
+        return NULL;
     }
     egg->pos = (vector_t){
         .x = rand() % (int)server->ctx.width,
@@ -269,12 +269,12 @@ bool spawn_egg(server_t *server, char *team)
     if (add_elt_to_array(&server->eggs, egg) == RET_ERROR) {
         free(egg);
         OOM;
-        return false;
+        return NULL;
     }
     egg->id = server->egg_id;
     server->egg_id++;
     CELL(server, egg->pos.x, egg->pos.y)->res[EGG].quantity += 1;
-    return true;
+    return egg;
 }
 
 int server(int argc, char **argv)
@@ -293,6 +293,6 @@ int server(int argc, char **argv)
         iterate_waitlist(&server);
         iterate_ai_clients(&server);
     }
-    // close_server(&serv);
+    // close_server(&serv); // gui_msg_seg
     return RET_VALID;
 }

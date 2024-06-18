@@ -24,13 +24,14 @@ void gui_cmd_pie(server_t *server, gui_client_t *client, vector_t pos, bool r);
 void gui_cmd_pfk(server_t *server, gui_client_t *client, int ai_id);
 void gui_cmd_pdr(server_t *server, gui_client_t *client, int ai_id, int r);
 void gui_cmd_pgt(server_t *server, gui_client_t *client, int ai_id, int r);
-void gui_cmd_pdi(server_t *server, gui_client_t *client, char *args);
-void gui_cmd_enw(server_t *server, gui_client_t *client, char *args);
-void gui_cmd_ebo(server_t *server, gui_client_t *client, char *args);
+void gui_cmd_pdi(server_t *server, gui_client_t *client, int ai_id);
+void gui_cmd_enw(
+    server_t *server, gui_client_t *client, egg_t *egg, ai_client_t *ai);
+void gui_cmd_ebo(server_t *server, gui_client_t *client, egg_t *egg);
 void gui_cmd_edi(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_sgt(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_sst(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_seg(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_smg(server_t *server, gui_client_t *client, char *args);
-void gui_cmd_suc(server_t *server, gui_client_t *client, char *args);
+void gui_cmd_suc(server_t *server, gui_client_t *client);
 void gui_cmd_spb(server_t *server, gui_client_t *client, char *args);

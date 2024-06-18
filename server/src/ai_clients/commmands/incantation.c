@@ -35,6 +35,7 @@ static void consume_ressources(ai_client_t *client, cell_t *cell)
 static void incantation_end(
     server_t *server, ai_client_t *client, UNUSED char *args)
 {
+    char buffer[40];
     cell_t *cell = CELL(server, client->pos.x, client->pos.y);
 
     if (!can_incantation(client, cell)) {
@@ -42,6 +43,8 @@ static void incantation_end(
         return;
     }
     consume_ressources(client, cell);
+    sprintf(buffer, "%d %d", client->pos.x, client->pos.y);
+    gui_cmd_bct(server, server->gui_client, buffer);
     dprintf(client->s_fd, "Current level: %d\n", client->lvl);
     gui_cmd_pie(server, server->gui_client, client->pos, 1);
 }

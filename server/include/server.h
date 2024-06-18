@@ -129,6 +129,7 @@ typedef struct ai_client_s {
     queued_cmd_t *q_cmds;
     size_t q_size;
     time_t last_cmd;
+    bool freezed;
 } ai_client_t;
 
 typedef struct gui_client_s {
@@ -139,6 +140,7 @@ typedef struct gui_client_s {
 typedef struct server_s {
     int s_fd;
     struct sockaddr_in s_addr;
+    gui_client_t gui_client;
     array_t ai_clients;
     array_t waitlist_fd;
     array_t eggs;

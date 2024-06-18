@@ -19,7 +19,7 @@ void gui_cmd_plv(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_pin(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_pex(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_pbc(server_t *server, gui_client_t *client, char *args);
-
+void gui_cmd_pic(server_t *server, gui_client_t *client, char *args);
 
 void gui_cmd_pfk(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_pdr(server_t *server, gui_client_t *client, char *args);

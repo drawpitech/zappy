@@ -138,6 +138,8 @@ class Trantorian:
                 if self.state == "shaman":
                     self.dprint("start incant with:", can_level_up)
                     success = self.be_the_shaman(can_level_up)
+                    if not success:
+                        self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_FAILED, self), can_level_up)
                     self.number_of_ritual_ready = 0
 
                 if self.state == 'going somewhere':
@@ -185,6 +187,8 @@ class Trantorian:
         ans = ""
         while not self.dead and not ans.startswith("Current level"): # TODO do that better
             ans = self.wait_answer()
+            if self.state != "wander":
+                return False
             if ans == "incantation end":
                 return False
         if self.dead or len(ans) != 16:

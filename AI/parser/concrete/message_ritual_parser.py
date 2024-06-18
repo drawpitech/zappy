@@ -27,6 +27,26 @@ class MessageRitualParser(IParser):
 
         return trentorian
 
+class MessageRitualFailedParser(IParser):
+    """class for message of type ritual failed parsing
+    """
+
+    def serialize(self, trentorian: Trantorian) -> str:
+        """Return the message string for creting a ritual failed message
+
+        The message returned should ressemble something like that:
+            "None"
+        """
+        return "None"
+    
+    def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
+        """Deserialize the message content, for ritual failed
+        """
+
+        trentorian.state = "wander"
+
+        return trentorian
+
 class MessageRitualFinishParser(IParser):
     """class for message of type ritual finish parsing
     """

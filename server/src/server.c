@@ -56,16 +56,16 @@ static int init_server(server_t *serv, int port)
 {
     serv->s_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (serv->s_fd == -1)
-        return RET_ERROR;
+        return ERR("socket failed"), RET_ERROR;
     if (setsockopt(
         serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
-        return RET_ERROR;
+        return ERR("setsockopt failed"), RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
     if (bind(
             serv->s_fd, (struct sockaddr *)&serv->s_addr,
             sizeof serv->s_addr) == -1)
-        return RET_ERROR;
+        return ERR("bind failed"), RET_ERROR;
     listen(serv->s_fd, 10);
     return RET_VALID;
 }

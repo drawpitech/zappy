@@ -13,7 +13,7 @@
 
         devShell = pkgs.mkShell {
           inputsFrom = builtins.attrValues self.packages.${system};
-          packages = with pkgs; [clang-tools_18];
+          packages = with pkgs; [clang-tools_18 strace];
           env.MAKEFLAGS = "-j";
         };
 

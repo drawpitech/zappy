@@ -271,6 +271,8 @@ bool spawn_egg(server_t *server, char *team)
         OOM;
         return false;
     }
+    egg->id = server->egg_id;
+    server->egg_id++;
     CELL(server, egg->pos.x, egg->pos.y)->res[EGG].quantity += 1;
     return true;
 }

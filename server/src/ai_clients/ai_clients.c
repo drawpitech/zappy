@@ -47,6 +47,8 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     client->lvl = 1;
     if (add_elt_to_array(&serv->ai_clients, client) == RET_ERROR)
         return free(client), OOM, RET_ERROR;
+    client->id = serv->ai_id;
+    serv->ai_id++;
     remove_elt_to_array(&serv->eggs, egg_idx);
     CELL(serv, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     CELL(serv, client->pos.x, client->pos.y)->res[EGG].quantity--;

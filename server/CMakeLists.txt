@@ -47,5 +47,4 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
   set_target_properties(zappy_server PROPERTIES INTERPROCEDURAL_OPTIMIZATION TRUE)
 endif()
 
-install(TARGETS zappy_server DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
-
+install(TARGETS zappy_server DESTINATION ${CMAKE_INSTALL_BINDIR})

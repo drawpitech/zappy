@@ -12,9 +12,9 @@
         formatter = pkgs.alejandra;
 
         devShell = pkgs.mkShell {
-          inputsFrom = builtins.attrValues self.packages.${system};
+          inputsFrom = builtins.attrValues self.packages.${system} ++ (with pkgs; [glfw assimp]);
           packages = with pkgs; [clang-tools_18 strace];
-          env.MAKEFLAGS = "-j";
+          env.MAKEFLAGS = "-j12";
         };
 
         packages = {

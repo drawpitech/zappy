@@ -10,6 +10,8 @@ build/
 result
 
 # Binaries
+/include
+/lib64
 /zappy_server
 /zappy_gui
 /zappy_ai

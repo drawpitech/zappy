@@ -33,7 +33,7 @@ Renderer::Renderer() {
         m_ssrPass->resize(m_lightingPass->getViewportSize());
     }
 
-    m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 100.0);
+    m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 500.0);
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
@@ -54,7 +54,7 @@ void Renderer::handleUserInput() noexcept {
     m_window->pollEvents();
 
     if (m_lightingPass->wasResized) {
-        m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 100.0);
+        m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 500.0);
         m_gBufferPass->resize(m_lightingPass->getViewportSize());
         m_ssaoPass->resize(m_lightingPass->getViewportSize());
         m_ssrPass->resize(m_lightingPass->getViewportSize());

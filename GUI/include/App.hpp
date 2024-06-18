@@ -97,8 +97,8 @@ class App {
         // Dict of all the ressources meshes and offsets on the tiles
         std::map<RessourceType, glm::vec3> m_ressourceOffset;
         std::map<RessourceType, const std::shared_ptr<StaticMesh>> m_ressourceMesh;
-        // Dict of all the player meshes and animations
 
+        // Dict of all the player meshes and animations
         std::map<std::string, std::shared_ptr<SkeletalMesh>> m_playerMeshes;
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
         std::shared_ptr<StaticMesh> m_islandMesh;

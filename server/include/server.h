@@ -134,7 +134,11 @@ typedef struct ai_client_s {
 
 typedef struct gui_client_s {
     int s_fd;
-    char buffer[4096];
+    struct {
+        char *str;
+        size_t size;
+        size_t alloc;
+    } buffer;
 } gui_client_t;
 
 typedef struct server_s {
@@ -164,3 +168,4 @@ char **my_str_to_word_array(const char *str, char const *separator);
 ai_client_t *get_client_by_id(server_t *server, int client_id);
 egg_t *get_egg_by_id(server_t *server, int egg_id);
 void free_array(void **array);
+int iterate_gui(server_t *server);

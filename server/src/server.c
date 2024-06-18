@@ -292,6 +292,7 @@ int server(int argc, char **argv)
             add_client(&server, fd);
         iterate_waitlist(&server);
         iterate_ai_clients(&server);
+        iterate_gui(&server);
     }
     // close_server(&serv); // gui_msg_seg
     return RET_VALID;

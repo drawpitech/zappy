@@ -34,6 +34,34 @@ App::App(int port) {
 
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
+
+    m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
+    m_playerAnims["Twerk"] = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
+    m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("../assets/Quentin/Breakdance Uprock Var 2.dae");
+    m_playerAnims["Breakdance"] = std::make_shared<Animation>("../assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
+    
+    m_ressourceOffset = {
+        {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
+        {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
+        {DERAUMERE, {0.55, 0.25, m_tileSize[2] * 3/8}},
+        {SIBUR, {0.55, 0.25, m_tileSize[2] * 4/8}},
+        {MENDIANE, {0.55, -0.25, m_tileSize[2] * 5/8}},
+        {PHIRAS, {0.55, 0.25, m_tileSize[2] * 6/8}},
+        {THYSTAME, {0.55, 0.25, m_tileSize[2] * 7/8}}
+    };
+
+    m_ressourceMesh = {
+        {FOOD, std::make_shared<StaticMesh>("../assets/Ressources/Gonstre.obj")},
+        {LINEMATE, std::make_shared<StaticMesh>("../assets/Ressources/pink.obj")},
+        {DERAUMERE, std::make_shared<StaticMesh>("../assets/Ressources/orange.obj")},
+        {SIBUR, std::make_shared<StaticMesh>("../assets/Ressources/blue.obj")},
+        {MENDIANE, std::make_shared<StaticMesh>("../assets/Ressources/green.obj")},
+        {PHIRAS, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")},
+        {THYSTAME, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")}
+    };
+
+    m_islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
+
     createScene();
 }
 
@@ -66,8 +94,9 @@ void App::updatePlayers(const std::string& bufferView) {
         m_players[playerNumber] = Player {
             .position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] + m_tileSize[1])),
             .orientation = orientation,
-            .team = teamName,
-            .level = level
+            .teamName = teamName,
+            .level = level,
+            .animator = std::make_shared<Animator>(m_playerAnims["Twerk"])
         };
 
         pos = bufferView.find("pnw", pos);
@@ -156,50 +185,23 @@ void App::parseConnectionResponse() {
     }
 }
 
-void App::createIslands() {
-    static std::shared_ptr<StaticMesh> islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
-    for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++)
-        for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++)
-            m_scene->staticActors.push_back(Renderer::StaticActor({islandMesh, glm::vec3(static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0]), m_tileHeight, static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])), m_tileSize, glm::vec3(0, 0, 0)}));
-}
-
 void App::createScene() {
     m_scene->staticActors.clear();
     m_scene->animatedActors.clear();
-    createIslands();
 
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
             const TileContent& tile = m_map[i + m_mapSize[0] / 2][j + m_mapSize[1] / 2];
+            m_scene->staticActors.push_back(Renderer::StaticActor({m_islandMesh, glm::vec3(static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0]), m_tileHeight, static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])), m_tileSize, glm::vec3(0, 0, 0)}));
 
-            std::map<RessourceType, glm::vec3> ressourceOffset = {
-                {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
-                {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
-                {DERAUMERE, {0.55, 0.25, m_tileSize[2] * 3/8}},
-                {SIBUR, {0.55, 0.25, m_tileSize[2] * 4/8}},
-                {MENDIANE, {0.55, -0.25, m_tileSize[2] * 5/8}},
-                {PHIRAS, {0.55, 0.25, m_tileSize[2] * 6/8}},
-                {THYSTAME, {0.55, 0.25, m_tileSize[2] * 7/8}}
-            };
-
-            static const std::map<RessourceType, const std::shared_ptr<StaticMesh>> ressourceMesh = {
-                {FOOD, std::make_shared<StaticMesh>("../assets/Ressources/Gonstre.obj")},
-                {LINEMATE, std::make_shared<StaticMesh>("../assets/Ressources/pink.obj")},
-                {DERAUMERE, std::make_shared<StaticMesh>("../assets/Ressources/orange.obj")},
-                {SIBUR, std::make_shared<StaticMesh>("../assets/Ressources/blue.obj")},
-                {MENDIANE, std::make_shared<StaticMesh>("../assets/Ressources/green.obj")},
-                {PHIRAS, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")},
-                {THYSTAME, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")}
-            };
-
-            for (const auto& [ressourceType, offset] : ressourceOffset) {
+            for (const auto& [ressourceType, offset] : m_ressourceOffset) {
                 const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_resourceHeight, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])));
                 static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
 
                 for (int nb = 0; nb < tile.ressources[ressourceType]; nb++)
                     m_scene->staticActors.push_back(
                         Renderer::StaticActor({
-                            ressourceMesh.at(ressourceType),
+                            m_ressourceMesh.at(ressourceType),
                             ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb / m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
                             m_resourceSize,
                             ressourceRotation
@@ -210,14 +212,11 @@ void App::createScene() {
     }
 
     for (const auto& [playerNumber, player] : m_players) {
-        static const std::shared_ptr<SkeletalMesh> playerMesh = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
-        static const std::shared_ptr<Animation> playerAnim = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", playerMesh);
         static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         const glm::vec3 playerRotation = glm::vec3(0, (player.orientation - 1) * 90, 0);
 
-        m_scene->animatedActors.push_back({playerMesh, std::make_shared<Animator>(playerAnim), player.position, playerScale, playerRotation});
+        m_scene->animatedActors.push_back({m_playerMeshes["Dan"], std::make_shared<Animator>(m_playerAnims["Twerk"]), player.position, playerScale, playerRotation});
     }
-
 }
 
 void App::updateMap(const std::string& bufferView) {

@@ -7,10 +7,13 @@
 
 #pragma once
 
+#include "Models/Animations/Animator.hpp"
+#include "Models/SkeletalMesh.hpp"
 #include "Renderer/Renderer.hpp"
 
 #include "glm/ext/vector_float2.hpp"
 #include "imgui.h"
+#include <memory>
 
 #define GREEN ImVec4(0, 1, 0, 1)
 #define RED ImVec4(1, 0, 0, 1)
@@ -37,8 +40,13 @@ class App {
         struct Player {
             glm::vec3 position;
             int orientation;
-            std::string team;
+            std::string teamName;
             int level;
+            std::shared_ptr<Animator> animator;
+        };
+
+        struct Team {
+            std::shared_ptr<SkeletalMesh> mesh;
         };
 
         class LogMessage {
@@ -82,7 +90,18 @@ class App {
         float m_playerHeight = 0;
         float m_resourceHeight = 0;
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
+
+        std::unordered_map<std::string, Team> m_teams;
         std::map<int, Player> m_players;
+
+        // Dict of all the ressources meshes and offsets on the tiles
+        std::map<RessourceType, glm::vec3> m_ressourceOffset;
+        std::map<RessourceType, const std::shared_ptr<StaticMesh>> m_ressourceMesh;
+        // Dict of all the player meshes and animations
+        
+        std::map<std::string, std::shared_ptr<SkeletalMesh>> m_playerMeshes;
+        std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
+        std::shared_ptr<StaticMesh> m_islandMesh;
 
         std::vector<LogMessage> m_logs;
 
@@ -95,6 +114,5 @@ class App {
         void parseConnectionResponse();
 
         void createScene();
-        void createIslands();
         void createRessources();
 };

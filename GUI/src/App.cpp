@@ -30,7 +30,6 @@
 
 App::App(int port) {
     connectToServer(port);
-    parseConnectionResponse();
 
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
@@ -62,6 +61,7 @@ App::App(int port) {
 
     m_islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
 
+    parseConnectionResponse();
     createScene();
 }
 
@@ -173,6 +173,20 @@ void App::parseConnectionResponse() {
     m_mapSize = parseMapSize(bufferView);
     m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
     updateMap(bufferView);
+    
+    {   // Team name (tna teamname\n * n)
+        size_t pos = bufferView.find("tna");
+        if (pos == std::string::npos)
+            throw std::runtime_error("tna not found in welcome bufferView");
+
+        while (pos != std::string::npos) {
+            pos = bufferView.find(' ', pos) + 1;
+            const std::string teamName = bufferView.substr(pos, bufferView.find('\n', pos) - pos);
+            m_teams[teamName].mesh = m_playerMeshes["Dan"];
+            pos = bufferView.find("tna", pos);
+        }
+    }
+
     updatePlayers(bufferView);
 
     {   // Get the speed (sgt in the bufferView)
@@ -214,7 +228,7 @@ void App::createScene() {
         static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         const glm::vec3 playerRotation = glm::vec3(0, (player.orientation - 1) * 90, 0);
 
-        m_scene->animatedActors.push_back({m_playerMeshes["Dan"], std::make_shared<Animator>(m_playerAnims["Twerk"]), player.position, playerScale, playerRotation});
+        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh, player.animator, player.position, playerScale, playerRotation});
     }
 }
 

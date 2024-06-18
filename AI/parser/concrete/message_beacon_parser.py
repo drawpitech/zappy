@@ -20,7 +20,7 @@ class MessageBeaconParser(IParser):
         """Return the message string for creting a birth info message
 
         The message returned should ressemble something like that:
-            "senderx_sendery_reiceiverx_reiceivery_teamSize"
+            "trentorianUid"
         """
         return f"{trentorian.uid}"
 
@@ -35,7 +35,8 @@ class MessageBeaconParser(IParser):
                 warn(f"Invalid message content for beacon message: {message_content}")
                 return trentorian
 
-        trentorian.state = "going_somewhere"
+        trentorian.state = "going somewhere"
+        trentorian.last_beacon_uid = message_content
         trentorian.last_beacon_direction = message_hitpoint
 
         return trentorian

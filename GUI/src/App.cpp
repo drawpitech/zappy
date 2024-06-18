@@ -38,7 +38,7 @@ App::App(int port) {
     m_playerAnims["Twerk"] = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
     m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("../assets/Quentin/Breakdance Uprock Var 2.dae");
     m_playerAnims["Breakdance"] = std::make_shared<Animation>("../assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
-    
+
     m_ressourceOffset = {
         {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
         {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
@@ -155,7 +155,7 @@ void App::updatePlayers(const std::string& bufferView) {
         pos = bufferView.find(' ', pos) + 1;
 
         const std::string message = bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos);
-        LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, RED);
+        LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, GREEN);
 
         pos = bufferView.find("pbc", pos);
     }
@@ -171,9 +171,9 @@ void App::parseConnectionResponse() {
     std::cout << bufferView << std::endl;
 
     m_mapSize = parseMapSize(bufferView);
-    m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
+    m_map.resize(m_mapSize[0], std::vector<TileContent>(m_mapSize[1]));
     updateMap(bufferView);
-    
+
     {   // Team name (tna teamname\n * n)
         size_t pos = bufferView.find("tna");
         if (pos == std::string::npos)
@@ -215,7 +215,7 @@ void App::createScene() {
                     m_scene->staticActors.push_back(
                         Renderer::StaticActor({
                             m_ressourceMesh.at(ressourceType),
-                            ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb / m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
+                            ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb) / static_cast<float>(m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
                             m_resourceSize,
                             ressourceRotation
                         })
@@ -242,7 +242,13 @@ void App::updateMap(const std::string& bufferView) {
 
         for (int i = 0; i < 7; i++) {
             pos = bufferView.find(' ', pos) + 1;
-            m_map[static_cast<size_t>(x)][static_cast<size_t>(y)].ressources[i] = std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos));
+            try {
+                m_map[x][y].ressources[i] = std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos));
+            } catch (std::exception& e) {
+                m_map[x][y].ressources[i] = 0;
+                LOG("Error: Invalid tile format [" + std::to_string(x) + ", " + std::to_string(y) + "]", RED);
+                break;
+            }
         }
 
         pos = bufferView.find("bct", pos);

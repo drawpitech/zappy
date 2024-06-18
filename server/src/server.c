@@ -17,6 +17,7 @@
 
 #include "arg_parse.h"
 #include "array.h"
+#include "gui_protocols/commands/commands.h"
 #include "time.h"
 
 const double DENSITIES[R_COUNT] = {
@@ -161,22 +162,35 @@ static void connect_ai_client(
     }
 }
 
+static void log_new_gui(server_t *serv)
+{
+    gui_cmd_msz(serv, serv->gui_client, "");
+    gui_cmd_sgt(serv, serv->gui_client, "");
+    gui_cmd_mct(serv, serv->gui_client, "");
+    gui_cmd_tna(serv, serv->gui_client, "");
+    // enw eggs
+    // pin players
+}
 static void connect_gui_client(server_t *serv, int client_fd)
 {
+    gui_client_t *gui = NULL;
+
     if (serv->gui_client != NULL) {
         write(client_fd, "ko\n", 3);
         ERR("GUI client is already connected");
         close(client_fd);
         return;
     }
-    serv->gui_client = calloc(1, sizeof *serv->gui_client);
-    if (serv->gui_client == NULL) {
+    gui = calloc(1, sizeof *serv->gui_client);
+    if (gui == NULL) {
         write(client_fd, "ko\n", 3);
         OOM;
         close(client_fd);
         return;
     }
-    serv->gui_client->s_fd = client_fd;
+    gui->s_fd = client_fd;
+    serv->gui_client = gui;
+    log_new_gui(serv);
 }
 
 static void handle_waitlist(server_t *serv, size_t i, int client_fd)

@@ -110,7 +110,6 @@ static void handle_gui(server_t *server)
     }
     ptr = client->buffer.str + client->buffer.size;
     bytes_read = read(client->s_fd, ptr, bufsiz);
-    write(1, ptr, bufsiz);
     if (bytes_read <= 0) {
         remove_gui(server);
         return;

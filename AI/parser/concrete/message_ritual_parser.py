@@ -38,7 +38,7 @@ class MessageRitualFailedParser(IParser):
             "None"
         """
         return "None"
-    
+
     def deserialize(self, trentorian: Trantorian, message_content: str, message_hitpoint: int) -> Trantorian:
         """Deserialize the message content, for ritual failed
         """

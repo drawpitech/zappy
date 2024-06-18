@@ -187,7 +187,7 @@ class Trantorian:
         ans = ""
         while not self.dead and not ans.startswith("Current level"): # TODO do that better
             ans = self.wait_answer()
-            if self.state != "wander":
+            if self.state == "wander":
                 return False
             if ans == "incantation end":
                 return False
@@ -599,7 +599,6 @@ class Trantorian:
 
         cases = split_list(self.wait_answer())
         if cases == []:
-            self.dprint("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         nb_case: int = len(cases)
         i: int = 1
@@ -643,7 +642,6 @@ class Trantorian:
             return False
         content = split_list(answer)
         if content == []:
-            self.dprint("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         for e in content:
             key, val = e.split()

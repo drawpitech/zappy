@@ -203,8 +203,8 @@ def split_list(msg: str) -> list[str]:
         list[str]: resulting list
     """
     if len(msg) < 2 or msg[0] != '[' or msg[-1] != ']':
-        # print(msg)
-        # print("List parsing failed")
+        print(msg)
+        print("List parsing failed")
         return []
     sp = msg[1:-1].split(',')
 

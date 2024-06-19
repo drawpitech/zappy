@@ -20,7 +20,7 @@ static bool can_incantation(ai_client_t *client, const cell_t *cell)
     if (client->lvl >= 7 || client->lvl == 0)
         return false;
     for (size_t i = 0; i < R_COUNT; ++i)
-        if (INC_NEEDS[client->lvl - 1].res[i].quantity < cell->res[i].quantity)
+        if (cell->res[i].quantity < INC_NEEDS[client->lvl - 1].res[i].quantity)
             return false;
     return true;
 }
@@ -48,8 +48,10 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
     client->last_inc = 0;
     if (!can_incantation(client, cell)) {
         dprintf(client->s_fd, "ko\n");
+        ERR("Uwu you lost all your money");
         return;
     }
+    client->lvl += 1;
     consume_ressources(server, client, cell, true);
     sprintf(buffer, "%d %d", client->pos.x, client->pos.y);
     gui_cmd_bct(server, server->gui_client, buffer);
@@ -69,6 +71,7 @@ void ai_cmd_incantation(
 
     if (!can_incantation(client, &cell_cpy)) {
         write(client->s_fd, "ko\n", 3);
+        ERR("Skill issue");
         return;
     }
     consume_ressources(server, client, &cell_cpy, false);

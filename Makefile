@@ -27,8 +27,7 @@ zappy_gui:
 # TODO
 .PHONY: zappy_ai
 zappy_ai:
-	cmake -S ai -B .build/ai ${CMAKEFLAGS}
-	cmake --build .build/ai --target install
+	ln -fs AI/zappy_ai zappy_ai
 
 .PHONY: clean
 clean:

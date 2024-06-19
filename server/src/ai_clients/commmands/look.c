@@ -29,6 +29,8 @@ static look_payload_t *init_look_payload(ai_client_t *client)
     if (payload == NULL)
         return OOM, NULL;
     payload->cell_content = calloc(size, sizeof(payload_t));
+    if (payload->cell_content == NULL)
+        return OOM, free(payload), NULL;
     payload->size = size;
     for (size_t i = 0; i < payload->size; ++i) {
         for (size_t j = 0; j < R_COUNT; ++j) {
@@ -95,26 +97,10 @@ static look_payload_t *look(server_t *server, ai_client_t *client)
 {
     look_payload_t *payload = init_look_payload(client);
 
-    for (size_t i = 0; i < payload->size; ++i)
-    {
-        for (int res = 0; res < R_COUNT; ++res)
-        {
-            printf("res: %d quantity: %d\n", res, payload->cell_content[i].res[res].quantity);
-        }
-    }
-    printf("-----------------------------------------\n");
     if (payload == NULL)
         return NULL;
     get_cell_payload(server, &client->pos, &payload->cell_content[0]);
     payload->idx++;
-    for (size_t i = 0; i < payload->size; ++i)
-    {
-        for (int res = 0; res < R_COUNT; ++res)
-        {
-            printf("res: %d quantity: %d\n", res, payload->cell_content[i].res[res].quantity);
-        }
-    }
-    printf("-----------------------------------------\n");
     switch (client->dir) {
         case NORTH:
             payload = look_north(server, client, payload);

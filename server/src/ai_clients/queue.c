@@ -5,6 +5,7 @@
 ** get_client_by_id
 */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
@@ -12,15 +13,17 @@
 #include "ai_internal.h"
 #include "server.h"
 
+static const int QUEUE_SIZE = 2;
+
 bool queue_add_cmd(ai_client_t *client, queued_cmd_t *qcmd)
 {
     if (client->q_cmds == NULL) {
-        client->q_cmds = calloc(20, sizeof *client->q_cmds);
+        client->q_cmds = calloc(QUEUE_SIZE, sizeof *client->q_cmds);
         client->q_size = 0;
         if (client->q_cmds == NULL)
             return OOM, false;
     }
-    if (client->q_size == 20)
+    if (client->q_size == QUEUE_SIZE)
         return ERR("Queue is full"), false;
     if (client->q_size == 0)
         client->last_cmd = time(NULL);
@@ -40,7 +43,9 @@ void queue_pop_cmd(server_t *server, ai_client_t *client)
         return;
     qcmd = client->q_cmds[0];
     client->q_size -= 1;
-    memmove(client->q_cmds, client->q_cmds + 1, client->q_size);
+    memmove(
+        client->q_cmds, client->q_cmds + 1,
+        client->q_size * sizeof *client->q_cmds);
     qcmd.func(server, client, qcmd.args);
     client->last_cmd = now;
     if (qcmd.args != NULL)

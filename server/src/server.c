@@ -240,7 +240,6 @@ static void refill_map(server_t *server, context_t *ctx)
 
     if (ctx->freq <= 0 || now - server->last_refill <= 20 / ctx->freq)
         return;
-    printf("merde\n");
     server->last_refill = now;
     for (size_t i = 0; i < R_COUNT - 2; ++i) {
         spread = (size_t)((double)ctx->map_size * DENSITIES[i]);

@@ -20,6 +20,12 @@ result
 bin/
 
 # Python
+build/*
+note.txt
+test.py
+zappy_ref*/*
+
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class

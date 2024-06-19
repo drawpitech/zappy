@@ -4,8 +4,9 @@ Module providing the Map class
 """
 
 import dataclasses
+from time import time
 
-NEVER_UPDATED = -1
+NEVER_UPDATED = 0
 
 def default_map_tile_content() -> dict[str: int]:
     """dictionnary representing an empty tile
@@ -14,48 +15,11 @@ def default_map_tile_content() -> dict[str: int]:
         dict: empty dict
     """
     return {
-        "food": 0,
+        "food": 0, "egg": 0,
         "linemate": 0, "deraumere": 0, "sibur": 0,
         "mendiane": 0, "phiras": 0, "thystame": 0,
         "player": 0
     }
-
-@dataclasses.dataclass
-class PlayerMapInfo:
-    """Class for a player map info
-    """
-    direction: int
-    team: int
-
-    def __iter__(self):
-        return iter((self.direction, self.team))
-
-    def __str__(self) -> str:
-        return f'{self.direction}#{self.team}'
-
-    @classmethod
-    def from_str(cls, player_info_str: str) -> "PlayerMapInfo":
-        """create a PlayerMapInfo object from its str representation
-
-        Args:
-            player_info_str (str): str to parse
-
-        Raises:
-            ValueError: Parsing error
-
-        Returns:
-            PlayerMapInfo: resulting object
-        """
-        infos: list = player_info_str.strip().split('#')
-
-        if len(infos) != 2:
-            raise ValueError("Parsing Failed")
-        try:
-            direct = int(infos[0])
-            team = int(infos[1])
-        except ValueError as err:
-            raise ValueError("Parsing error") from err
-        return PlayerMapInfo(direct, team)
 
 @dataclasses.dataclass
 class MapTile:
@@ -63,18 +27,32 @@ class MapTile:
     """
     x: int
     y: int
-    last_update: int
+    last_update: float
     content: dict
-    player_infos: list[PlayerMapInfo]
 
     def __iter__(self):
-        return iter((self.x, self.y, self.last_update, self.content, self.player_infos))
+        return iter((self.x, self.y, self.last_update, self.content))
 
     def __str__(self) -> str:
-        total: str = f'{self.x} {self.y} {self.last_update} '
-        total += ' '.join(map(str, self.content.values()))
-        total += ' ' + '$' +'$'.join(str(PlayerMapInfo(*info)) for info in self.player_infos)
+        total: str = f'{self.x}-{self.y}-{self.last_update}-'
+        total += '-'.join(map(str, self.content.values()))
         return total
+
+    def fill_from_str(self, content_str: str) -> None:
+        """Update a tile from its new content
+
+        Args:
+            content_str (str): string of the content, as it is sended by the server
+        """
+        objects = content_str.strip().split(' ')
+        self.content = default_map_tile_content()
+        for obj in objects:
+            if obj not in self.content.keys():
+                continue
+            self.content[obj] += 1
+        self.last_update = time()
+        return
+
 
     @classmethod
     def from_str(cls, map_tile_str: str) -> "MapTile":
@@ -89,41 +67,32 @@ class MapTile:
         Returns:
             MapTile: tile unoacked from the str
         """
-        parts = map_tile_str.strip().split()
-
+        parts = map_tile_str.strip().split('-')
         if len(parts) != 12:
             raise SyntaxError("Invalid MapTile string format")
 
         try:
             x = int(parts[0])
             y = int(parts[1])
-            last_update = int(parts[2])
+            last_update = float(parts[2])
         except ValueError as err:
             raise SyntaxError("Invalid numerical values in MapTile string") from err
 
         content: dict[str: int] = default_map_tile_content()
         try:
             content["food"] = int(parts[3])
-            content["linemate"] = int(parts[4])
-            content["deraumere"] = int(parts[5])
-            content["sibur"] = int(parts[6])
-            content["mendiane"] = int(parts[7])
-            content["phiras"] = int(parts[8])
-            content["thystame"] = int(parts[9])
-            content["player"] = int(parts[10])
+            content["egg"] = int(parts[4])
+            content["linemate"] = int(parts[5])
+            content["deraumere"] = int(parts[6])
+            content["sibur"] = int(parts[7])
+            content["mendiane"] = int(parts[8])
+            content["phiras"] = int(parts[9])
+            content["thystame"] = int(parts[10])
+            content["player"] = int(parts[11])
         except (SyntaxError, ValueError) as err:
             raise SyntaxError("Invalid content dictionary format in MapTile string") from err
 
-        if parts[-1][0] != '$':
-            raise SyntaxError("Invalid string")
-        player_infos: list[PlayerMapInfo] = []
-        try:
-            infos = parts[-1][1:].split('$')
-            if infos[0] != '':
-                player_infos = [PlayerMapInfo.from_str(inf) for inf in infos]
-        except (SyntaxError, ValueError) as err:
-            raise ValueError("Invalid player_infos list format in MapTile string") from err
-        return cls(x, y, last_update, content, player_infos)
+        return cls(x, y, last_update, content)
 
 @dataclasses.dataclass
 class Map:
@@ -185,9 +154,6 @@ def merge_map_tiles(first_tile: MapTile, second_tile: MapTile) -> MapTile:
     """
     if first_tile.last_update > second_tile.last_update:
         return first_tile
-    if first_tile.last_update == NEVER_UPDATED:
-        return first_tile
-
     return second_tile
 
 def merge_maps(first_map: Map, second_map: Map) -> Map:
@@ -205,7 +171,7 @@ def merge_maps(first_map: Map, second_map: Map) -> Map:
 
     for y in range(first_map.height):
         for x in range(first_map.width):
-            first_map.tiles[y][x] = merge_map_tiles(first_map.tiles[y][x], second_map[y][x])
+            first_map.tiles[y][x] = merge_map_tiles(first_map.tiles[y][x], second_map.tiles[y][x])
 
     return first_map
 
@@ -223,7 +189,7 @@ def create_default_map(width: int, height: int) -> Map:
     for y in range(height):
         tiles_map.append([])
         for x in range(width):
-            tiles_map[y].append(MapTile(x, y, NEVER_UPDATED, default_map_tile_content(), []))
+            tiles_map[y].append(MapTile(x, y, NEVER_UPDATED, default_map_tile_content()))
     default_map : Map = Map(width, height, tiles_map)
     return default_map
 

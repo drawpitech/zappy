@@ -189,7 +189,8 @@ class Trantorian:
         if not self.follow_beacon():
             return False
         self.drop_stuff()
-        self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_READY, self), [self.last_beacon_uid])
+        self.broadcast(MessageTypeParser().serialize(
+            MessageType.RITUAL_READY, self), [self.last_beacon_uid])
         return True
 
     def first_level(self) -> None:
@@ -230,7 +231,6 @@ class Trantorian:
             bool: can do the next iteration
         """
         if self.dead:
-            print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
             return False
         self.get_unused_slot()
         return True
@@ -335,7 +335,7 @@ class Trantorian:
                 self.look_around()
                 if self.last_beacon_time == last_recep:
                     self.state = "wander"
-                    return False # TODO broadcast death of the beacon ?
+                    return False
             last_recep = self.last_beacon_time
         return not self.dead and self.state == "ritual_prep"
 
@@ -360,7 +360,8 @@ class Trantorian:
         Args:
             queue (Queue): queue to birth other trantorians
         """
-        self.iter_food()
+        if not self.iter_food():
+            return
         self.broadcast("im$alive", ["all"])
         self.get_unused_slot()
         b2, b3 = True, True
@@ -387,17 +388,21 @@ class Trantorian:
             bool: incantation failed or not
         """
         answer = ""
-        while not self.dead and not answer.startswith("Current level"): # TODO do that better
+        while not self.dead and not answer.startswith("Current level: "): # TODO do that better
             answer = self.get_answer()
             if self.state == "wander":
                 self.dprint("wander", time())#, answer)
                 return False
             if answer == "incantation end":
                 return False
-        if self.dead or len(answer) < 16 or answer[:15] != "Current level: " or answer[15] not in "12345678":
-            self.dprint("level failed", answer)
+        if self.dead or not answer.startswith("Current level: "):
+            self.dprint("incant failed", answer)
             return False
-        self.level = int(answer[15])
+        try:
+            self.level = int(answer[15])
+        except ValueError:
+            self.dprint("incant failed", answer)
+            return False
         self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_FINISH, self), "all")
         self.dprint("lvl:", self.level)
         return True
@@ -465,11 +470,11 @@ class Trantorian:
             self.receive_message(answer)
         if answer.startswith('eject'):
             self.handle_eject(answer)
-        if answer.startswith("dead"):
+        if answer.startswith("dead") or answer == '':
             self.dead = True
         return answer
 
-    def receive_message(self, msg: str) -> None: # TODO remove the map
+    def receive_message(self, msg: str) -> None:
         """handle the broadcast reception
             our messages are composed of :
             "sender_uuid$receiver_uuid$type$content$infos$map"
@@ -509,7 +514,7 @@ class Trantorian:
             return
         direct: TrantorianDirection = TrantorianDirection(int(msg[-1]))
         off_x, off_y = direct.get_offset()
-        self.x = (self.x - off_x) % self.client.size_x # TODO check if the direction is correct
+        self.x = (self.x - off_x) % self.client.size_x
         self.y = (self.y - off_y) % self.client.size_y
         return
 
@@ -642,6 +647,8 @@ class Trantorian:
         if content == []:
             return False
         for e in content:
+            if e == '':
+                continue
             key, val = e.split()
             if key not in self.inventory:
                 return False

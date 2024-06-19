@@ -132,6 +132,8 @@ typedef struct ai_client_s {
     bool freezed;
 } ai_client_t;
 
+static const sound_direction_t conv_table[] = {S_NORTH, S_EAST, S_SOUTH, S_WEST};
+
 typedef struct gui_client_s {
     int s_fd;
     struct {

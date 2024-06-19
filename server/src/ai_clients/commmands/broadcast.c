@@ -63,7 +63,7 @@ static int compute_dir(
 
 void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
 {
-    int dir = 0;
+    unsigned int dir = 0;
     ai_client_t *current = NULL;
 
     for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
@@ -73,6 +73,7 @@ void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
         dir = compute_dir(
             client->pos, current->pos,
             (int[2]){(int)server->ctx.width, (int)server->ctx.height});
+        dir = (conv_table[client->dir] - dir) + 1;
         dprintf(current->s_fd, "message %d, %s\n", dir, args);
     }
     write(client->s_fd, "ok\n", 3);

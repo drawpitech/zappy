@@ -128,9 +128,9 @@ typedef struct ai_client_s {
     int id;
     queued_cmd_t *q_cmds;
     size_t q_size;
-    bool freezed;
     time_t last_cmd;
     time_t last_fed;
+    time_t last_inc;
 } ai_client_t;
 
 static const sound_direction_t conv_table[] = {S_NORTH, S_EAST, S_SOUTH, S_WEST};

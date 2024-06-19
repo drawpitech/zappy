@@ -8,6 +8,7 @@
 #include "incantation.h"
 
 #include <stdio.h>
+#include <time.h>
 
 #include "../ai_internal.h"
 #include "commands.h"
@@ -32,13 +33,12 @@ static void consume_ressources(ai_client_t *client, cell_t *cell)
         cell->res[i].quantity -= INC_NEEDS[client->lvl - 1].res[i].quantity;
 }
 
-static void incantation_end(
-    server_t *server, ai_client_t *client, UNUSED char *args)
+void ai_client_incantation_end(server_t *server, ai_client_t *client)
 {
     char buffer[40];
     cell_t *cell = CELL(server, client->pos.x, client->pos.y);
 
-    client->freezed = false;
+    client->last_inc = 0;
     if (!can_incantation(client, cell)) {
         dprintf(client->s_fd, "ko\n");
         return;
@@ -58,23 +58,21 @@ void ai_cmd_incantation(
     ai_client_t *read = NULL;
     char buffer[4096];
     char *cringe = buffer;
+    time_t now = time(NULL);
 
-    if (!can_incantation(client, &cell_cpy) ||
-        !queue_add_cmd(client, &(queued_cmd_t){incantation_end, 300, NULL})) {
+    if (!can_incantation(client, &cell_cpy)) {
         write(client->s_fd, "ko\n", 3);
         return;
     }
     consume_ressources(client, &cell_cpy);
-    client->freezed = true;
+    client->last_inc = now;
     cringe += sprintf(buffer, "%d %d %d", cell_cpy.pos.x, cell_cpy.pos.y, lvl);
     for (size_t i = 0; i < server->ai_clients.size; ++i) {
         read = server->ai_clients.elements[i];
         if (read->pos.x == client->pos.x && read->pos.y == client->pos.y &&
-            can_incantation(read, &cell_cpy) &&
-            queue_add_cmd_prio(
-                read, &(queued_cmd_t){incantation_end, 300, NULL})) {
+            can_incantation(read, &cell_cpy)) {
             consume_ressources(client, &cell_cpy);
-            read->freezed = true;
+            client->last_inc = now;
             cringe += sprintf(cringe, " %d", read->lvl);
         }
     }

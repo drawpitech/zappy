@@ -114,6 +114,18 @@ static bool starve_to_death(server_t *server, ai_client_t *ai)
     return false;
 }
 
+static void exec_queued_cmds(server_t *server, ai_client_t *client)
+{
+    if (client->last_inc == 0) {
+        queue_pop_cmd(server, client);
+        return;
+    }
+    if (server->ctx.freq >= 0 &&
+        time(NULL) - client->last_inc > 300 / server->ctx.freq) {
+        ai_client_incantation_end(server, client);
+    }
+}
+
 void iterate_ai_clients(server_t *server)
 {
     fd_set rfd;
@@ -125,8 +137,7 @@ void iterate_ai_clients(server_t *server)
             remove_ai_client(server, i);
             continue;
         }
-        if (!client->freezed)
-            queue_pop_cmd(server, client);
+        exec_queued_cmds(server, client);
         FD_ZERO(&rfd);
         FD_SET(client->s_fd, &rfd);
         if (select(

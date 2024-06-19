@@ -236,7 +236,11 @@ static void refill_map(server_t *server, context_t *ctx)
     size_t spread = 0;
     size_t x = 0;
     size_t y = 0;
+    time_t now = time(NULL);
 
+    if (ctx->freq <= 0 && now - server->last_refill <= 20 / ctx->freq)
+        return;
+    server->last_refill = now;
     for (size_t i = 0; i < LEN(DENSITIES); ++i) {
         spread = (size_t)((double)ctx->map_size * DENSITIES[i]);
         spread -= server->map_res[i].quantity;
@@ -306,6 +310,7 @@ int server(int argc, char **argv)
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);
+        refill_map(&server, &server.ctx);
         iterate_waitlist(&server);
         iterate_ai_clients(&server);
         iterate_gui(&server);

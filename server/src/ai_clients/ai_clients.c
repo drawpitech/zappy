@@ -8,8 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
+#include <time.h>
 
 #include "ai_internal.h"
+#include "bits/types/struct_timeval.h"
 #include "gui_protocols/commands/commands.h"
 #include "server.h"
 
@@ -89,14 +92,33 @@ int remove_ai_client(server_t *server, size_t idx)
     return RET_VALID;
 }
 
-int iterate_ai_clients(server_t *server)
+static bool starve_to_death(server_t *server, ai_client_t *ai)
+{
+    time_t now = time(NULL);
+
+    if (ai->res[FOOD].quantity <= 0)
+        return ERR("Starved to death"), true;
+    if (ai->last_fed == 0) {
+        ai->last_fed = now;
+        return false;
+    }
+    if (server->ctx.freq >= 0 && now - ai->last_fed < 126 / server->ctx.freq) {
+        ai->res[FOOD].quantity -= 1;
+        ai->last_fed = now;
+    }
+    if (ai->res[FOOD].quantity <= 0)
+        return ERR("Starved to death"), true;
+    return false;
+}
+
+void iterate_ai_clients(server_t *server)
 {
     fd_set rfd;
     ai_client_t *client = NULL;
 
     for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
         client = server->ai_clients.elements[i];
-        if (client->s_fd < 0) {
+        if (client->s_fd < 0 || starve_to_death(server, client)) {
             remove_ai_client(server, i);
             continue;
         }
@@ -110,5 +132,4 @@ int iterate_ai_clients(server_t *server)
             FD_ISSET(client->s_fd, &rfd))
             handle_ai_client(server, client);
     }
-    return 0;
 }

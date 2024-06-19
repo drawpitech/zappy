@@ -128,8 +128,9 @@ typedef struct ai_client_s {
     int id;
     queued_cmd_t *q_cmds;
     size_t q_size;
-    time_t last_cmd;
     bool freezed;
+    time_t last_cmd;
+    time_t last_fed;
 } ai_client_t;
 
 static const sound_direction_t conv_table[] = {S_NORTH, S_EAST, S_SOUTH, S_WEST};
@@ -155,6 +156,7 @@ typedef struct server_s {
     int ai_id;
     int egg_id;
     ressource_t map_res[R_COUNT];
+    time_t last_refill;
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);
@@ -163,7 +165,7 @@ res_name_t get_ressource_type(char *name);
 egg_t *spawn_egg(server_t *server, char *team);
 size_t count_team(server_t *serv, char *team);
 
-int iterate_ai_clients(server_t *server);
+void iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx);
 int remove_ai_client(server_t *server, size_t idx);
 void move_ai_client(server_t *server, ai_client_t *client, int dir);

@@ -56,7 +56,7 @@ void queue_pop_cmd(server_t *server, ai_client_t *client)
     queued_cmd_t qcmd;
 
     if (client->q_cmds == NULL || client->q_size == 0 ||
-        server->ctx.freq == 0 ||
+        server->ctx.freq <= 0 ||
         now - client->last_cmd < client->q_cmds[0].time / server->ctx.freq)
         return;
     qcmd = client->q_cmds[0];

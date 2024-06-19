@@ -169,6 +169,7 @@ static void log_new_gui(server_t *serv)
     gui_cmd_mct(serv, serv->gui_client, "");
     gui_cmd_tna(serv, serv->gui_client, "");
     // enw eggs
+    // eht
     // pin players
 }
 static void connect_gui_client(server_t *serv, int client_fd)
@@ -256,10 +257,14 @@ static void refill_map(server_t *server, context_t *ctx)
 static int init_map(server_t *server, context_t *ctx)
 {
     ctx->map_size = ctx->width * ctx->height;
+    if (ctx->map_size == 0)
+        return RET_ERROR;
     server->map = calloc(ctx->map_size, sizeof(cell_t));
     if (server->map == NULL)
         return OOM, RET_ERROR;
     refill_map(server, ctx);
+    for (size_t i = 0; i < server->ctx.map_size; ++i)
+        server->map[i].pos = (vector_t){i % ctx->width, i / ctx->width};
     for (size_t i = 0; i < server->ctx.names.nb_elements; ++i)
         for (size_t j = 0; j < server->ctx.client_nb; ++j)
             spawn_egg(server, server->ctx.names.elements[i]);

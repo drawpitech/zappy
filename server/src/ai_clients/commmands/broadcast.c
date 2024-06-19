@@ -10,7 +10,7 @@
 
 #include "array.h"
 #include "commands.h"
-#include "../../gui_protocols/commands/commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 static int compute(const int a, const int b, const int grid_size)

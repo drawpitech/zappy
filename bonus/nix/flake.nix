@@ -11,10 +11,16 @@
       in {
         formatter = pkgs.alejandra;
 
-        devShell = pkgs.mkShell {
-          inputsFrom = builtins.attrValues self.packages.${system} ++ (with pkgs; [glfw assimp]);
-          packages = with pkgs; [clang-tools_18 strace];
-          env.MAKEFLAGS = "-j12";
+        devShell = {
+          default = pkgs.mkShell {
+            inputsFrom = builtins.attrValues self.packages.${system} ++ (with pkgs; [glfw assimp]);
+            packages = with pkgs; [clang-tools_18 strace];
+            env.MAKEFLAGS = "-j12";
+          };
+          fhs = (pkgs.buildFHSUserEnv {
+            name = "fhs-shell";
+            targetPkgs = p: with p; [sfml] ;
+          }).env;
         };
 
         packages = {

@@ -18,8 +18,9 @@ void ai_cmd_set(server_t *server, ai_client_t *client, char *args)
         write(client->s_fd, "ko\n", 3);
         return;
     }
-    client->res[res].quantity--;
     cell->res[res].quantity++;
+    server->map_res[res].quantity++;
+    client->res[res].quantity--;
     write(client->s_fd, "ok\n", 3);
     gui_cmd_pdr(server, server->gui_client, client->id, res);
 }

@@ -25,12 +25,19 @@ static bool can_incantation(ai_client_t *client, const cell_t *cell)
     return true;
 }
 
-static void consume_ressources(ai_client_t *client, cell_t *cell)
+static void consume_ressources(
+    server_t *server, ai_client_t *client, cell_t *cell, bool real_life)
 {
+    int qty = 0;
+
     if (client->lvl >= 7 || client->lvl == 0)
         return;
-    for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res) - 2; ++i)
-        cell->res[i].quantity -= INC_NEEDS[client->lvl - 1].res[i].quantity;
+    for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res) - 2; ++i) {
+        qty = INC_NEEDS[client->lvl - 1].res[i].quantity;
+        cell->res[i].quantity -= qty;
+        if (real_life)
+            server->map_res[i].quantity -= qty;
+    }
 }
 
 void ai_client_incantation_end(server_t *server, ai_client_t *client)
@@ -43,7 +50,7 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
         dprintf(client->s_fd, "ko\n");
         return;
     }
-    consume_ressources(client, cell);
+    consume_ressources(server, client, cell, true);
     sprintf(buffer, "%d %d", client->pos.x, client->pos.y);
     gui_cmd_bct(server, server->gui_client, buffer);
     dprintf(client->s_fd, "Current level: %d\n", client->lvl);
@@ -64,14 +71,14 @@ void ai_cmd_incantation(
         write(client->s_fd, "ko\n", 3);
         return;
     }
-    consume_ressources(client, &cell_cpy);
+    consume_ressources(server, client, &cell_cpy, false);
     client->last_inc = now;
     cringe += sprintf(buffer, "%d %d %d", cell_cpy.pos.x, cell_cpy.pos.y, lvl);
     for (size_t i = 0; i < server->ai_clients.size; ++i) {
         read = server->ai_clients.elements[i];
         if (read->pos.x == client->pos.x && read->pos.y == client->pos.y &&
             can_incantation(read, &cell_cpy)) {
-            consume_ressources(client, &cell_cpy);
+            consume_ressources(server, client, &cell_cpy, false);
             client->last_inc = now;
             cringe += sprintf(cringe, " %d", read->lvl);
         }

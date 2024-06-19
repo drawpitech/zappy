@@ -277,23 +277,19 @@ egg_t *spawn_egg(server_t *server, char *team)
 {
     egg_t *egg = malloc(sizeof *egg);
 
-    if (!egg) {
-        OOM;
-        return NULL;
-    }
+    if (!egg)
+        return OOM, NULL;
     egg->pos = (vector_t){
         .x = rand() % (int)server->ctx.width,
         .y = rand() % (int)server->ctx.height,
     };
     egg->team = team;
-    if (add_elt_to_array(&server->eggs, egg) == RET_ERROR) {
-        free(egg);
-        OOM;
-        return NULL;
-    }
+    if (add_elt_to_array(&server->eggs, egg) == RET_ERROR)
+        return OOM, free(egg), NULL;
     egg->id = server->egg_id;
     server->egg_id++;
     CELL(server, egg->pos.x, egg->pos.y)->res[EGG].quantity += 1;
+    server->map_res[EGG].quantity += 1;
     return egg;
 }
 

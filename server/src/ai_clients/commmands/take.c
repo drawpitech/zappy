@@ -19,6 +19,7 @@ void ai_cmd_take(server_t *server, ai_client_t *client, char *args)
         return;
     }
     cell->res[res].quantity--;
+    server->map_res[res].quantity--;
     client->res[res].quantity++;
     write(client->s_fd, "ok\n", 3);
     gui_cmd_pgt(server, server->gui_client, client->id, res);

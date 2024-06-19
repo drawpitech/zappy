@@ -28,7 +28,7 @@ static void consume_ressources(ai_client_t *client, cell_t *cell)
 {
     if (client->lvl >= 7 || client->lvl == 0)
         return;
-    for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res); ++i)
+    for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res) - 2; ++i)
         cell->res[i].quantity -= INC_NEEDS[client->lvl - 1].res[i].quantity;
 }
 

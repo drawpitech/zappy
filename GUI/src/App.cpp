@@ -182,7 +182,8 @@ void App::parseConnectionResponse() {
         while (pos != std::string::npos) {
             pos = bufferView.find(' ', pos) + 1;
             const std::string teamName = bufferView.substr(pos, bufferView.find('\n', pos) - pos);
-            m_teams[teamName].mesh = m_playerMeshes["Dan"];
+            m_teams[teamName].mesh.first = "Dan";
+            m_teams[teamName].mesh.second = m_playerMeshes[m_teams[teamName].mesh.first];
             pos = bufferView.find("tna", pos);
         }
     }
@@ -228,7 +229,7 @@ void App::createScene() {
         static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         const glm::vec3 playerRotation = glm::vec3(0, (player.orientation - 1) * 90, 0);
 
-        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh, player.animator, player.position, playerScale, playerRotation});
+        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position, playerScale, playerRotation});
     }
 }
 
@@ -292,6 +293,32 @@ glm::ivec2 App::parseMapSize(const std::string& bufferView) {
     return mapSize;
 }
 
+void App::drawUi() noexcept {
+
+    if (ImGui::Begin("Mesh and Animation Selection")) {
+        // Mesh selection
+        for (auto& [teamName, team] : m_teams) {
+            ImGui::Text(teamName.c_str());
+            const char* currentMesh = team.mesh.first.c_str();
+            if (ImGui::BeginCombo("Mesh", currentMesh)) {
+                for (auto& [playerName, playerMesh] : m_playerMeshes) {
+                    bool isSelected = (team.mesh.second == playerMesh);
+                    if (ImGui::Selectable(playerName.c_str(), isSelected)) {
+                        team.mesh.second = playerMesh;
+                        team.mesh.first = playerName;
+                        createScene();
+                    }
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+        }
+
+        ImGui::End();
+    }
+}
+
 void App::run() {
     // Load imgui settings
     ImGui::LoadIniSettingsFromDisk("../imgui.ini");
@@ -339,6 +366,7 @@ void App::run() {
         ImGui::End();
 
         // Render the scene
+        drawUi();
         m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
 

@@ -46,7 +46,7 @@ class App {
         };
 
         struct Team {
-            std::shared_ptr<SkeletalMesh> mesh;
+            std::pair<std::string, std::shared_ptr<SkeletalMesh>> mesh;
         };
 
         class LogMessage {
@@ -88,7 +88,7 @@ class App {
         glm::vec2 m_tileSpacing = {0.5, 0.5};
         float m_tileHeight = 0;
         float m_playerHeight = 0;
-        float m_resourceHeight = 0;
+        float m_resourceHeight = 0.5;
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
 
         std::unordered_map<std::string, Team> m_teams;
@@ -112,6 +112,8 @@ class App {
         void updatePlayers(const std::string& bufferView);
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
+
+        void drawUi() noexcept;
 
         void createScene();
         void createRessources();

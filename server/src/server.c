@@ -239,10 +239,12 @@ static void refill_map(server_t *server, context_t *ctx)
 
     for (size_t i = 0; i < LEN(DENSITIES); ++i) {
         spread = (size_t)((double)ctx->map_size * DENSITIES[i]);
+        spread -= server->map_res[i].quantity;
         for (size_t cell = 0; cell < spread; ++cell) {
             x = rand() % ctx->width;
             y = rand() % ctx->height;
             server->map[IDX(x, y, ctx->width, ctx->height)].res[i].quantity++;
+            server->map_res[i].quantity++;
         }
     }
 }

@@ -46,6 +46,7 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     client->dir = rand() % 4;
     client->pos = egg->pos;
     client->lvl = 1;
+    client->res[FOOD].quantity = 10;
     if (add_elt_to_array(&serv->ai_clients, client) == RET_ERROR)
         return free(client), OOM, RET_ERROR;
     client->id = serv->ai_id;

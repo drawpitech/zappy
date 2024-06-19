@@ -154,6 +154,7 @@ typedef struct server_s {
     context_t ctx;
     int ai_id;
     int egg_id;
+    ressource_t map_res[R_COUNT];
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);

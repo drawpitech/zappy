@@ -4,6 +4,11 @@ test.py
 zappy_ref*/*
 
 # Byte-compiled / optimized / DLL files
+
+.vscode
+compile_flags.txt
+bin/*
+
 __pycache__/
 *.py[cod]
 *$py.class

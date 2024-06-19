@@ -58,7 +58,7 @@ static int init_server(server_t *serv, int port)
     if (serv->s_fd == -1)
         return ERR("socket failed"), RET_ERROR;
     if (setsockopt(
-        serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
+            serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
         return ERR("setsockopt failed"), RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
@@ -168,9 +168,12 @@ static void log_new_gui(server_t *serv)
     gui_cmd_sgt(serv, serv->gui_client, "");
     gui_cmd_mct(serv, serv->gui_client, "");
     gui_cmd_tna(serv, serv->gui_client, "");
-    // enw eggs
-    // eht
-    // pin players
+    for (size_t i = 0; i < serv->eggs.nb_elements; ++i)
+        gui_cmd_enw(serv, serv->gui_client, serv->eggs.elements[i], -1);
+    for (size_t i = 0; i < serv->ai_clients.nb_elements; ++i)
+        gui_cmd_pin(
+            serv, serv->gui_client,
+            ((ai_client_t *)serv->ai_clients.elements[i])->team);
 }
 static void connect_gui_client(server_t *serv, int client_fd)
 {

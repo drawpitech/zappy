@@ -25,8 +25,7 @@ void gui_cmd_pfk(server_t *server, gui_client_t *client, int ai_id);
 void gui_cmd_pdr(server_t *server, gui_client_t *client, int ai_id, int r);
 void gui_cmd_pgt(server_t *server, gui_client_t *client, int ai_id, int r);
 void gui_cmd_pdi(server_t *server, gui_client_t *client, int ai_id);
-void gui_cmd_enw(
-    server_t *server, gui_client_t *client, egg_t *egg, ai_client_t *ai);
+void gui_cmd_enw(server_t *server, gui_client_t *client, egg_t *egg, int ai);
 void gui_cmd_ebo(server_t *server, gui_client_t *client, egg_t *egg);
 void gui_cmd_edi(server_t *server, gui_client_t *client, char *args);
 void gui_cmd_sgt(server_t *server, gui_client_t *client, char *args);

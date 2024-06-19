@@ -15,7 +15,7 @@ static void after_fork(server_t *server, ai_client_t *client, UNUSED char *args)
     egg_t *egg = spawn_egg(server, client->team);
 
     write(client->s_fd, "ok\n", 3);
-    gui_cmd_enw(server, server->gui_client, egg, client);
+    gui_cmd_enw(server, server->gui_client, egg, client->id);
 }
 
 void ai_cmd_fork(server_t *server, ai_client_t *client, UNUSED char *args)

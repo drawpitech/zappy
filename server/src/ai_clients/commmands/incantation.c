@@ -11,7 +11,7 @@
 
 #include "../ai_internal.h"
 #include "commands.h"
-#include "../../gui_protocols/commands/commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 static bool can_incantation(ai_client_t *client, const cell_t *cell)
@@ -38,6 +38,7 @@ static void incantation_end(
     char buffer[40];
     cell_t *cell = CELL(server, client->pos.x, client->pos.y);
 
+    client->freezed = false;
     if (!can_incantation(client, cell)) {
         dprintf(client->s_fd, "ko\n");
         return;

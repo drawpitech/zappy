@@ -105,7 +105,7 @@ static bool starve_to_death(server_t *server, ai_client_t *ai)
         ai->last_fed = now;
         return false;
     }
-    if (server->ctx.freq >= 0 && now - ai->last_fed < 126 / server->ctx.freq) {
+    if (server->ctx.freq >= 0 && now - ai->last_fed > 126 / server->ctx.freq) {
         ai->res[FOOD].quantity -= 1;
         ai->last_fed = now;
     }

@@ -122,6 +122,7 @@ class Trantorian:
         self.number_of_ritual_ready: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
         self.mini_food: int = 20 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
+        self.ticks: int = 0
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -233,6 +234,9 @@ class Trantorian:
         if self.dead:
             return False
         self.get_unused_slot()
+        if self.ticks > self.mini_food * FOOD:
+            self.broadcast('just$update', ["all"])
+            self.ticks = 0
         return True
 
     def iter_food(self) -> bool:
@@ -242,7 +246,6 @@ class Trantorian:
         Returns:
             bool: can do the net iteration
         """
-        # self.dprint('start food', time())
         if not self.iter():
             return False
         self.get_inventory()
@@ -251,6 +254,7 @@ class Trantorian:
         max_reached: bool = True
         state_change: bool = True
         under_mini: bool = True
+        i = 0
         while self.iter() and (under_mini or (max_reached and state_change)):
             if self.dead:
                 return False
@@ -272,6 +276,8 @@ class Trantorian:
             max_reached: bool =  self.inventory["food"] < self.mini_food + 10
             state_change: bool = self.state != "going somewhere"
             under_mini: bool = self.inventory["food"] < self.mini_food
+            if (i % 3)
+            i += 1
         return not self.dead
 
     def get_current_case(self) -> MapTile:
@@ -546,6 +552,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Forward")
         answer = self.wait_answer()
         if answer != 'ok':
@@ -566,6 +573,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Right")
         answer = self.wait_answer()
         if answer != 'ok':
@@ -582,6 +590,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Left")
         answer = self.wait_answer()
         if answer != 'ok':
@@ -598,6 +607,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Look")
 
         cases = split_list(self.wait_answer())
@@ -638,6 +648,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 1
         self.client.send_cmd("Inventory")
 
         answer = self.wait_answer()
@@ -672,6 +683,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks = 0
         if receivers == []:
             msg = self.received_messages.pop(0)
             self.client.send_cmd("Broadcast " + msg)
@@ -693,6 +705,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Connect_nbr")
         answer = self.wait_answer()
         try:
@@ -713,6 +726,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Fork")
         if self.wait_answer() != 'ok':
             return False
@@ -729,6 +743,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Eject")
         return self.wait_answer() == 'ok'
 
@@ -744,6 +759,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Take " + obj)
         if self.wait_answer() != 'ok':
             return False
@@ -762,6 +778,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 7
         self.client.send_cmd("Set " + obj)
         ans = self.wait_answer()
         if ans != 'ok':
@@ -780,6 +797,7 @@ class Trantorian:
         """
         if self.dead:
             return False
+        self.ticks += 300
         self.client.send_cmd("Incantation")
         answer = self.wait_answer()
         if answer != "Elevation underway":

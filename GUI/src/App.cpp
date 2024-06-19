@@ -22,45 +22,47 @@
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <thread>
 #include <unistd.h>
 #include <iostream>
 #include <cstdio>
 
-#define BUFFER_SIZE 1024000 // 1MB
+#define BUFFER_SIZE 1024000
 
 App::App(int port) {
-    connectToServer(port);
-
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
 
-    m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
-    m_playerAnims["Twerk"] = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
-    m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("../assets/Quentin/Breakdance Uprock Var 2.dae");
-    m_playerAnims["Breakdance"] = std::make_shared<Animation>("../assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
-    
-    m_ressourceOffset = {
-        {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
-        {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
-        {DERAUMERE, {0.55, 0.25, m_tileSize[2] * 3/8}},
-        {SIBUR, {0.55, 0.25, m_tileSize[2] * 4/8}},
-        {MENDIANE, {0.55, -0.25, m_tileSize[2] * 5/8}},
-        {PHIRAS, {0.55, 0.25, m_tileSize[2] * 6/8}},
-        {THYSTAME, {0.55, 0.25, m_tileSize[2] * 7/8}}
-    };
+    {   // Load the meshes and animations
+        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
+        m_playerAnims["Twerk"] = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
+        m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("../assets/Quentin/Breakdance Uprock Var 2.dae");
+        m_playerAnims["Breakdance"] = std::make_shared<Animation>("../assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
 
-    m_ressourceMesh = {
-        {FOOD, std::make_shared<StaticMesh>("../assets/Ressources/Gonstre.obj")},
-        {LINEMATE, std::make_shared<StaticMesh>("../assets/Ressources/pink.obj")},
-        {DERAUMERE, std::make_shared<StaticMesh>("../assets/Ressources/orange.obj")},
-        {SIBUR, std::make_shared<StaticMesh>("../assets/Ressources/blue.obj")},
-        {MENDIANE, std::make_shared<StaticMesh>("../assets/Ressources/green.obj")},
-        {PHIRAS, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")},
-        {THYSTAME, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")}
-    };
+        m_ressourceOffset = {
+            {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
+            {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
+            {DERAUMERE, {0.55, 0.25, m_tileSize[2] * 3/8}},
+            {SIBUR, {0.55, 0.25, m_tileSize[2] * 4/8}},
+            {MENDIANE, {0.55, -0.25, m_tileSize[2] * 5/8}},
+            {PHIRAS, {0.55, 0.25, m_tileSize[2] * 6/8}},
+            {THYSTAME, {0.55, 0.25, m_tileSize[2] * 7/8}}
+        };
 
-    m_islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
+        m_ressourceMesh = {
+            {FOOD, std::make_shared<StaticMesh>("../assets/Ressources/Gonstre.obj")},
+            {LINEMATE, std::make_shared<StaticMesh>("../assets/Ressources/pink.obj")},
+            {DERAUMERE, std::make_shared<StaticMesh>("../assets/Ressources/orange.obj")},
+            {SIBUR, std::make_shared<StaticMesh>("../assets/Ressources/blue.obj")},
+            {MENDIANE, std::make_shared<StaticMesh>("../assets/Ressources/green.obj")},
+            {PHIRAS, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")},
+            {THYSTAME, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")}
+        };
 
+        m_islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
+    }
+
+    connectToServer(port);
     parseConnectionResponse();
     createScene();
 }
@@ -70,11 +72,13 @@ App::~App() {
 }
 
 void App::updatePlayers(const std::string& bufferView) {
+    // Player new connection (pnw playerNumber x y orientation level teamName)
     size_t pos = bufferView.find("pnw");
     while (pos != std::string::npos) {
         const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
 
+        // Position
         glm::ivec2 position;
         position[0] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
@@ -82,6 +86,7 @@ void App::updatePlayers(const std::string& bufferView) {
         pos = bufferView.find(' ', pos) + 1;
         position = (position - m_mapSize / 2);
 
+        // Orientation, level and team name
         const int orientation = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
 
@@ -91,6 +96,7 @@ void App::updatePlayers(const std::string& bufferView) {
 
         const std::string teamName = bufferView.substr(pos, bufferView.find('\n', pos) - pos);
 
+        // Player creation
         m_players[playerNumber] = Player {
             .position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] + m_tileSize[1])),
             .orientation = orientation,
@@ -100,9 +106,10 @@ void App::updatePlayers(const std::string& bufferView) {
         };
 
         pos = bufferView.find("pnw", pos);
-        std::cout << "New player: " << playerNumber << " at " << position[0] << ", " << position[1] << " looking " << orientation << " level " << level << " in team " << teamName << "\n";
     }
 
+
+    // Player position update (ppo playerNumber x y orientation)
     pos = bufferView.find("ppo");
     while (pos != std::string::npos) {
         const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
@@ -149,13 +156,14 @@ void App::updatePlayers(const std::string& bufferView) {
     }
 
 
+    // Player broadcast (pbc playerNumber message)
     pos = bufferView.find("pbc");
     while (pos != std::string::npos) {
         const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
 
         const std::string message = bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos);
-        LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, RED);
+        LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, GREEN);
 
         pos = bufferView.find("pbc", pos);
     }
@@ -164,16 +172,23 @@ void App::updatePlayers(const std::string& bufferView) {
 void App::parseConnectionResponse() {
     std::array<char, BUFFER_SIZE> buffer{};
     buffer.fill(0);
-    if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
-        throw std::runtime_error("Read failed");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    size_t readSize = 0;
+    while (readSize < BUFFER_SIZE) {
+        readSize += read(m_socket, buffer.data() + readSize, BUFFER_SIZE - readSize);
+        if (buffer[readSize - 1] == '\n')
+            break;
+    }
 
     const std::string& bufferView(buffer.data());
     std::cout << bufferView << std::endl;
 
     m_mapSize = parseMapSize(bufferView);
-    m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
+    m_map.resize(m_mapSize[0], std::vector<TileContent>(m_mapSize[1]));
     updateMap(bufferView);
-    
+
     {   // Team name (tna teamname\n * n)
         size_t pos = bufferView.find("tna");
         if (pos == std::string::npos)
@@ -203,11 +218,15 @@ void App::createScene() {
     m_scene->staticActors.clear();
     m_scene->animatedActors.clear();
 
+    // Create all island tiles and ressources
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
             const TileContent& tile = m_map[i + m_mapSize[0] / 2][j + m_mapSize[1] / 2];
+
+            // Add the island tile
             m_scene->staticActors.push_back(Renderer::StaticActor({m_islandMesh, glm::vec3(static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0]), m_tileHeight, static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])), m_tileSize, glm::vec3(0, 0, 0)}));
 
+            // Display the ressources
             for (const auto& [ressourceType, offset] : m_ressourceOffset) {
                 const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_resourceHeight, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])));
                 static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
@@ -216,7 +235,7 @@ void App::createScene() {
                     m_scene->staticActors.push_back(
                         Renderer::StaticActor({
                             m_ressourceMesh.at(ressourceType),
-                            ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb / m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
+                            ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb) / static_cast<float>(m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
                             m_resourceSize,
                             ressourceRotation
                         })
@@ -225,6 +244,8 @@ void App::createScene() {
         }
     }
 
+
+    // Display the players
     for (const auto& [playerNumber, player] : m_players) {
         static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         const glm::vec3 playerRotation = glm::vec3(0, (player.orientation - 1) * 90, 0);
@@ -234,16 +255,19 @@ void App::createScene() {
 }
 
 void App::updateMap(const std::string& bufferView) {
+    // Set the ressources on the map (bct x y q0 q1 q2 q3 q4 q5 q6)
     size_t pos = bufferView.find("bct");
     while (pos != std::string::npos) {
+        // Get the position of the tile
         int x = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
         int y = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
         pos = bufferView.find(' ', pos) + 1;
 
+        // Get the ressources on the tile
         for (int i = 0; i < 7; i++) {
             pos = bufferView.find(' ', pos) + 1;
-            m_map[static_cast<size_t>(x)][static_cast<size_t>(y)].ressources[i] = std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos));
+            m_map[x][y].ressources[i] = std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos));
         }
 
         pos = bufferView.find("bct", pos);
@@ -281,6 +305,7 @@ void App::connectToServer(int port) {
 glm::ivec2 App::parseMapSize(const std::string& bufferView) {
     glm::ivec2 mapSize;
 
+    // Get the map size (msz x y\n)
     size_t pos = bufferView.find("msz");
     if (pos == std::string::npos)
         throw std::runtime_error("msz not found in welcome buffer");
@@ -335,8 +360,12 @@ void App::run() {
         if (select(m_socket + 1, &readfds, nullptr, nullptr, &timeout) > 0) {
             // Read the data from the server
             buffer.fill(0);
-            if (read(m_socket, buffer.data(), BUFFER_SIZE) < 0)
-                throw std::runtime_error("Read failed");
+            size_t readSize = 0;
+            while (readSize < BUFFER_SIZE) {
+                readSize += read(m_socket, buffer.data() + readSize, BUFFER_SIZE - readSize);
+                if (buffer[readSize - 1] == '\n')
+                    break;
+            }
 
             const std::string& bufferView(buffer.data());
 

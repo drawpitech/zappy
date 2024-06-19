@@ -14,7 +14,7 @@ void ai_cmd_inventory(server_t *server, ai_client_t *client, UNUSED char *args)
     bool a = false;
 
     dprintf(client->s_fd, "[");
-    for (int i = LINEMATE; i < THYSTAME; ++i) {
+    for (int i = FOOD; i < THYSTAME; ++i) {
         if (client->res[i].quantity == 0)
             continue;
         dprintf(client->s_fd, "%s%s = %d\n", a ? ", " : "", r_name[i], client->res[i].quantity);

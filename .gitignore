@@ -1,14 +1,31 @@
+# Editors
+.vscode/
+.cache/
+.idea/
+
+# Build
+compile_flags.txt
+build/
+.build/
+result
+
+# Binaries
+/include
+/lib64
+/zappy_server
+/zappy_gui
+/zappy_ai
+/asan
+/prof
+bin/
+
+# Python
 build/*
 note.txt
 test.py
 zappy_ref*/*
 
 # Byte-compiled / optimized / DLL files
-
-.vscode
-compile_flags.txt
-bin/*
-
 __pycache__/
 *.py[cod]
 *$py.class

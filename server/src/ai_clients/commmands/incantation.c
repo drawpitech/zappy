@@ -11,7 +11,7 @@
 
 #include "../ai_internal.h"
 #include "commands.h"
-#include "gui_protocols/commands/commands.h"
+#include "../../gui_protocols/commands/commands.h"
 #include "server.h"
 
 static bool can_incantation(ai_client_t *client, const cell_t *cell)
@@ -77,6 +77,6 @@ void ai_cmd_incantation(
             cringe += sprintf(cringe, " %d", read->lvl);
         }
     }
-    gui_cmd_pic(server, &server->gui_client, buffer);
+    gui_cmd_pic(server, server->gui_client, buffer);
     dprintf(client->s_fd, "Elevation underway\n");
 }

@@ -82,7 +82,10 @@ int remove_ai_client(server_t *server, size_t idx)
         return RET_ERROR;
     client = server->ai_clients.elements[idx];
     if (client) {
-        disconnect_ai_client(server, client);
+        if (client->s_fd > 0) {
+            write(client->s_fd, UNPACK("quit\n"));
+            disconnect_ai_client(server, client);
+        }
         CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
         free(client->buffer.str);
         free(client->q_cmds);

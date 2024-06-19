@@ -19,7 +19,7 @@ static bool can_incantation(ai_client_t *client, const cell_t *cell)
 {
     if (client->lvl >= 7 || client->lvl == 0)
         return false;
-    for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res); ++i)
+    for (size_t i = 0; i < R_COUNT; ++i)
         if (INC_NEEDS[client->lvl - 1].res[i].quantity < cell->res[i].quantity)
             return false;
     return true;
@@ -32,7 +32,7 @@ static void consume_ressources(
 
     if (client->lvl >= 7 || client->lvl == 0)
         return;
-    for (size_t i = 0; i < LEN(INC_NEEDS[client->lvl - 1].res) - 2; ++i) {
+    for (size_t i = 0; i < R_COUNT - 2; ++i) {
         qty = INC_NEEDS[client->lvl - 1].res[i].quantity;
         cell->res[i].quantity -= qty;
         if (real_life)

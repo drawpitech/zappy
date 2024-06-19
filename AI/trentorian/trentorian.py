@@ -118,6 +118,7 @@ class Trantorian:
         self.last_msg_infos: list = []
         self.last_beacon_direction: int = 0
         self.last_beacon_uid: str = None
+        self.last_beacon_time: float = 0
         self.number_of_ritual_ready: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
         self.mini_food: int = 20 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
@@ -185,7 +186,8 @@ class Trantorian:
         self.dprint('Follow leader', self.last_beacon_uid)
         self.dispo_incant = False
         self.broadcast("just$update", ["all"])
-        self.follow_beacon()
+        if not self.follow_beacon():
+            return False
         self.drop_stuff()
         self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_READY, self), [self.last_beacon_uid])
         return True
@@ -308,9 +310,13 @@ class Trantorian:
             self.state = "shaman"
         return can_level_up
 
-    def follow_beacon(self) -> None:
+    def follow_beacon(self) -> bool:
         """follow the beacon to make a ritual
+
+        Returns:
+            bool: true if we are on the same case at the end
         """
+        last_recep = 0
         while self.iter() and self.state == "going somewhere":
             if self.last_beacon_direction == 0:
                 self.state = "ritual_prep"
@@ -325,10 +331,13 @@ class Trantorian:
                 self.right()
 
             self.forward()
-            self.state = "wait"
-            while not self.dead and self.state == "wait":
-                self.get_answer() #TODO do something to not get stuck
-        return
+            if self.last_beacon_time == last_recep:
+                self.look_around()
+                if self.last_beacon_time == last_recep:
+                    self.state = "wander"
+                    return False # TODO broadcast death of the beacon ?
+            last_recep = self.last_beacon_time
+        return not self.dead and self.state == "ritual_prep"
 
     def beacon(self, receivers: list) -> None:
         """set ourselves as a beacon to atract the others

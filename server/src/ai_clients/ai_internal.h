@@ -29,6 +29,5 @@ extern const size_t AI_CLIENT_COMMANDS_LEN;
 void disconnect_ai_client(server_t *server, ai_client_t *ai);
 void handle_ai_client(server_t *server, ai_client_t *client);
 bool queue_add_cmd(ai_client_t *client, queued_cmd_t *qcmd);
-bool queue_add_cmd_prio(ai_client_t *client, queued_cmd_t *qcmd);
 void queue_pop_cmd(server_t *server, ai_client_t *client);
 void ai_client_incantation_end(server_t *server, ai_client_t *client);

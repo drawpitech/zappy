@@ -238,7 +238,7 @@ static void refill_map(server_t *server, context_t *ctx)
     size_t y = 0;
     time_t now = time(NULL);
 
-    if (ctx->freq <= 0 && now - server->last_refill > 20 / ctx->freq)
+    if (ctx->freq <= 0 || now - server->last_refill <= 20 / ctx->freq)
         return;
     server->last_refill = now;
     for (size_t i = 0; i < R_COUNT - 2; ++i) {

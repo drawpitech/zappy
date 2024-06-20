@@ -43,7 +43,8 @@ class MessageRitualFailedParser(IParser):
         """Deserialize the message content, for ritual failed
         """
 
-        trentorian.state = "wander"
+        if trentorian.state != "beacon":
+            trentorian.state = "wander"
 
         return trentorian
 

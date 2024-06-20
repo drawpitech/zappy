@@ -16,5 +16,5 @@ gui_cmd_pbc(UNUSED server_t *server, gui_client_t *client, int ai_id, char *m)
 {
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "pbc %d %s\n", ai_id, m);
+    gui_dprintf(client, "pbc %d %s\n", ai_id, m);
 }

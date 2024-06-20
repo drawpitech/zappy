@@ -16,7 +16,7 @@ void gui_cmd_enw(
 {
     if (client == NULL)
         return;
-    dprintf(
-        client->s_fd, "enw %d %d %d %d\n", egg->id, ai_id, egg->pos.x,
+    gui_dprintf(
+        client, "enw %d %d %d %d\n", egg->id, ai_id, egg->pos.x,
         egg->pos.y);
 }

@@ -57,7 +57,7 @@ static void exec_gui_cmd(server_t *server, gui_client_t *client)
     }
     cmd = get_gui_cmd(client->buffer.str);
     if (cmd == NULL || cmd->func == NULL) {
-        write(client->s_fd, "ko\n", 3);
+        gui_write(client, "ko\n", 3);
         return;
     }
     cmd->func(server, client, content);
@@ -111,7 +111,7 @@ static void handle_gui(server_t *server)
     gui_client_t *client = server->gui_client;
 
     if (resize_buffer(client, bufsiz) == RET_ERROR) {
-        write(client->s_fd, "ko\n", 3);
+        gui_write(client, "ko\n", 3);
         return;
     }
     ptr = client->buffer.str + client->buffer.size;

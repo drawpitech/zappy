@@ -15,5 +15,5 @@ void gui_cmd_suc(UNUSED server_t *server, gui_client_t *client)
 {
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "suc\n");
+    gui_dprintf(client, "suc\n");
 }

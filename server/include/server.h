@@ -169,6 +169,10 @@ ATTR(format(printf, 2, 3))
 ssize_t ai_dprintf(ai_client_t *client, const char *fmt, ...);
 ssize_t ai_write(ai_client_t *client, const char *str, size_t n);
 
+ATTR(format(printf, 2, 3))
+ssize_t gui_dprintf(gui_client_t *gui, const char *fmt, ...);
+ssize_t gui_write(gui_client_t *gui, const char *str, size_t n);
+
 void iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx);
 int remove_ai_client(server_t *server, size_t idx);

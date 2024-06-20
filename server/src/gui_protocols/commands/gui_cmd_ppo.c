@@ -20,7 +20,7 @@ void gui_cmd_ppo(server_t *server, gui_client_t *client, char *args)
     current = get_client_by_id(server, client_id);
     if (client == NULL || current == NULL)
         return;
-    dprintf(
-        client->s_fd, "ppo %d %d %d %d\n", client_id, current->pos.x,
+    gui_dprintf(
+        client, "ppo %d %d %d %d\n", client_id, current->pos.x,
         current->pos.y, current->dir);
 }

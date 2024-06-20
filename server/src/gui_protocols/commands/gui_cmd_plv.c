@@ -19,5 +19,5 @@ void gui_cmd_plv(server_t *server, gui_client_t *client, char *args)
 
     if (client == NULL || current == NULL)
         return;
-    dprintf(client->s_fd, "plv %d %d\n", client_id, current->lvl);
+    gui_dprintf(client, "plv %d %d\n", client_id, current->lvl);
 }

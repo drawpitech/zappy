@@ -195,9 +195,6 @@ void App::parseConnectionResponse() {
     const std::string& bufferView(buffer.data());
     std::cout << bufferView << std::endl;
 
-    m_mapSize = parseMapSize(bufferView);
-    m_map.resize(m_mapSize[0], std::vector<TileContent>(m_mapSize[1]));
-    updateMap(bufferView);
 
     {   // Team name (tna teamname\n * n)
         size_t pos = bufferView.find("tna");
@@ -213,7 +210,6 @@ void App::parseConnectionResponse() {
         }
     }
 
-    updatePlayers(bufferView);
 
     {   // Get the speed (sgt in the bufferView)
         size_t pos = bufferView.find("sgt ");
@@ -221,6 +217,75 @@ void App::parseConnectionResponse() {
             throw std::runtime_error("sgt not found in welcome bufferView");
 
         m_speed =  std::stoi(bufferView.substr(pos + 4, bufferView.find('\n', pos) - pos));
+    }
+
+
+    m_mapSize = parseMapSize(bufferView);
+    m_map.resize(m_mapSize[0], std::vector<TileContent>(m_mapSize[1]));
+    updateMap(bufferView);
+    updatePlayers(bufferView);
+    updateEggs(bufferView);
+}
+
+void App::updateEggs(const std::string& bufferView) {
+    // A new egg is "enw eggNumber playerId x y\n"
+    size_t pos = bufferView.find("enw");
+    while (pos != std::string::npos) {
+        const int eggNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        const int playerId = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        (void) playerId;
+
+        glm::ivec2 position;
+        position[0] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        position[1] = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos));
+        pos = bufferView.find('\n', pos) + 1;
+
+        m_eggs[eggNumber] = Egg{
+            .position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] + m_tileSize[1]))
+        };
+
+        pos = bufferView.find("enw", pos);
+
+        // Add to the logs
+        LOG("Egg [" + std::to_string(eggNumber) + "] was laid by player [" + std::to_string(playerId) + "] at position [" + std::to_string(position[0]) + ", " + std::to_string(position[1]) + "]", YELLOW);
+
+        std::cout << "Adding egg " << eggNumber << " from player " << playerId << std::endl;
+    }
+
+
+    // Egg dying (edi eggNumber)
+    pos = bufferView.find("edi");
+    while (pos != std::string::npos) {
+        const int eggNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos));
+        pos = bufferView.find('\n', pos) + 1;
+
+        // Add to the logs
+        LOG("Egg [" + std::to_string(eggNumber) + "] died", YELLOW);
+
+        std::cout << "Egg " << eggNumber << " died" << std::endl;
+
+        m_eggs.erase(eggNumber);
+        pos = bufferView.find("edi", pos);
+    }
+
+
+    // Player born from an egg (ebo eggNumber)
+    pos = bufferView.find("ebo");
+    while (pos != std::string::npos) {
+        const int eggNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos));
+        pos = bufferView.find('\n', pos) + 1;
+
+        // Add to the logs
+        LOG("Egg [" + std::to_string(eggNumber) + "] gave birth to a player", YELLOW);
+
+        std::cout << "Player born from egg " << eggNumber << std::endl;
+
+        m_eggs.erase(eggNumber);
+        pos = bufferView.find("ebo", pos);
     }
 }
 
@@ -382,6 +447,7 @@ void App::run() {
             // Update the map and players
             updateMap(bufferView);
             updatePlayers(bufferView);
+            updateEggs(bufferView);
             createScene();
         }
 

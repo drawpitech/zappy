@@ -9,9 +9,10 @@ Trié par priorité:
 
   JB:
   - Comm fix avec le server     - DONE ?
-  - Parsing des oeufs           - En cours
+  - Parsing des oeufs           - DONE ?
   - Reflections ssr / skybox
   - Eau
+  - Demander a celian de faire crash le GUI
 
   Commun:
   - Animation broadcast

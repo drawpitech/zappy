@@ -19,6 +19,7 @@
 #define RED ImVec4(1, 0, 0, 1)
 #define BLUE ImVec4(0, 0, 1, 1)
 #define WHITE ImVec4(1, 1, 1, 1)
+#define YELLOW ImVec4(1, 1, 0, 1)
 #define LOG(message, color) m_logs.emplace_back(message, color)
 
 class App {
@@ -43,6 +44,10 @@ class App {
             std::string teamName;
             int level;
             std::shared_ptr<Animator> animator;
+        };
+
+        struct Egg {
+            glm::vec2 position;
         };
 
         struct Team {
@@ -92,6 +97,7 @@ class App {
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
 
         std::unordered_map<std::string, Team> m_teams;
+        std::map<int, Egg> m_eggs;
         std::map<int, Player> m_players;
 
         // Dict of all the ressources meshes and offsets on the tiles
@@ -110,6 +116,7 @@ class App {
 
         void updateMap(const std::string& bufferView);
         void updatePlayers(const std::string& bufferView);
+        void updateEggs(const std::string& bufferView);
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
 

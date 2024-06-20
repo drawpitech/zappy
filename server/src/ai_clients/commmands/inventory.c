@@ -9,7 +9,8 @@
 #include "server.h"
 #include "commands.h"
 
-void ai_cmd_inventory(server_t *server, ai_client_t *client, UNUSED char *args)
+void ai_cmd_inventory(
+    UNUSED server_t *server, ai_client_t *client, UNUSED char *args)
 {
     bool a = false;
 

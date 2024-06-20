@@ -13,7 +13,7 @@
 
 #include "../ai_internal.h"
 #include "commands.h"
-#include "../../gui_protocols/commands/commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 static bool can_incantation(ai_client_t *client, const cell_t *cell)

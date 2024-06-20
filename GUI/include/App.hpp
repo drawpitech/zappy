@@ -18,7 +18,6 @@
 #define WHITE ImVec4(1, 1, 1, 1)
 #define YELLOW ImVec4(1, 1, 0, 1)
 
-
 class App {
     private:
         enum RessourceType {

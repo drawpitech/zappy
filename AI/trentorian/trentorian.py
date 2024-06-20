@@ -73,6 +73,15 @@ class TrantorianDirection(IntEnum):
             return "DOWN"
         return "UNKWOW"
 
+class OtherIndex(IntEnum):
+    """Other index enum
+    """
+    INV = 0
+    LVL = 1
+    X = 2
+    Y = 3
+    LAST_UPDATE = 4
+
 class SoundDirection(IntEnum):
     """Sound direction enum
     """
@@ -469,9 +478,9 @@ class Trantorian:
             update = infos[4]
             if uuid not in self.others:
                 self.others[uuid] = infos
-            elif update > self.others[uuid][4]:
+            elif update > self.others[uuid][OtherIndex.LAST_UPDATE]:
                 self.others[uuid] = infos
-            diff = time() - self.others[uuid][4]
+            diff = time() - self.others[uuid][OtherIndex.LAST_UPDATE]
             if diff > dead_time:
                 self.others.pop(uuid)
         return

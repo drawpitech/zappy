@@ -237,7 +237,7 @@ static int iterate_waitlist(server_t *server)
 
 static void refill_map(server_t *server, context_t *ctx)
 {
-    size_t spread = 0;
+    long spread = 0;
     size_t x = 0;
     size_t y = 0;
     time_t now = time(NULL);
@@ -246,9 +246,9 @@ static void refill_map(server_t *server, context_t *ctx)
         return;
     server->last_refill = now;
     for (size_t i = 0; i < R_COUNT - 2; ++i) {
-        spread = (size_t)((double)ctx->map_size * DENSITIES[i]);
+        spread = (long)((double)ctx->map_size * DENSITIES[i]);
         spread -= server->map_res[i].quantity;
-        for (size_t cell = 0; cell < spread; ++cell) {
+        for (long cell = 0; cell < spread; ++cell) {
             x = rand() % ctx->width;
             y = rand() % ctx->height;
             server->map[IDX(x, y, ctx->width, ctx->height)].res[i].quantity++;

@@ -6,7 +6,7 @@
 */
 
 #include "commands.h"
-#include "../../gui_protocols/commands/commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 void ai_cmd_set(server_t *server, ai_client_t *client, char *args)

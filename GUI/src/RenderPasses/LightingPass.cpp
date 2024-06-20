@@ -15,10 +15,10 @@
 #include <filesystem>
 
 LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
-    m_lightingProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/Lighting.frag");
-    m_equiRectangularToCubemapProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Cubemap.vert", "../GUI/shaders/EquiRectangularToCubemap.frag");
-    m_irradianceProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Cubemap.vert", "../GUI/shaders/Irradiance.frag");
-    m_backgroundProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Background.vert", "../GUI/shaders/Background.frag");
+    m_lightingProgram = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/Lighting.frag");
+    m_equiRectangularToCubemapProgram = std::make_unique<ShaderProgram>("GUI/shaders/Cubemap.vert", "GUI/shaders/EquiRectangularToCubemap.frag");
+    m_irradianceProgram = std::make_unique<ShaderProgram>("GUI/shaders/Cubemap.vert", "GUI/shaders/Irradiance.frag");
+    m_backgroundProgram = std::make_unique<ShaderProgram>("GUI/shaders/Background.vert", "GUI/shaders/Background.frag");
 
 
     // Main framebuffer
@@ -54,7 +54,7 @@ LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
     int width = 0;
     int height = 0;
     int nrComponents = 0;
-    float *data = stbi_loadf(std::filesystem::path("../assets/skybox.hdr").c_str(), &width, &height, &nrComponents, 0);
+    float *data = stbi_loadf(std::filesystem::path("assets/skybox.hdr").c_str(), &width, &height, &nrComponents, 0);
     if (data == nullptr)
         throw std::runtime_error("Failed to load HDR image.");
 

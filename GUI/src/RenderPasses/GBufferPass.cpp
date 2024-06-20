@@ -10,8 +10,8 @@
 #include "Renderer/Window.hpp"
 
 GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
-    m_staticShaderProgram = std::make_shared<ShaderProgram>("../GUI/shaders/GBufferStatic.vert", "../GUI/shaders/GBuffer.frag");
-    m_skinnedShaderProgram = std::make_shared<ShaderProgram>("../GUI/shaders/GBufferSkinned.vert", "../GUI/shaders/GBuffer.frag");
+    m_staticShaderProgram = std::make_shared<ShaderProgram>("GUI/shaders/GBufferStatic.vert", "GUI/shaders/GBuffer.frag");
+    m_skinnedShaderProgram = std::make_shared<ShaderProgram>("GUI/shaders/GBufferSkinned.vert", "GUI/shaders/GBuffer.frag");
 
     // Framebuffer creation
     glGenFramebuffers(1, &m_gBuffer);

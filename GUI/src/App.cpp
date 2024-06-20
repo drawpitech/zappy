@@ -34,10 +34,10 @@ App::App(int port) {
     m_scene = std::make_shared<Renderer::Scene>();
 
     {   // Load the meshes and animations
-        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("../assets/Dan/Dancing Twerk.dae");
-        m_playerAnims["Twerk"] = std::make_shared<Animation>("../assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
-        m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("../assets/Quentin/Breakdance Uprock Var 2.dae");
-        m_playerAnims["Breakdance"] = std::make_shared<Animation>("../assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
+        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("assets/Dan/Dancing Twerk.dae");
+        m_playerAnims["Twerk"] = std::make_shared<Animation>("assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
+        m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("assets/Quentin/Breakdance Uprock Var 2.dae");
+        m_playerAnims["Breakdance"] = std::make_shared<Animation>("assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
 
         m_ressourceOffset = {
             {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
@@ -50,16 +50,16 @@ App::App(int port) {
         };
 
         m_ressourceMesh = {
-            {FOOD, std::make_shared<StaticMesh>("../assets/Ressources/Gonstre.obj")},
-            {LINEMATE, std::make_shared<StaticMesh>("../assets/Ressources/pink.obj")},
-            {DERAUMERE, std::make_shared<StaticMesh>("../assets/Ressources/orange.obj")},
-            {SIBUR, std::make_shared<StaticMesh>("../assets/Ressources/blue.obj")},
-            {MENDIANE, std::make_shared<StaticMesh>("../assets/Ressources/green.obj")},
-            {PHIRAS, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")},
-            {THYSTAME, std::make_shared<StaticMesh>("../assets/Ressources/red.obj")}
+            {FOOD, std::make_shared<StaticMesh>("assets/Ressources/Gonstre.obj")},
+            {LINEMATE, std::make_shared<StaticMesh>("assets/Ressources/pink.obj")},
+            {DERAUMERE, std::make_shared<StaticMesh>("assets/Ressources/orange.obj")},
+            {SIBUR, std::make_shared<StaticMesh>("assets/Ressources/blue.obj")},
+            {MENDIANE, std::make_shared<StaticMesh>("assets/Ressources/green.obj")},
+            {PHIRAS, std::make_shared<StaticMesh>("assets/Ressources/red.obj")},
+            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/red.obj")}
         };
 
-        m_islandMesh = std::make_shared<StaticMesh>("../assets/tile.obj");
+        m_islandMesh = std::make_shared<StaticMesh>("assets/tile.obj");
     }
 
     connectToServer(port);

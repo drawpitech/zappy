@@ -1,0 +1,20 @@
+/*
+** EPITECH PROJECT, 2024
+** g
+** File description:
+** gui_cmd_pbc
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "commands.h"
+#include "server.h"
+
+void
+gui_cmd_pbc(UNUSED server_t *server, gui_client_t *client, int ai_id, char *m)
+{
+    if (client == NULL)
+        return;
+    dprintf(client->s_fd, "pbc #%d %s\n", ai_id, m);
+}

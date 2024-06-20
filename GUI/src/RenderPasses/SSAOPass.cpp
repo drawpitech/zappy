@@ -15,8 +15,8 @@ float lerp(float a, float b, float f) {
 }
 
 SSAOPass::SSAOPass(std::shared_ptr<Window>& window) : m_window(window), m_size(glm::vec2(window->getWidth(), window->getHeight())) {
-    m_ssaoPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAO.frag");
-    m_blurPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAOBlur.frag");
+    m_ssaoPass = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/SSAO.frag");
+    m_blurPass = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/SSAOBlur.frag");
 
     glGenFramebuffers(1, &m_ssaoFBO);
     glGenFramebuffers(1, &m_ssaoBlurFBO);

@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 """
 Module providing the connection to server and the communication functions
 """
@@ -48,7 +48,9 @@ class Client:
         while '\n' not in self.buffer:
             try:
                 new = self.socket.recv(1024).decode()
-            except ConnectionResetError:
+            except (ConnectionResetError, socket.timeout):
+                self.buffer = "dead\n"
+            if new == '':
                 self.buffer = "dead\n"
             self.buffer += new
         last_answer, self.buffer = self.buffer.split('\n', maxsplit=1)

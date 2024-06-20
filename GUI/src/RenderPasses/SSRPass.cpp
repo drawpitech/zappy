@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 SSRPass::SSRPass(std::shared_ptr<Window>& window) : m_window(window), m_size(glm::vec2(window->getWidth(), window->getHeight())) {
-    m_shaderProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSR.frag");
+    m_shaderProgram = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/SSR.frag");
 
     // Framebuffer creation
     glGenFramebuffers(1, &m_ssrFBO);

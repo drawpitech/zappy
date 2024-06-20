@@ -4,8 +4,19 @@ project(zappy_gui)
 set(CMAKE_CXX_STANDARD 20)
 file(GLOB_RECURSE SOURCES src/**.cpp)
 
+# Flags to avoid assimp compile errors
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-reorder -Wno-array-bounds -Wno-stringop-overflow -Wno-deprecated-declarations -Wno-sign-compare -Wno-dangling-reference -Wno-maybe-uninitialized")
+endif()
+
+# Link to external libraries
+add_subdirectory(external/assimp)
+add_subdirectory(external/glad)
+add_subdirectory(external/glfw)
+add_subdirectory(external/glm)
+
 # ImGui
-set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../external/imgui)
+set(IMGUI_DIR external/imgui)
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
@@ -23,9 +34,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif()
 
 # Executable
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/../external/stb)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/external/stb)
 add_executable(zappy_gui ${SOURCES} ${IMGUI_SOURCES})
 target_link_libraries(zappy_gui glfw glm glad assimp)
 
 # Copy zappy_gui to build
-add_custom_command(TARGET zappy_gui POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:zappy_gui> ..)
+add_custom_command(TARGET zappy_gui POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:zappy_gui> ../..)

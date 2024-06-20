@@ -47,7 +47,7 @@ class Client:
         """
         while '\n' not in self.buffer:
             try:
-                new = self.socket.recv(1024).decode()
+                new = self.socket.recv(1024).decode() # TODO use select to ensure not blocking
             except (ConnectionResetError, socket.timeout):
                 self.buffer = "dead\n"
             if new == '':

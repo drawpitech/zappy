@@ -135,9 +135,7 @@ class Trantorian:
             self.start_living(queue)
             self.first_level()
             while self.iter_food():
-                if len(self.others) < 7 and self.unused_slot > 0:
-                    self.asexual_multiplication(queue)
-                can_level_up = self.wander()
+                can_level_up = self.wander(queue)
                 success = False
 
                 if self.state == "shaman":
@@ -286,8 +284,11 @@ class Trantorian:
         """
         return self.known_map.tiles[self.y % self.client.size_y][self.x % self.client.size_x]
 
-    def wander(self) -> list[str]:
+    def wander(self, queue: Queue) -> list[str]:
         """look and take stuff until we can do an incantation, or we are called
+
+        Args:
+            queue (Queue): queue to birth other trantorians
 
         Returns:
             list[str]: list of players to do the incantation
@@ -296,6 +297,8 @@ class Trantorian:
         can_level_up = []
         i = 0
         while self.iter_food() and self.state == "wander" and not can_level_up:
+            if len(self.others) < 7 and self.unused_slot > 0:
+                self.asexual_multiplication(queue)
             self.look_around()
             for _ in range(self.level): # TODO maybe some priority order here
                 if not self.take_tile_objects():
@@ -309,6 +312,7 @@ class Trantorian:
             can_level_up = get_incantation_team(self.inventory, self.level + 1, self.others)
             i += 1
             if i % 4:
+                self.troll_broadcasts()
                 self.broadcast("just$update", ["all"])
         if can_level_up and self.state != "going somewhere":
             self.state = "shaman"
@@ -413,6 +417,22 @@ class Trantorian:
         self.dprint("lvl:", self.level)
         return True
 
+    def troll_broadcasts(self)-> None:
+        """send weird broadcast to troll
+        """
+        tt = random.randint(0, 10)
+        if len(self.received_messages) == 0:
+            return
+        if tt == 1:
+            self.broadcast('.', [])
+        elif tt == 2:
+            idx = random.randint(0, len(self.received_messages))
+            self.broadcast(self.received_messages.pop(idx), [])
+        elif tt == 3:
+            idx = random.randint(0, len(self.received_messages))
+            idx2 = random.randint(0, len(self.received_messages[idx]))
+            self.broadcast(self.received_messages[idx][:-(idx2 / 2)], [])
+        return
 
     def suicide(self) -> None:
         """look around until we are dead
@@ -506,9 +526,13 @@ class Trantorian:
         msg = msg[8:]
         direct, msg = msg.split(',')
         direct: int = int(direct)
+        msg = msg.strip()
+        if not msg.startswith(self.team):
+            self.received_messages.append(msg)
+            return
+        msg = msg[len(self.team):]
         parts = msg.strip().split("$")
         if len(parts) != 5:
-            self.received_messages.append(msg)
             return
         sender, receivers, msg_type, content, infos = parts
         info_unpacked = unpack_infos(infos, self.uid)
@@ -519,7 +543,6 @@ class Trantorian:
             MessageTypeParser().deserialize(self, int(msg_type), content, direct)
         except (KeyError, ValueError):
             return
-        MessageTypeParser().deserialize(self, int(msg_type), content, direct)
         return
 
 
@@ -704,10 +727,10 @@ class Trantorian:
         self.ticks = 0
         self.kill_others()
         if receivers == []:
-            msg = self.received_messages.pop(0)
-            self.client.send_cmd("Broadcast " + msg)
+            self.client.send_cmd("Broadcast " + content)
             return self.wait_answer() == 'ok'
-        msg = f'{self.uid}$'
+        msg = f'{self.team}'
+        msg += f'{self.uid}$'
         msg += '|'.join(receivers) + '$'
         msg += f'{content}$'
         msg += f'{pack_infos(

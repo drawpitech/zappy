@@ -101,7 +101,6 @@ static bool starve_to_death(server_t *server, ai_client_t *ai)
 {
     time_t now = time(NULL);
 
-    return false; // TODO: remove
     if (ai->res[FOOD].quantity <= 0)
         return ERR("Starved to death"), true;
     if (ai->last_fed == 0) {

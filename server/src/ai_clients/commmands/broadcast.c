@@ -38,25 +38,25 @@ static int compute_dir(
     dy = compute(p1.y, p2.y, grid_size[1]);
     if (abs(dx) == abs(dy)) {
         if (dy < 0 && dx > 0)
-            result = S_NORTH_EAST;
-        if (dy < 0 && dx < 0)
-            result = S_NORTH_WEST;
-        if (dy > 0 && dx > 0)
-            result = S_SOUTH_EAST;
-        if (dy > 0 && dx < 0)
             result = S_SOUTH_WEST;
+        if (dy < 0 && dx < 0)
+            result = S_SOUTH_EAST;
+        if (dy > 0 && dx > 0)
+            result = S_NORTH_WEST;
+        if (dy > 0 && dx < 0)
+            result = S_NORTH_EAST;
     }
-    if (abs(dy) >= abs(dx)) {
+    else if (abs(dy) >= abs(dx)) {
         if (dy < 0)
-            result = S_NORTH;
-        if (dy > 0)
             result = S_SOUTH;
+        if (dy > 0)
+            result = S_NORTH;
     }
-    if (abs(dx) >= abs(dy)) {
+    else if (abs(dx) >= abs(dy)) {
         if (dx > 0)
-            result = S_EAST;
-        if (dx < 0)
             result = S_WEST;
+        if (dx < 0)
+            result = S_EAST;
     }
     return result;
 }
@@ -71,8 +71,8 @@ void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
         if (cur->s_fd < 0 || cur == client)
             continue;
         dir = (client->pos.x == cur->pos.x && client->pos.y == cur->pos.y)
-            ? 0 : abs((int)(conv_table[client->dir] - compute_dir(
-            cur->pos, client->pos,
+            ? 0 : abs((int)(conv_table[cur->dir] - compute_dir(
+            client->pos, cur->pos,
             (int[2]){(int)server->ctx.width, (int)server->ctx.height}))) + 1;
         ai_dprintf(cur, "message %d, %s\n", dir, args);
     }

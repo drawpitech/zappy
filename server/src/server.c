@@ -18,6 +18,7 @@
 #include "arg_parse.h"
 #include "array.h"
 #include "gui_protocols/commands/commands.h"
+#include <signal.h>
 #include "time.h"
 
 const double DENSITIES[R_COUNT] = {
@@ -307,6 +308,7 @@ int server(int argc, char **argv)
 {
     server_t server = {0};
 
+    signal(13, SIG_IGN);
     srand(time(NULL));
     if (arg_parse(argc, argv, &server.ctx) != RET_VALID ||
         init_server(&server, server.ctx.port) != RET_VALID ||

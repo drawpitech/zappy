@@ -66,7 +66,7 @@ static void exec_ai_cmd(server_t *server, ai_client_t *client)
     cmd = get_ai_cmd(client->buffer.str);
     if (cmd == NULL || cmd->func == NULL) {
         gui_cmd_suc(server, server->gui_client);
-        write(client->s_fd, "ko\n", 3);
+        ai_write(client, "ko\n", 3);
         return;
     }
     queue_add_cmd(
@@ -120,13 +120,13 @@ void handle_ai_client(server_t *server, ai_client_t *client)
     char *ptr = NULL;
 
     if (resize_buffer(client, bufsiz) == RET_ERROR) {
-        write(client->s_fd, "ko\n", 3);
+        ai_write(client, "ko\n", 3);
         return;
     }
     ptr = client->buffer.str + client->buffer.size;
     bytes_read = read(client->s_fd, ptr, bufsiz);
     if (bytes_read <= 0) {
-        disconnect_ai_client(server, client);
+        disconnect_ai_client(client);
         return;
     }
     client->buffer.size += bytes_read;

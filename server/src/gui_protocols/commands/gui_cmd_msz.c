@@ -14,6 +14,6 @@ void gui_cmd_msz(server_t *server, gui_client_t *client, UNUSED char *args)
 {
     if (client == NULL)
         return;
-    dprintf(
-        client->s_fd, "msz %ld %ld\n", server->ctx.width, server->ctx.height);
+    gui_dprintf(
+        client, "msz %ld %ld\n", server->ctx.width, server->ctx.height);
 }

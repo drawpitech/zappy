@@ -14,5 +14,5 @@ void gui_cmd_pfk(UNUSED server_t *server, gui_client_t *client, int ai_id)
 {
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "pfk #%d\n", ai_id);
+    gui_dprintf(client, "pfk %d\n", ai_id);
 }

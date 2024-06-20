@@ -21,6 +21,6 @@ void gui_cmd_edi(UNUSED server_t *server, gui_client_t *client, char *args)
     if (!cmd || !cmd[0])
         return;
     egg_id = atoi(cmd[0]);
-    dprintf(client->s_fd, "edi #%d\n", egg_id);
+    gui_dprintf(client, "edi %d\n", egg_id);
     free_array((void **)cmd);
 }

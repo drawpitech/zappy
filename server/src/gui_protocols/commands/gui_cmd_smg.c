@@ -14,5 +14,5 @@ void gui_cmd_smg(UNUSED server_t *server, gui_client_t *client, char *args)
 {
     if (client == NULL || args == NULL)
         return;
-    dprintf(client->s_fd, "smg %s\n", args);
+    gui_dprintf(client, "smg %s\n", args);
 }

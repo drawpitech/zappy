@@ -128,9 +128,9 @@ typedef struct ai_client_s {
     int id;
     queued_cmd_t *q_cmds;
     size_t q_size;
-    bool freezed;
     time_t last_cmd;
     time_t last_fed;
+    time_t last_inc;
 } ai_client_t;
 
 static const sound_direction_t conv_table[] = {S_NORTH, S_EAST, S_SOUTH, S_WEST};
@@ -164,6 +164,14 @@ payload_t *get_cell_payload(server_t *serv, vector_t *pos, payload_t *payload);
 res_name_t get_ressource_type(char *name);
 egg_t *spawn_egg(server_t *server, char *team);
 size_t count_team(server_t *serv, char *team);
+
+ATTR(format(printf, 2, 3))
+ssize_t ai_dprintf(ai_client_t *client, const char *fmt, ...);
+ssize_t ai_write(ai_client_t *client, const char *str, size_t n);
+
+ATTR(format(printf, 2, 3))
+ssize_t gui_dprintf(gui_client_t *gui, const char *fmt, ...);
+ssize_t gui_write(gui_client_t *gui, const char *str, size_t n);
 
 void iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx);

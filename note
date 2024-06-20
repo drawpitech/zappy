@@ -6,16 +6,21 @@ Trié par priorité:
   - plus de triangles sur dan / smooth shading
   - Nouveau style de map
   - Animations pour tout
+  - Animation ejection
 
   JB:
   - Comm fix avec le server         - DONE ?
   - Parsing des oeufs               - DONE
   - Parser refactoring              - DONE
   - Parsing mort / elevation        - DONE
-  - interpolation entre les tiles
+  - UI Team: player, level, inventaire
+  - UI ressources
+  - Parsing ejections
+  - Interpolation entre les tiles
+  - Encapsulation reseau
+  - Demander a celian de faire crash le GUI
   - Reflections ssr / skybox
   - Eau
-  - Demander a celian de faire crash le GUI
 
   Commun:
   - Animation broadcast

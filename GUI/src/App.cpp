@@ -173,13 +173,23 @@ void App::parseConnectionResponse() {
     std::array<char, BUFFER_SIZE> buffer{};
     buffer.fill(0);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // Wait for the reply
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(m_socket, &readfds);
+    timeval timeout { .tv_sec = 2, .tv_usec = 0 };
+    if (select(m_socket + 1, &readfds, nullptr, nullptr, &timeout) > 0) {
+        // Wait for the multiple welcome messages to stack
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    size_t readSize = 0;
-    while (readSize < BUFFER_SIZE) {
-        readSize += read(m_socket, buffer.data() + readSize, BUFFER_SIZE - readSize);
-        if (buffer[readSize - 1] == '\n')
-            break;
+        size_t readSize = 0;
+        while (readSize < BUFFER_SIZE) {
+            readSize += read(m_socket, buffer.data() + readSize, BUFFER_SIZE - readSize);
+            if (buffer[readSize - 1] == '\n')
+                break;
+        }
+    } else {
+        throw std::runtime_error("No response from the server");
     }
 
     const std::string& bufferView(buffer.data());

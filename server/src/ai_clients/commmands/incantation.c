@@ -8,6 +8,7 @@
 #include "incantation.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 
 #include "../ai_internal.h"
@@ -51,10 +52,10 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
         ERR("Uwu you lost all your money");
         return;
     }
-    client->lvl += 1;
     consume_ressources(server, client, cell, true);
     sprintf(buffer, "%d %d", client->pos.x, client->pos.y);
     gui_cmd_bct(server, server->gui_client, buffer);
+    client->lvl += 1;
     ai_dprintf(client, "Current level: %d\n", client->lvl);
     gui_cmd_pie(server, server->gui_client, client->pos, 1);
 }
@@ -62,25 +63,24 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
 void ai_cmd_incantation(
     server_t *server, ai_client_t *client, UNUSED char *args)
 {
-    int lvl = client->lvl;
-    cell_t cell_cpy = *CELL(server, client->pos.x, client->pos.y);
+    cell_t cell_cpy;
     ai_client_t *read = NULL;
     char buffer[4096];
     char *cringe = buffer;
     time_t now = time(NULL);
 
+    memcpy(
+        &cell_cpy, CELL(server, client->pos.x, client->pos.y), sizeof cell_cpy);
     if (!can_incantation(client, &cell_cpy)) {
         ai_write(client, "ko\n", 3);
         ERR("Skill issue");
         return;
     }
-    consume_ressources(server, client, &cell_cpy, false);
-    client->last_inc = now;
-    cringe += sprintf(buffer, "%d %d %d", cell_cpy.pos.x, cell_cpy.pos.y, lvl);
+    cringe += sprintf(buffer, "%d %d", cell_cpy.pos.x, cell_cpy.pos.y);
     for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
         read = server->ai_clients.elements[i];
         if (read->pos.x == client->pos.x && read->pos.y == client->pos.y &&
-            can_incantation(read, &cell_cpy)) {
+            client->lvl == read->lvl && can_incantation(read, &cell_cpy)) {
             consume_ressources(server, client, &cell_cpy, false);
             client->last_inc = now;
             cringe += sprintf(cringe, " %d", read->lvl);

@@ -11,7 +11,7 @@
       in {
         formatter = pkgs.alejandra;
 
-        devShell = {
+        devShells = {
           default = pkgs.mkShell {
             inputsFrom = builtins.attrValues self.packages.${system} ++ (with pkgs; [glfw assimp]);
             packages = with pkgs; [clang-tools_18 strace];

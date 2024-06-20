@@ -131,14 +131,14 @@ void ai_cmd_look(server_t *server, ai_client_t *client, UNUSED char *args)
     ai_dprintf(client, "[");
     for (size_t i = 0; i < payload->size; ++i) {
         cell = &payload->cell_content[i];
+        if (i != 0)
+            ai_dprintf(client, ",");
         for (short j = 0; j < R_COUNT; ++j) {
             for (int k = 0; k < cell->res[j].quantity; ++k) {
                 ai_dprintf(client, "%s%s", (space) ? " " : "", r_name[j]);
                 space = true;
             }
         }
-        if (i != 0)
-            ai_dprintf(client, ",");
     }
     ai_dprintf(client, "]\n");
 }

@@ -255,6 +255,8 @@ static void refill_map(server_t *server, context_t *ctx)
             server->map_res[i].quantity++;
         }
     }
+    if (server->gui_client)
+        gui_cmd_mct(server, server->gui_client, NULL);
 }
 
 static int init_map(server_t *server, context_t *ctx)

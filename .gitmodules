@@ -13,5 +13,5 @@
 	branch = 3.3-stable
 [submodule "GUI/external/imgui"]
 	path = GUI/external/imgui
-	url = https://github.com/ocornut/imgui.git
+	url = git@github.com:ocornut/imgui.git
 	branch = docking

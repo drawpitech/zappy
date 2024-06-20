@@ -497,13 +497,13 @@ class Trantorian:
         return
 
     def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
-        """wait for an answer, handle the message and eject
+        """wait for an answer, handle the message, eject and current level
 
         Returns:
             str: last server answer
         """
         answer: str = self.get_answer()
-        while answer.startswith('message') or answer.startswith('eject'):
+        while answer.startswith('message') or answer.startswith('eject') or answer.startswith("Current level: "):
             answer = self.get_answer()
         if answer.startswith("dead"):
             self.dead = True

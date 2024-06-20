@@ -8,16 +8,35 @@
 #include "RenderPasses/LightingPass.hpp"
 #include "Renderer/ShaderProgram.hpp"
 
+#include "imgui.h"
 #include "stb_image.h"
 #include "glm/gtc/matrix_transform.hpp"
 
 #include <filesystem>
 
 LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
-    m_lightingProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/Lighting.frag");
-    m_equiRectangularToCubemapProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Cubemap.vert", "../GUI/shaders/EquiRectangularToCubemap.frag");
-    m_irradianceProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Cubemap.vert", "../GUI/shaders/Irradiance.frag");
-    m_backgroundProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Background.vert", "../GUI/shaders/Background.frag");
+    m_lightingProgram = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/Lighting.frag");
+    m_equiRectangularToCubemapProgram = std::make_unique<ShaderProgram>("GUI/shaders/Cubemap.vert", "GUI/shaders/EquiRectangularToCubemap.frag");
+    m_irradianceProgram = std::make_unique<ShaderProgram>("GUI/shaders/Cubemap.vert", "GUI/shaders/Irradiance.frag");
+    m_backgroundProgram = std::make_unique<ShaderProgram>("GUI/shaders/Background.vert", "GUI/shaders/Background.frag");
+
+
+    // Main framebuffer
+    glGenFramebuffers(1, &m_framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+	glGenTextures(1, &m_renderbuffer);
+	glBindTexture(GL_TEXTURE_2D, m_renderbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, window->getWidth(), window->getHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_renderbuffer, 0);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        throw std::runtime_error("LightingPass: Framebuffer is not complete.");
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 
     // Capture framebuffer setup (used to capture the HDR environment map)
@@ -35,7 +54,7 @@ LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
     int width = 0;
     int height = 0;
     int nrComponents = 0;
-    float *data = stbi_loadf(std::filesystem::path("../assets/skybox.hdr").c_str(), &width, &height, &nrComponents, 0);
+    float *data = stbi_loadf(std::filesystem::path("assets/skybox.hdr").c_str(), &width, &height, &nrComponents, 0);
     if (data == nullptr)
         throw std::runtime_error("Failed to load HDR image.");
 
@@ -127,19 +146,32 @@ LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
         Utils::renderCube();
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-
-    // then before rendering, configure the viewport to the original framebuffer's screen dimensions
-    int scrWidth = 0;
-    int scrHeight = 0;
-    glfwGetFramebufferSize(window->getHandle(), &scrWidth, &scrHeight);
-    glViewport(0, 0, scrWidth, scrHeight);
 }
 
 LightingPass::~LightingPass() {
+    glDeleteFramebuffers(1, &m_framebuffer);
+    glDeleteTextures(1, &m_renderbuffer);
+
+    glDeleteFramebuffers(1, &m_captureFBO);
+    glDeleteRenderbuffers(1, &m_captureRBO);
+
+    glDeleteTextures(1, &m_hdrTexture);
+    glDeleteTextures(1, &m_envCubemap);
+    glDeleteTextures(1, &m_irradianceMap);
 }
 
-void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture, uint32_t ssrTexture, const glm::vec3& camPos, const glm::mat4& view, const glm::mat4& proj, int debugView) const noexcept {
+void LightingPass::resize(const glm::vec2& size) noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+    glBindTexture(GL_TEXTURE_2D, m_renderbuffer);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_renderbuffer, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    m_lightingPassSize = ImVec2(static_cast<float>(size[0]), static_cast<float>(size[1]));
+}
+
+void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture, uint32_t ssrTexture, const glm::vec3& camPos, const glm::mat4& view, const glm::mat4& proj, int debugView) noexcept {
     m_lightingProgram->use();
 
     m_lightingProgram->setInt("debugView", debugView);
@@ -174,8 +206,8 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
 
     m_lightingProgram->setVec3("camPos", camPos);
 
-    glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, m_lightingPassSize.x, m_lightingPassSize.y);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -186,6 +218,7 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
     m_backgroundProgram->use();
     m_backgroundProgram->setMat4("view", view);
     m_backgroundProgram->setMat4("proj", proj);
+    m_backgroundProgram->setVec2("resolution", glm::vec2(m_lightingPassSize.x, m_lightingPassSize.y));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_envCubemap);
@@ -196,4 +229,37 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
     m_backgroundProgram->setInt("normalMap", 1);
 
     Utils::renderCube();
+
+
+    // Blit the framebuffer to the default framebuffer
+    // glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebuffer);
+    // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    // glBlitFramebuffer(0, 0, m_window->getWidth(), m_window->getHeight(), 0, 0, m_window->getWidth(), m_window->getHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+    // Render to imgui viewport
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glViewport(0, 0, m_window->getWidth(), m_window->getHeight());
+    ImGui::Begin("Scene"); {
+        ImGui::BeginChild("GameRender");
+
+        ImVec2 newSize = ImGui::GetContentRegionAvail();
+        if (newSize.x != m_lightingPassSize.x || newSize.y != m_lightingPassSize.y) {
+            m_lightingPassSize = newSize;
+            wasResized = true;
+        }
+
+        ImGui::Image(
+            reinterpret_cast<ImTextureID>(m_renderbuffer),
+            newSize,
+            ImVec2(0, 1),
+            ImVec2(1, 0)
+        );
+    }
+
+    ImGui::EndChild();
+    ImGui::End();
 }

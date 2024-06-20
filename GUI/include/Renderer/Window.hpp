@@ -25,8 +25,6 @@ class Window {
         Window(Window&&)  noexcept = default;
         Window& operator=(Window&&) = delete;
 
-        bool wasResized = false;    // NOLINT
-
         /**
          * @brief Check if the user has attempted to close the window
          *

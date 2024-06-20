@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 SSRPass::SSRPass(std::shared_ptr<Window>& window) : m_window(window), m_size(glm::vec2(window->getWidth(), window->getHeight())) {
-    m_shaderProgram = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSR.frag");
+    m_shaderProgram = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/SSR.frag");
 
     // Framebuffer creation
     glGenFramebuffers(1, &m_ssrFBO);
@@ -41,11 +41,11 @@ SSRPass::~SSRPass() {
     glDeleteTextures(1, &m_ssrTexture);
 }
 
-void SSRPass::resize(uint16_t width, uint16_t height) noexcept {
+void SSRPass::resize(const glm::vec2& size) noexcept {
     glBindTexture(GL_TEXTURE_2D, m_ssrTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(width), static_cast<int>(height), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, static_cast<int>(size[0]), static_cast<int>(size[1]), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
 
-    m_size = glm::vec2(width, height);
+    m_size = glm::vec2(size[0], size[1]);
 }
 
 void SSRPass::bind(uint32_t gBufferNormal, uint32_t gBufferAlbedo, uint32_t gBufferDepth, const glm::mat4& proj, const glm::mat4& view) const noexcept {

@@ -6,9 +6,10 @@ layout(location = 0) in vec3 inWorldPos;
 
 uniform samplerCube envMap;
 uniform sampler2D normalMap;
+uniform vec2 resolution;
 
 void main() {
-    vec3 normal = texture(normalMap, gl_FragCoord.xy / vec2(1280, 720)).xyz;
+    vec3 normal = texture(normalMap, gl_FragCoord.xy / resolution).xyz;
     if (length(normal) > 0.1)
         discard;
 

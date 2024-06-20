@@ -27,7 +27,7 @@ class SSRPass {
 
         void bind(uint32_t gBufferNormal, uint32_t gBufferAlbedo, uint32_t gBufferDepth, const glm::mat4& proj, const glm::mat4& view) const noexcept;
 
-        void resize(uint16_t width, uint16_t height) noexcept;
+        void resize(const glm::vec2& size) noexcept;
 
         [[nodiscard]] uint32_t getSSRTexture() const noexcept { return m_ssrTexture; }
         [[nodiscard]] uint32_t getFramebuffer() const noexcept { return m_ssrFBO; }

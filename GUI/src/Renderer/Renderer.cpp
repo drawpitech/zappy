@@ -20,24 +20,28 @@
 Renderer::Renderer() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
     m_camera = std::make_unique<Camera>(m_window);
-    m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
 
     {   // Render passes
         m_gBufferPass = std::make_unique<GBufferPass>(m_window);
 
+        m_lightingPass = std::make_unique<LightingPass>(m_window);
+
         m_ssaoPass = std::make_unique<SSAOPass>(m_window);
-        m_ssaoPass->resize(m_window->getWidth(), m_window->getHeight());
+        m_ssaoPass->resize(m_lightingPass->getViewportSize());
 
         m_ssrPass = std::make_unique<SSRPass>(m_window);
-        m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
-
-        m_lightingPass = std::make_unique<LightingPass>(m_window);
+        m_ssrPass->resize(m_lightingPass->getViewportSize());
     }
+
+    m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 500.0);
 
     {   // ImGui initialization
         IMGUI_CHECKVERSION();
         if ((ImGui::CreateContext() == nullptr) || !ImGui_ImplGlfw_InitForOpenGL(m_window->getHandle(), true) || !ImGui_ImplOpenGL3_Init("#version 460"))
             throw std::runtime_error("Failed to initialize ImGui");
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         ImGui::StyleColorsDark();
     }
@@ -49,12 +53,13 @@ Renderer::~Renderer() {
 void Renderer::handleUserInput() noexcept {
     m_window->pollEvents();
 
-    if (m_window->wasResized) {
-        m_camera->setPerspective(70, static_cast<float>(m_window->getWidth()) / static_cast<float>(m_window->getHeight()), 0.1, 100.0);
-        m_gBufferPass->resize(m_window->getWidth(), m_window->getHeight());
-        m_ssaoPass->resize(m_window->getWidth(), m_window->getHeight());
-        m_ssrPass->resize(m_window->getWidth(), m_window->getHeight());
-        m_window->wasResized = false;
+    if (m_lightingPass->wasResized) {
+        m_camera->setPerspective(70, static_cast<float>(m_lightingPass->getViewportSize()[0]) / static_cast<float>(m_lightingPass->getViewportSize()[1]), 0.01, 500.0);
+        m_gBufferPass->resize(m_lightingPass->getViewportSize());
+        m_ssaoPass->resize(m_lightingPass->getViewportSize());
+        m_ssrPass->resize(m_lightingPass->getViewportSize());
+        m_lightingPass->resize(m_lightingPass->getViewportSize());
+        m_lightingPass->wasResized = false;
     }
 
     if (glfwGetMouseButton(m_window->getHandle(), GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
@@ -71,9 +76,9 @@ void Renderer::handleUserInput() noexcept {
 
 void Renderer::drawUi() noexcept {
     ImGui::SetNextWindowBgAlpha(0);
-    ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(300, 300));
-    ImGui::Begin("Menu", nullptr, ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBackground);
+    // ImGui::SetNextWindowPos(ImVec2(0, 0));
+    // ImGui::SetNextWindowSize(ImVec2(300, 300));
+    ImGui::Begin("Menu", nullptr, 0);
 
         {   // Telemetry
             ImGui::Text("Frame time: %.3f", m_deltaTime * 1000.0); // NOLINT
@@ -108,12 +113,11 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
     updateDeltaTime();
     handleUserInput();
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
 
     {   // Static meshes
         m_gBufferPass->bindFramebuffer();
+        glViewport(0, 0, static_cast<GLsizei>(m_lightingPass->getViewportSize()[0]), static_cast<GLsizei>(m_lightingPass->getViewportSize()[1]));
+
         m_gBufferPass->bindStaticShader(m_camera->getViewMatrix(), m_camera->getProjectionMatrix());
         for (const auto& actor : scene->staticActors) {
             auto transform = glm::mat4(1);

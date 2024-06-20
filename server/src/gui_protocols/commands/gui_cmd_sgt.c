@@ -14,5 +14,5 @@ void gui_cmd_sgt(server_t *server, gui_client_t *client, UNUSED char *args)
 {
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "sgt %ld\n", server->ctx.freq);
+    gui_dprintf(client, "sgt %ld\n", server->ctx.freq);
 }

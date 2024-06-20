@@ -14,9 +14,15 @@
 #include "gui_internal.h"
 
 static const struct gui_cmd_s commands[] = {
-    {"msz", gui_cmd_msz}, {"bct", gui_cmd_bct}, {"mct", gui_cmd_mct},
-    {"tna", gui_cmd_tna}, {"ppo", gui_cmd_ppo}, {"plv", gui_cmd_plv},
-    {"pin", gui_cmd_pin}, {"sgt", gui_cmd_sgt}, {"sst", gui_cmd_sst},
+    {"bct", gui_cmd_bct},
+    {"mct", gui_cmd_mct},
+    {"msz", gui_cmd_msz},
+    {"pin", gui_cmd_pin},
+    {"plv", gui_cmd_plv},
+    {"ppo", gui_cmd_ppo},
+    {"sgt", gui_cmd_sgt},
+    {"sst", gui_cmd_sst},
+    {"tna", gui_cmd_tna},
 };
 
 const struct gui_cmd_s *const GUI_CLIENT_COMMANDS = commands;
@@ -51,7 +57,7 @@ static void exec_gui_cmd(server_t *server, gui_client_t *client)
     }
     cmd = get_gui_cmd(client->buffer.str);
     if (cmd == NULL || cmd->func == NULL) {
-        write(client->s_fd, "ko\n", 3);
+        gui_write(client, "ko\n", 3);
         return;
     }
     cmd->func(server, client, content);
@@ -105,7 +111,7 @@ static void handle_gui(server_t *server)
     gui_client_t *client = server->gui_client;
 
     if (resize_buffer(client, bufsiz) == RET_ERROR) {
-        write(client->s_fd, "ko\n", 3);
+        gui_write(client, "ko\n", 3);
         return;
     }
     ptr = client->buffer.str + client->buffer.size;

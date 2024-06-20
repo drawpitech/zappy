@@ -17,18 +17,17 @@ all: zappy_server zappy_gui zappy_ai
 .PHONY: zappy_server
 zappy_server:
 	cmake -S server -B .build/server ${CMAKEFLAGS}
-	cmake --build .build/server --target install ${MAKEFLAGS}
+	cmake --build .build/server --target install
 
 .PHONY: zappy_gui
 zappy_gui:
 	cmake -S GUI -B .build/gui ${CMAKEFLAGS}
-	cmake --build .build/gui --target install ${MAKEFLAGS}
+	cmake --build .build/gui --target install
 
 # TODO
 .PHONY: zappy_ai
 zappy_ai:
-	cmake -S ai -B .build/ai ${CMAKEFLAGS}
-	cmake --build .build/ai --target install ${MAKEFLAGS}
+	ln -fs AI/zappy_ai zappy_ai
 
 .PHONY: clean
 clean:

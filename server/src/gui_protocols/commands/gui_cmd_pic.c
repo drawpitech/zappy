@@ -18,6 +18,6 @@ void gui_cmd_pic(UNUSED server_t *server, gui_client_t *client, char *args)
         return;
     if (!cmd)
         return;
-    dprintf(client->s_fd, "pic %s\n", args);
+    gui_dprintf(client, "pic %s\n", args);
     free_array((void **)cmd);
 }

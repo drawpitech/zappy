@@ -5,7 +5,6 @@ Module providing the trantorian class
 from enum import IntEnum
 from time import time
 import random
-import os
 from warnings import warn
 
 from multiprocessing import Queue
@@ -306,6 +305,8 @@ class Trantorian:
         can_level_up = []
         i = 0
         while self.iter_food() and self.state == "wander" and not can_level_up:
+            if len(self.others) < 7 and self.unused_slot > 0:
+                self.asexual_multiplication(queue)
             self.look_around()
             for _ in range(self.level): # TODO maybe some priority order here
                 if not self.take_tile_objects():

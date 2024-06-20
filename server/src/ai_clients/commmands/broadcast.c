@@ -10,7 +10,7 @@
 
 #include "array.h"
 #include "commands.h"
-#include "../../gui_protocols/commands/commands.h"
+#include "gui_protocols/commands/commands.h"
 #include "server.h"
 
 static int compute(const int a, const int b, const int grid_size)
@@ -38,44 +38,44 @@ static int compute_dir(
     dy = compute(p1.y, p2.y, grid_size[1]);
     if (abs(dx) == abs(dy)) {
         if (dy < 0 && dx > 0)
-            result = S_NORTH_EAST;
-        if (dy < 0 && dx < 0)
-            result = S_NORTH_WEST;
-        if (dy > 0 && dx > 0)
-            result = S_SOUTH_EAST;
-        if (dy > 0 && dx < 0)
             result = S_SOUTH_WEST;
+        if (dy < 0 && dx < 0)
+            result = S_SOUTH_EAST;
+        if (dy > 0 && dx > 0)
+            result = S_NORTH_WEST;
+        if (dy > 0 && dx < 0)
+            result = S_NORTH_EAST;
     }
-    if (abs(dy) >= abs(dx)) {
+    else if (abs(dy) >= abs(dx)) {
         if (dy < 0)
-            result = S_NORTH;
-        if (dy > 0)
             result = S_SOUTH;
+        if (dy > 0)
+            result = S_NORTH;
     }
-    if (abs(dx) >= abs(dy)) {
+    else if (abs(dx) >= abs(dy)) {
         if (dx > 0)
-            result = S_EAST;
-        if (dx < 0)
             result = S_WEST;
+        if (dx < 0)
+            result = S_EAST;
     }
     return result;
 }
 
 void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
 {
-    unsigned int dir = 0;
-    ai_client_t *current = NULL;
+    int dir = 0;
+    ai_client_t *cur = NULL;
 
     for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
-        current = server->ai_clients.elements[i];
-        if (current->s_fd < 0 || current == client)
+        cur = server->ai_clients.elements[i];
+        if (cur->s_fd < 0 || cur == client)
             continue;
-        dir = compute_dir(
-            client->pos, current->pos,
-            (int[2]){(int)server->ctx.width, (int)server->ctx.height});
-        dir = (conv_table[client->dir] - dir) + 1;
-        dprintf(current->s_fd, "message %d, %s\n", dir, args);
+        dir = (client->pos.x == cur->pos.x && client->pos.y == cur->pos.y)
+            ? 0 : abs((int)(conv_table[cur->dir] - compute_dir(
+            client->pos, cur->pos,
+            (int[2]){(int)server->ctx.width, (int)server->ctx.height}))) + 1;
+        ai_dprintf(cur, "message %d, %s\n", dir, args);
     }
-    write(client->s_fd, "ok\n", 3);
+    ai_write(client, "ok\n", 3);
     gui_cmd_pbc(server, server->gui_client, client->id, args);
 }

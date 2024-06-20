@@ -7,6 +7,8 @@
 
 #include <stdlib.h>
 
+#include "server.h"
+
 void free_array(void **array)
 {
     for (size_t i = 0; array[i] != NULL; ++i) {

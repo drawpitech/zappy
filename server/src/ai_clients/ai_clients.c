@@ -21,16 +21,19 @@ void move_ai_client(server_t *server, ai_client_t *client, int dir)
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
     switch (dir) {
         case NORTH:
-            client->pos.y = (client->pos.y - 1) % (int)server->ctx.height;
+            client->pos.y = MOD(client->pos.y - 1, (int)server->ctx.height);
             break;
         case SOUTH:
-            client->pos.y = (client->pos.y + 1) % (int)server->ctx.height;
+            client->pos.y = MOD(client->pos.y + 1, (int)server->ctx.height);
             break;
         case EAST:
-            client->pos.x = (client->pos.x + 1) % (int)server->ctx.width;
+            client->pos.x = MOD(client->pos.x + 1, (int)server->ctx.width);
             break;
         case WEST:
-            client->pos.x = (client->pos.x - 1) % (int)server->ctx.width;
+            client->pos.x = MOD(client->pos.x - 1, (int)server->ctx.width);
+            break;
+        default:
+            ERR("Shoudn't happen");
             break;
     }
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
@@ -57,18 +60,18 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     remove_elt_to_array(&serv->eggs, egg_idx);
     CELL(serv, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     CELL(serv, client->pos.x, client->pos.y)->res[EGG].quantity--;
+    serv->map_res[EGG].quantity--;
     gui_cmd_ebo(serv, serv->gui_client, egg);
     gui_cmd_pnw(serv, serv->gui_client, client);
-    dprintf(client_fd, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
-    dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
+    ai_dprintf(client, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
+    ai_dprintf(client, "%ld %ld\n", serv->ctx.width, serv->ctx.height);
     return RET_VALID;
 }
 
-void disconnect_ai_client(server_t *server, ai_client_t *ai)
+void disconnect_ai_client(ai_client_t *ai)
 {
     if (!ai)
         return;
-    gui_cmd_pdi(server, server->gui_client, ai->id);
     if (ai->s_fd > 0)
         close(ai->s_fd);
     ai->s_fd = -1;
@@ -82,10 +85,9 @@ int remove_ai_client(server_t *server, size_t idx)
         return RET_ERROR;
     client = server->ai_clients.elements[idx];
     if (client) {
-        if (client->s_fd > 0) {
-            write(client->s_fd, UNPACK("quit\n"));
-            disconnect_ai_client(server, client);
-        }
+        gui_cmd_pdi(server, server->gui_client, client->id);
+        ai_write(client, UNPACK("quit\n"));
+        disconnect_ai_client(client);
         CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
         free(client->buffer.str);
         free(client->q_cmds);
@@ -105,13 +107,25 @@ static bool starve_to_death(server_t *server, ai_client_t *ai)
         ai->last_fed = now;
         return false;
     }
-    if (server->ctx.freq >= 0 && now - ai->last_fed < 126 / server->ctx.freq) {
+    if (server->ctx.freq >= 0 && now - ai->last_fed > 126 / server->ctx.freq) {
         ai->res[FOOD].quantity -= 1;
         ai->last_fed = now;
     }
     if (ai->res[FOOD].quantity <= 0)
         return ERR("Starved to death"), true;
     return false;
+}
+
+static void exec_queued_cmds(server_t *server, ai_client_t *client)
+{
+    if (client->last_inc == 0) {
+        queue_pop_cmd(server, client);
+        return;
+    }
+    if (server->ctx.freq >= 0 &&
+        time(NULL) - client->last_inc > 300 / server->ctx.freq) {
+        ai_client_incantation_end(server, client);
+    }
 }
 
 void iterate_ai_clients(server_t *server)
@@ -125,8 +139,7 @@ void iterate_ai_clients(server_t *server)
             remove_ai_client(server, i);
             continue;
         }
-        if (!client->freezed)
-            queue_pop_cmd(server, client);
+        exec_queued_cmds(server, client);
         FD_ZERO(&rfd);
         FD_SET(client->s_fd, &rfd);
         if (select(

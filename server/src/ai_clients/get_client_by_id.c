@@ -11,7 +11,7 @@ egg_t *get_egg_by_id(server_t *server, int egg_id)
 {
     egg_t *current = NULL;
 
-    for (size_t i = 0; i < server->eggs.size; ++i) {
+    for (size_t i = 0; i < server->eggs.nb_elements; ++i) {
         current = server->eggs.elements[i];
         if (current->id == egg_id)
             return current;
@@ -23,7 +23,7 @@ ai_client_t *get_client_by_id(server_t *server, int client_id)
 {
     ai_client_t *current = NULL;
 
-    for (size_t i = 0; i < server->ai_clients.size; ++i) {
+    for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
         current = server->ai_clients.elements[i];
         if (current->id == client_id)
             return current;

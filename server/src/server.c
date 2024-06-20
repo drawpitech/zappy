@@ -18,6 +18,7 @@
 #include "arg_parse.h"
 #include "array.h"
 #include "gui_protocols/commands/commands.h"
+#include <signal.h>
 #include "time.h"
 
 const double DENSITIES[R_COUNT] = {
@@ -58,7 +59,7 @@ static int init_server(server_t *serv, int port)
     if (serv->s_fd == -1)
         return ERR("socket failed"), RET_ERROR;
     if (setsockopt(
-        serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
+            serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
         return ERR("setsockopt failed"), RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
@@ -168,8 +169,12 @@ static void log_new_gui(server_t *serv)
     gui_cmd_sgt(serv, serv->gui_client, "");
     gui_cmd_mct(serv, serv->gui_client, "");
     gui_cmd_tna(serv, serv->gui_client, "");
-    // enw eggs
-    // pin players
+    for (size_t i = 0; i < serv->eggs.nb_elements; ++i)
+        gui_cmd_enw(serv, serv->gui_client, serv->eggs.elements[i], -1);
+    for (size_t i = 0; i < serv->ai_clients.nb_elements; ++i)
+        gui_cmd_pin(
+            serv, serv->gui_client,
+            ((ai_client_t *)serv->ai_clients.elements[i])->team);
 }
 static void connect_gui_client(server_t *serv, int client_fd)
 {
@@ -233,33 +238,39 @@ static int iterate_waitlist(server_t *server)
 
 static void refill_map(server_t *server, context_t *ctx)
 {
-    size_t spread = 0;
+    long spread = 0;
     size_t x = 0;
     size_t y = 0;
     time_t now = time(NULL);
 
-    if (ctx->freq <= 0 && now - server->last_refill <= 20 / ctx->freq)
+    if (ctx->freq <= 0 || now - server->last_refill <= 20 / ctx->freq)
         return;
     server->last_refill = now;
-    for (size_t i = 0; i < LEN(DENSITIES); ++i) {
-        spread = (size_t)((double)ctx->map_size * DENSITIES[i]);
+    for (size_t i = 0; i < R_COUNT - 2; ++i) {
+        spread = (long)((double)ctx->map_size * DENSITIES[i]);
         spread -= server->map_res[i].quantity;
-        for (size_t cell = 0; cell < spread; ++cell) {
+        for (long cell = 0; cell < spread; ++cell) {
             x = rand() % ctx->width;
             y = rand() % ctx->height;
             server->map[IDX(x, y, ctx->width, ctx->height)].res[i].quantity++;
             server->map_res[i].quantity++;
         }
     }
+    if (server->gui_client)
+        gui_cmd_mct(server, server->gui_client, NULL);
 }
 
 static int init_map(server_t *server, context_t *ctx)
 {
     ctx->map_size = ctx->width * ctx->height;
-    server->map = malloc(sizeof(cell_t) * ctx->map_size);
+    if (ctx->map_size == 0)
+        return RET_ERROR;
+    server->map = calloc(ctx->map_size, sizeof(cell_t));
     if (server->map == NULL)
         return OOM, RET_ERROR;
     refill_map(server, ctx);
+    for (size_t i = 0; i < server->ctx.map_size; ++i)
+        server->map[i].pos = (vector_t){i % ctx->width, i / ctx->width};
     for (size_t i = 0; i < server->ctx.names.nb_elements; ++i)
         for (size_t j = 0; j < server->ctx.client_nb; ++j)
             spawn_egg(server, server->ctx.names.elements[i]);
@@ -277,23 +288,19 @@ egg_t *spawn_egg(server_t *server, char *team)
 {
     egg_t *egg = malloc(sizeof *egg);
 
-    if (!egg) {
-        OOM;
-        return NULL;
-    }
+    if (!egg)
+        return OOM, NULL;
     egg->pos = (vector_t){
         .x = rand() % (int)server->ctx.width,
         .y = rand() % (int)server->ctx.height,
     };
     egg->team = team;
-    if (add_elt_to_array(&server->eggs, egg) == RET_ERROR) {
-        free(egg);
-        OOM;
-        return NULL;
-    }
+    if (add_elt_to_array(&server->eggs, egg) == RET_ERROR)
+        return OOM, free(egg), NULL;
     egg->id = server->egg_id;
     server->egg_id++;
     CELL(server, egg->pos.x, egg->pos.y)->res[EGG].quantity += 1;
+    server->map_res[EGG].quantity += 1;
     return egg;
 }
 
@@ -301,6 +308,7 @@ int server(int argc, char **argv)
 {
     server_t server = {0};
 
+    signal(13, SIG_IGN);
     srand(time(NULL));
     if (arg_parse(argc, argv, &server.ctx) != RET_VALID ||
         init_server(&server, server.ctx.port) != RET_VALID ||

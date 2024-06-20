@@ -65,10 +65,10 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
     (void) window;
     (void) xoffset;
     cameraSpeed += static_cast<float>(yoffset);
-    if (cameraSpeed < 1)
-        cameraSpeed = 1;
-    if (cameraSpeed > 10)
-        cameraSpeed = 10;
+    if (cameraSpeed < 0.1)
+        cameraSpeed = 0.1;
+    if (cameraSpeed > 100)
+        cameraSpeed = 100;
 }
 
 Camera::Camera(std::shared_ptr<Window>& window) : m_window(window) {

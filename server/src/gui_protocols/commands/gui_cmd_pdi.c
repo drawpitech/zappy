@@ -15,5 +15,5 @@ void gui_cmd_pdi(UNUSED server_t *server, gui_client_t *client, int ai_id)
 {
     if (client == NULL)
         return;
-    dprintf(client->s_fd, "pdi #%d\n", ai_id);
+    gui_dprintf(client, "pdi %d\n", ai_id);
 }

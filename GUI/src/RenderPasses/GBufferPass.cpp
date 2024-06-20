@@ -10,8 +10,8 @@
 #include "Renderer/Window.hpp"
 
 GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
-    m_staticShaderProgram = std::make_shared<ShaderProgram>("../GUI/shaders/GBufferStatic.vert", "../GUI/shaders/GBuffer.frag");
-    m_skinnedShaderProgram = std::make_shared<ShaderProgram>("../GUI/shaders/GBufferSkinned.vert", "../GUI/shaders/GBuffer.frag");
+    m_staticShaderProgram = std::make_shared<ShaderProgram>("GUI/shaders/GBufferStatic.vert", "GUI/shaders/GBuffer.frag");
+    m_skinnedShaderProgram = std::make_shared<ShaderProgram>("GUI/shaders/GBufferSkinned.vert", "GUI/shaders/GBuffer.frag");
 
     // Framebuffer creation
     glGenFramebuffers(1, &m_gBuffer);
@@ -81,27 +81,27 @@ GBufferPass::~GBufferPass() {
     glDeleteBuffers(1, &m_quadVBO);
 }
 
-void GBufferPass::resize(const uint16_t width, const uint16_t height) const {
+void GBufferPass::resize(const glm::vec2& size) const {
     glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
 
     glBindTexture(GL_TEXTURE_2D, m_positionTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RGBA, GL_FLOAT, nullptr);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_positionTexture, 0);
 
     glBindTexture(GL_TEXTURE_2D, m_normalTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RGBA, GL_FLOAT, nullptr);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_normalTexture, 0);
 
     glBindTexture(GL_TEXTURE_2D, m_albedoTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_albedoTexture, 0);
 
     glBindTexture(GL_TEXTURE_2D, m_pbrTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, width, height, 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RG, GL_UNSIGNED_BYTE, nullptr);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, m_pbrTexture, 0);
 
     glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV, nullptr);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, m_depthTexture, 0);
 
     std::array<unsigned int, 4> attachments = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 , GL_COLOR_ATTACHMENT3};
@@ -114,8 +114,6 @@ void GBufferPass::resize(const uint16_t width, const uint16_t height) const {
 }
 
 void GBufferPass::bindFramebuffer() const noexcept {
-    glViewport(0, 0, static_cast<GLsizei>(m_window->getWidth()), static_cast<GLsizei>(m_window->getHeight()));
-
     glBindFramebuffer(GL_FRAMEBUFFER, m_gBuffer);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

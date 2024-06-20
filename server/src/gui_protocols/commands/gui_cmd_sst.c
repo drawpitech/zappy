@@ -17,9 +17,9 @@ void gui_cmd_sst(server_t *server, gui_client_t *client, char *args)
     if (client == NULL)
         return;
     if (freq == 0) {
-        dprintf(client->s_fd, "ko\n");
+        gui_dprintf(client, "ko\n");
         return;
     }
     server->ctx.freq = freq;
-    dprintf(client->s_fd, "sst %ld\n", freq);
+    gui_dprintf(client, "sst %ld\n", freq);
 }

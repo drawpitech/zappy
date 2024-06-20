@@ -15,8 +15,8 @@ float lerp(float a, float b, float f) {
 }
 
 SSAOPass::SSAOPass(std::shared_ptr<Window>& window) : m_window(window), m_size(glm::vec2(window->getWidth(), window->getHeight())) {
-    m_ssaoPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAO.frag");
-    m_blurPass = std::make_unique<ShaderProgram>("../GUI/shaders/Lighting.vert", "../GUI/shaders/SSAOBlur.frag");
+    m_ssaoPass = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/SSAO.frag");
+    m_blurPass = std::make_unique<ShaderProgram>("GUI/shaders/Lighting.vert", "GUI/shaders/SSAOBlur.frag");
 
     glGenFramebuffers(1, &m_ssaoFBO);
     glGenFramebuffers(1, &m_ssaoBlurFBO);
@@ -88,14 +88,14 @@ SSAOPass::~SSAOPass() {
     glDeleteTextures(1, &m_ssaoBlurTexture);
 }
 
-void SSAOPass::resize(uint16_t width, uint16_t height) noexcept {
+void SSAOPass::resize(const glm::vec2& size) noexcept {
     glBindTexture(GL_TEXTURE_2D, m_ssaoTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RED, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RED, GL_FLOAT, nullptr);
 
     glBindTexture(GL_TEXTURE_2D, m_ssaoBlurTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(width), static_cast<GLsizei>(height), 0, GL_RED, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, static_cast<GLsizei>(size[0]), static_cast<GLsizei>(size[1]), 0, GL_RED, GL_FLOAT, nullptr);
 
-    m_size = glm::vec2(width, height);
+    m_size = glm::vec2(size[0], size[1]);
 }
 
 void SSAOPass::bindMainPass(uint32_t positionTexture, uint32_t normalTexture, const glm::mat4& view, const glm::mat4& proj) const noexcept {

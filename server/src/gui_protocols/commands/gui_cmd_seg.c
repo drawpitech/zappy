@@ -14,5 +14,5 @@ void gui_cmd_seg(UNUSED server_t *server, gui_client_t *client, char *args)
 {
     if (!args || client == NULL)
         return;
-    dprintf(client->s_fd, "seg %s\n", args);
+    gui_dprintf(client, "seg %s\n", args);
 }

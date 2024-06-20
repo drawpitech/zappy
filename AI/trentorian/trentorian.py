@@ -37,6 +37,7 @@ from utils import (
 #-----------------------------------------------------------------------------#
 
 FOOD = 126
+MAX_PLAYER = 12
 class TrantorianDirection(IntEnum):
     """Trantorian direction enum
     """
@@ -154,20 +155,19 @@ class Trantorian:
                     if not success:
                         self.broadcast(MessageTypeParser().serialize(
                             MessageType.RITUAL_FAILED, self), can_level_up)
-                    self.number_of_ritual_ready = 0
 
                 if self.state == 'going somewhere':
                     success = self.follow_the_leader()
 
                 if success:
                     success = self.wait_incant()
-                self.dprint("incantation end", success, time())
+                self.dprint("incantation end", success)
                 self.dispo_incant = True
                 self.broadcast("just$update", ["all"])
         except BrokenPipeError:
             self.dprint("Server closed socket")
             self.dead = True
-        self.dprint("died", time())
+        self.dprint("died")
         return
 
     def be_the_shaman(self, can_do_incant: list) -> bool:
@@ -197,6 +197,7 @@ class Trantorian:
         self.dispo_incant = False
         self.broadcast("just$update", ["all"])
         if not self.follow_beacon():
+            self.dprint("didnt go to beacon")
             return False
         self.drop_stuff()
         self.broadcast(MessageTypeParser().serialize(
@@ -319,12 +320,11 @@ class Trantorian:
             i += 1
             if not i % 4:
                 continue
-            self.troll_broadcasts()
+            # self.troll_broadcasts() # TODO put this back
             self.broadcast("just$update", ["all"])
             self.get_unused_slot()
-            if len(self.others) < 12 and self.unused_slot > 0 and self.level > 1:
-                s = self.asexual_multiplication(queue)
-                print('oooooo', self.unused_slot)
+            if len(self.others) < MAX_PLAYER and self.unused_slot > 0:
+                self.asexual_multiplication(queue)
         if can_level_up and self.state != "going somewhere":
             self.state = "shaman"
         return can_level_up
@@ -335,10 +335,10 @@ class Trantorian:
         Returns:
             bool: true if we are on the same case at the end
         """
-        last_recep = 0
         while self.iter() and self.state == "going somewhere":
             if self.last_beacon_direction == 0:
                 self.state = "ritual_prep"
+                self.dprint(" I am ready with", self.last_beacon_uid)
                 break
 
             if self.last_beacon_direction < 5 and self.last_beacon_direction != 1:
@@ -350,12 +350,9 @@ class Trantorian:
                 self.right()
 
             self.forward()
-            if self.last_beacon_time == last_recep:
-                self.look_around()
-                if self.last_beacon_time == last_recep:
-                    self.state = "wander"
-                    return False
-            last_recep = self.last_beacon_time
+            self.state = "wait"
+            while not self.dead and self.state == "wait":
+                self.get_answer()
         return not self.dead and self.state == "ritual_prep"
 
     def beacon(self, receivers: list) -> None:
@@ -365,7 +362,7 @@ class Trantorian:
             receivers (list): people to regroup
         """
         self.state = "beacon"
-
+        self.number_of_ritual_ready = 0
         while self.iter() and self.state == "beacon":
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
             if self.number_of_ritual_ready >= LEVELS[self.level + 1][0] - 1:
@@ -384,8 +381,7 @@ class Trantorian:
         if len(self.others) > 15:
             self.suicide()
             return
-        if self.client.team_size > 0 and len(self.others) < 12:
-            # print(len(self.others), self.client.team_size, self.unused_slot)
+        if self.client.team_size > 0 and len(self.others) < MAX_PLAYER:
             self.asexual_multiplication(queue)
         self.broadcast("im$alive", ["all"])
         for _ in range(10): # use to set a first value for tick_time
@@ -650,16 +646,8 @@ class Trantorian:
 
         cases = split_list(self.wait_answer())
         if cases == []:
+            self.dprint('look parse failed')
             return False
-        nb_case: int = len(cases)
-        i: int = 1
-        current = 1
-        while i < 9 and current < nb_case:
-            current += 1 + 2 * i
-            i += 1
-        if nb_case != current:
-            return False
-        self.level = i - 1
 
         self.get_current_case().fill_from_str(cases.pop(0))
         direct: int = -1
@@ -696,6 +684,7 @@ class Trantorian:
 
         content = split_list(answer)
         if content == []:
+            self.dprint('inventory parse faile')
             return False
         self.tick_time = ((self.tick_time * self.nbr_tests_ticks + (t2 - t1))
                         / (self.nbr_tests_ticks + 1))
@@ -775,7 +764,6 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         queue.put("birth")
-        print(len(self.others))
         return True
 
     def eject(self) -> bool:

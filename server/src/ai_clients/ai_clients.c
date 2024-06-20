@@ -21,16 +21,16 @@ void move_ai_client(server_t *server, ai_client_t *client, int dir)
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
     switch (dir) {
         case NORTH:
-            client->pos.y = MOD(client->pos.y - 1, server->ctx.height);
+            client->pos.y = MOD(client->pos.y - 1, (int)server->ctx.height);
             break;
         case SOUTH:
-            client->pos.y = MOD(client->pos.y + 1, server->ctx.height);
+            client->pos.y = MOD(client->pos.y + 1, (int)server->ctx.height);
             break;
         case EAST:
-            client->pos.x = MOD(client->pos.x + 1, server->ctx.width);
+            client->pos.x = MOD(client->pos.x + 1, (int)server->ctx.width);
             break;
         case WEST:
-            client->pos.x = MOD(client->pos.x - 1, server->ctx.width);
+            client->pos.x = MOD(client->pos.x - 1, (int)server->ctx.width);
             break;
         default:
             ERR("Shoudn't happen");
@@ -101,6 +101,7 @@ static bool starve_to_death(server_t *server, ai_client_t *ai)
 {
     time_t now = time(NULL);
 
+    return false;
     if (ai->res[FOOD].quantity <= 0)
         return ERR("Starved to death"), true;
     if (ai->last_fed == 0) {

@@ -49,7 +49,7 @@ class Client:
             try:
                 new = self.socket.recv(1024).decode() # TODO use select to ensure not blocking
             except (ConnectionResetError, socket.timeout):
-                self.buffer = "dead\n"
+                new = ''
             if new == '':
                 self.buffer = "dead\n"
             self.buffer += new

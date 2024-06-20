@@ -305,6 +305,7 @@ class Trantorian:
         can_level_up = []
         i = 0
         while self.iter_food() and self.state == "wander" and not can_level_up:
+            self.get_unused_slot()
             if len(self.others) < 7 and self.unused_slot > 0:
                 self.asexual_multiplication(queue)
             self.look_around()

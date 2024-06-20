@@ -60,16 +60,15 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     serv->map_res[EGG].quantity--;
     gui_cmd_ebo(serv, serv->gui_client, egg);
     gui_cmd_pnw(serv, serv->gui_client, client);
-    dprintf(client_fd, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
-    dprintf(client_fd, "%ld %ld\n", serv->ctx.width, serv->ctx.height);
+    ai_dprintf(client, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
+    ai_dprintf(client, "%ld %ld\n", serv->ctx.width, serv->ctx.height);
     return RET_VALID;
 }
 
-void disconnect_ai_client(server_t *server, ai_client_t *ai)
+void disconnect_ai_client(ai_client_t *ai)
 {
     if (!ai)
         return;
-    gui_cmd_pdi(server, server->gui_client, ai->id);
     if (ai->s_fd > 0)
         close(ai->s_fd);
     ai->s_fd = -1;
@@ -83,10 +82,9 @@ int remove_ai_client(server_t *server, size_t idx)
         return RET_ERROR;
     client = server->ai_clients.elements[idx];
     if (client) {
-        if (client->s_fd > 0) {
-            write(client->s_fd, UNPACK("quit\n"));
-            disconnect_ai_client(server, client);
-        }
+        gui_cmd_pdi(server, server->gui_client, client->id);
+        ai_write(client, UNPACK("quit\n"));
+        disconnect_ai_client(client);
         CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
         free(client->buffer.str);
         free(client->q_cmds);

@@ -125,20 +125,20 @@ void ai_cmd_look(server_t *server, ai_client_t *client, UNUSED char *args)
     bool space = false;
 
     if (payload == NULL) {
-        write(client->s_fd, "[]\n", 3);
+        ai_write(client, "[]\n", 3);
         return;
     }
-    dprintf(client->s_fd, "[");
+    ai_dprintf(client, "[");
     for (size_t i = 0; i < payload->size; ++i) {
         cell = &payload->cell_content[i];
         for (short j = 0; j < R_COUNT; ++j) {
             for (int k = 0; k < cell->res[j].quantity; ++k) {
-                dprintf(client->s_fd, "%s%s", (space) ? " " : "", r_name[j]);
+                ai_dprintf(client, "%s%s", (space) ? " " : "", r_name[j]);
                 space = true;
             }
         }
         if (i != 0)
-            dprintf(client->s_fd, ",");
+            ai_dprintf(client, ",");
     }
-    dprintf(client->s_fd, "]\n");
+    ai_dprintf(client, "]\n");
 }

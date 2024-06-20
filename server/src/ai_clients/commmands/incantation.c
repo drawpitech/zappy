@@ -47,7 +47,7 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
 
     client->last_inc = 0;
     if (!can_incantation(client, cell)) {
-        dprintf(client->s_fd, "ko\n");
+        ai_dprintf(client, "ko\n");
         ERR("Uwu you lost all your money");
         return;
     }
@@ -55,7 +55,7 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
     consume_ressources(server, client, cell, true);
     sprintf(buffer, "%d %d", client->pos.x, client->pos.y);
     gui_cmd_bct(server, server->gui_client, buffer);
-    dprintf(client->s_fd, "Current level: %d\n", client->lvl);
+    ai_dprintf(client, "Current level: %d\n", client->lvl);
     gui_cmd_pie(server, server->gui_client, client->pos, 1);
 }
 
@@ -70,7 +70,7 @@ void ai_cmd_incantation(
     time_t now = time(NULL);
 
     if (!can_incantation(client, &cell_cpy)) {
-        write(client->s_fd, "ko\n", 3);
+        ai_write(client, "ko\n", 3);
         ERR("Skill issue");
         return;
     }
@@ -87,5 +87,5 @@ void ai_cmd_incantation(
         }
     }
     gui_cmd_pic(server, server->gui_client, buffer);
-    dprintf(client->s_fd, "Elevation underway\n");
+    ai_dprintf(client, "Elevation underway\n");
 }

@@ -74,8 +74,8 @@ void ai_cmd_broadcast(server_t *server, ai_client_t *client, char *args)
             client->pos, current->pos,
             (int[2]){(int)server->ctx.width, (int)server->ctx.height});
         dir = abs((int)(conv_table[client->dir] - dir)) + 1;
-        dprintf(current->s_fd, "message %d, %s\n", dir, args);
+        ai_dprintf(current, "message %d, %s\n", dir, args);
     }
-    write(client->s_fd, "ok\n", 3);
+    ai_write(client, "ok\n", 3);
     gui_cmd_pbc(server, server->gui_client, client->id, args);
 }

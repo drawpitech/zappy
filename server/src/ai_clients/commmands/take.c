@@ -15,12 +15,12 @@ void ai_cmd_take(server_t *server, ai_client_t *client, char *args)
     cell_t *cell = CELL(server, client->pos.x, client->pos.y);
 
     if ((int)res == -1 || cell->res[res].quantity == 0) {
-        write(client->s_fd, "ko\n", 3);
+        ai_write(client, "ko\n", 3);
         return;
     }
     cell->res[res].quantity--;
     server->map_res[res].quantity--;
     client->res[res].quantity++;
-    write(client->s_fd, "ok\n", 3);
+    ai_write(client, "ok\n", 3);
     gui_cmd_pgt(server, server->gui_client, client->id, res);
 }

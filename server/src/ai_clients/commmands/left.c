@@ -12,5 +12,5 @@ void ai_cmd_left(
     UNUSED server_t *server, ai_client_t *client, UNUSED char *args)
 {
     client->dir = MOD(client->dir - 1, 4);
-    write(client->s_fd, "ok\n", 3);
+    ai_write(client, "ok\n", 3);
 }

@@ -156,6 +156,22 @@ void App::updatePlayers(const std::string& bufferView) {
     }
 
 
+    // Player death (pdi playerNumber)
+    pos = bufferView.find("pdi");
+    while (pos != std::string::npos) {
+        const int playerNumber = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos));
+        pos = bufferView.find('\n', pos) + 1;
+
+        // Add to the logs
+        LOG("Player [" + std::to_string(playerNumber) + "] died", RED);
+
+        std::cout << "Player " << playerNumber << " died" << std::endl;
+
+        m_players.erase(playerNumber);
+        pos = bufferView.find("pdi", pos);
+    }
+
+
     // Player broadcast (pbc playerNumber message)
     pos = bufferView.find("pbc");
     while (pos != std::string::npos) {
@@ -166,6 +182,64 @@ void App::updatePlayers(const std::string& bufferView) {
         LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, GREEN);
 
         pos = bufferView.find("pbc", pos);
+    }
+
+
+    // Player incantation (pic X Y level playerNumber playerNumber ...)
+    pos = bufferView.find("pic");
+    while (pos != std::string::npos) {
+        const int x = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        const int y = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        const int level = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+
+        std::vector<int> playerNumbers;
+        while (bufferView[pos] != '\n') {
+            playerNumbers.push_back(std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos)));
+
+            size_t nextSpace = bufferView.find(' ', pos);
+            if (nextSpace == std::string::npos)
+                break;
+
+            size_t nextNewLine = bufferView.find('\n', pos);
+            pos = (nextSpace < nextNewLine) ? nextSpace + 1 : nextNewLine;
+        }
+
+        std::string players;
+        for (const auto& playerNumber : playerNumbers)
+            players += std::to_string(playerNumber) + " ";
+        LOG("Incantation started to level " + std::to_string(level) + " at position [" + std::to_string(x) + ", " + std::to_string(y) + "] with players: " + players, GREEN);
+
+        // TODO: use this datas
+        (void) x;
+        (void) y;
+        (void) level;
+        (void) players;
+
+        pos = bufferView.find("pic", pos);
+    }
+
+
+    // Player incantation end (pie X Y result)
+    pos = bufferView.find("pie");
+    while (pos != std::string::npos) {
+        const int x = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        const int y = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find(' ', bufferView.find(' ', pos) + 1) - bufferView.find(' ', pos) - 1));
+        pos = bufferView.find(' ', pos) + 1;
+        const int result = std::stoi(bufferView.substr(bufferView.find(' ', pos) + 1, bufferView.find('\n', pos) - pos));
+        pos = bufferView.find('\n', pos) + 1;
+
+        LOG("Incantation ended: " + std::to_string(result) + " at [" + std::to_string(x) + ", " + std::to_string(y) + "]", GREEN);
+
+        // TODO: use this datas
+        (void) x;
+        (void) y;
+        (void) result;
+
+        pos = bufferView.find("pie", pos);
     }
 }
 

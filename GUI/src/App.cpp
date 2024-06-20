@@ -323,7 +323,7 @@ void App::drawUi() noexcept {
     if (ImGui::Begin("Mesh and Animation Selection")) {
         // Mesh selection
         for (auto& [teamName, team] : m_teams) {
-            ImGui::Text(teamName.c_str());
+            ImGui::Text("%s", teamName.c_str());
             const char* currentMesh = team.mesh.first.c_str();
             if (ImGui::BeginCombo("Mesh", currentMesh)) {
                 for (auto& [playerName, playerMesh] : m_playerMeshes) {

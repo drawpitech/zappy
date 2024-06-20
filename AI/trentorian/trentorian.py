@@ -5,6 +5,7 @@ Module providing the trantorian class
 from enum import IntEnum
 from time import time
 import random
+import os
 from warnings import warn
 
 from multiprocessing import Queue
@@ -102,7 +103,7 @@ class Trantorian:
         self.unused_slot: int = 1
         self.others: dict = {} # uid : (inv, lvl, x, y, last update, free for incant)
         self.received_messages: list = []
-        self.uid: str = str(time()) # TODO replace by pid
+        self.uid: str = str(time())
         self.state: str = ""
         self.dispo_incant: bool = True # disponibility for an incantation
         self.inventory: dict = {
@@ -111,11 +112,7 @@ class Trantorian:
         }
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.UP
-        self.has_already_reiceived_birth_info: bool = False
-        self.last_birthed: bool = True
-        self.egg_pos: tuple = (0, 0)
         self.team_size: int = 0
-        self.last_msg_infos: list = []
         self.last_beacon_direction: int = 0
         self.last_beacon_uid: str = None
         self.last_beacon_time: float = 0
@@ -137,7 +134,9 @@ class Trantorian:
             self.dprint("live")
             self.start_living(queue)
             self.first_level()
-            while self.iter_food(): # TODO continue to birth if there is spaces
+            while self.iter_food():
+                if len(self.others) < 7 and self.unused_slot > 0:
+                    self.asexual_multiplication(queue)
                 can_level_up = self.wander()
                 success = False
 
@@ -518,11 +517,9 @@ class Trantorian:
             return
         try:
             MessageTypeParser().deserialize(self, int(msg_type), content, direct)
-            self.last_msg_infos = [sender, msg_type, content]
         except (KeyError, ValueError):
             return
         MessageTypeParser().deserialize(self, int(msg_type), content, direct)
-        self.last_msg_infos = [sender, msg_type, content]
         return
 
 
@@ -753,7 +750,6 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         queue.put("birth")
-        self.egg_pos = (self.x, self.y)
         return True
 
     def eject(self) -> bool:

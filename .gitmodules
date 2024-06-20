@@ -1,13 +1,17 @@
 [submodule "external/glm"]
 	path = GUI/external/glm
+	path = GUI/external/glm
 	url = https://github.com/g-truc/glm.git
 [submodule "external/stb"]
+	path = GUI/external/stb
 	path = GUI/external/stb
 	url = https://github.com/nothings/stb.git
 [submodule "external/assimp"]
 	path = GUI/external/assimp
+	path = GUI/external/assimp
 	url = https://github.com/assimp/assimp.git
 [submodule "external/glfw"]
+	path = GUI/external/glfw
 	path = GUI/external/glfw
 	url = https://github.com/glfw/glfw.git
 	branch = 3.3-stable

@@ -60,7 +60,7 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     gui_cmd_ebo(serv, serv->gui_client, egg);
     gui_cmd_pnw(serv, serv->gui_client, client);
     dprintf(client_fd, "%zu\n", serv->ctx.client_nb - count_team(serv, team));
-    dprintf(client_fd, "%ld %ld\n", serv->ctx.width, serv->ctx.height);
+    dprintf(client_fd, "%d %d\n", client->pos.x, client->pos.y);
     return RET_VALID;
 }
 

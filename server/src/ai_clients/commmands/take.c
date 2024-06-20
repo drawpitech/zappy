@@ -23,4 +23,5 @@ void ai_cmd_take(server_t *server, ai_client_t *client, char *args)
     client->res[res].quantity++;
     ai_write(client, "ok\n", 3);
     gui_cmd_pgt(server, server->gui_client, client->id, res);
+    gui_cmd_mct(server, server->gui_client, NULL);
 }

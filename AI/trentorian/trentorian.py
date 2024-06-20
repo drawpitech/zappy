@@ -102,7 +102,7 @@ class Trantorian:
         self.unused_slot: int = 1
         self.others: dict = {} # uid : (inv, lvl, x, y, last update, free for incant)
         self.received_messages: list = []
-        self.uid: str = str(time())
+        self.uid: str = str(time()) # TODO replace by pid
         self.state: str = ""
         self.dispo_incant: bool = True # disponibility for an incantation
         self.inventory: dict = {
@@ -122,7 +122,10 @@ class Trantorian:
         self.number_of_ritual_ready: int = 0
         # least amount of food needed to go throught the longest distance and do an incantation
         self.mini_food: int = 20 + ((self.known_map.width + self.known_map.height) * 8 / FOOD)
+        self.consider_dead: float = (self.known_map.width + self.known_map.height) * 8 + 400
         self.ticks: int = 0
+        self.nbr_tests_ticks: int = 0
+        self.tick_time: float = 0
 
     def born(self, queue: Queue):
         """launch a trantorian and do its life
@@ -134,7 +137,6 @@ class Trantorian:
             self.dprint("live")
             self.start_living(queue)
             self.first_level()
-            # TODO, remove dead players
             while self.iter_food(): # TODO continue to birth if there is spaces
                 can_level_up = self.wander()
                 success = False
@@ -143,7 +145,8 @@ class Trantorian:
                     self.dprint("start incant with:", can_level_up)
                     success = self.be_the_shaman(can_level_up)
                     if not success:
-                        self.broadcast(MessageTypeParser().serialize(MessageType.RITUAL_FAILED, self), can_level_up)
+                        self.broadcast(MessageTypeParser().serialize(
+                            MessageType.RITUAL_FAILED, self), can_level_up)
                     self.number_of_ritual_ready = 0
 
                 if self.state == 'going somewhere':
@@ -234,9 +237,8 @@ class Trantorian:
         if self.dead:
             return False
         self.get_unused_slot()
-        if self.ticks > self.mini_food * FOOD:
+        if self.ticks > self.consider_dead - 20:
             self.broadcast('just$update', ["all"])
-            self.ticks = 0
         return True
 
     def iter_food(self) -> bool:
@@ -254,7 +256,6 @@ class Trantorian:
         max_reached: bool = True
         state_change: bool = True
         under_mini: bool = True
-        i = 0
         while self.iter() and (under_mini or (max_reached and state_change)):
             if self.dead:
                 return False
@@ -276,8 +277,6 @@ class Trantorian:
             max_reached: bool =  self.inventory["food"] < self.mini_food + 10
             state_change: bool = self.state != "going somewhere"
             under_mini: bool = self.inventory["food"] < self.mini_food
-            if (i % 3)
-            i += 1
         return not self.dead
 
     def get_current_case(self) -> MapTile:
@@ -370,10 +369,12 @@ class Trantorian:
             return
         self.broadcast("im$alive", ["all"])
         self.get_unused_slot()
+        for _ in range(10): # use to set a first value for tick_time
+            self.get_inventory()
         b2, b3 = True, True
         team_size = len(self.others) + 1
         nbr = 0
-        while self.iter_food() and b2 and b3:
+        while self.iter_food() and b2 and b3: # TODO check all this with our server
             # the objective of all those checks is to work even if the server is broken
             b2 = team_size < self.client.team_size and nbr < 2
             b3 = team_size < 8 and self.unused_slot > 0
@@ -439,17 +440,32 @@ class Trantorian:
 
     def merge_others(self, received: dict) -> None:
         """merge a received list of user into the current one
+        remove the ones that are to old (suspect died)
 
         Args:
             received (dict): received informations
         """
+        dead_time: int = self.consider_dead * self.tick_time
         for uuid, infos in received.items():
             update = infos[4]
             if uuid not in self.others:
                 self.others[uuid] = infos
-                continue
-            if update > self.others[uuid][3]:
+            elif update > self.others[uuid][4]:
                 self.others[uuid] = infos
+            diff = time() - self.others[uuid][4]
+            if diff > dead_time:
+                self.others.pop(uuid)
+        return
+
+    def kill_others(self) -> None:
+        """remove the others that are too old from the list
+        """
+        uids = list(self.others.keys())[::]
+        for uid in uids:
+            infos = self.others[uid]
+            diff = time() - infos[4]
+            if diff > self.consider_dead * self.tick_time:
+                self.others.pop(uid)
         return
 
     def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
@@ -649,14 +665,19 @@ class Trantorian:
         if self.dead:
             return False
         self.ticks += 1
+        t1 = time()
         self.client.send_cmd("Inventory")
-
         answer = self.wait_answer()
+        t2 = time()
         if self.dead:
             return False
+
         content = split_list(answer)
         if content == []:
             return False
+        self.tick_time = ((self.tick_time * self.nbr_tests_ticks + (t2 - t1))
+                        / (self.nbr_tests_ticks + 1))
+        self.nbr_tests_ticks += 1
         for e in content:
             if e == '':
                 continue
@@ -684,6 +705,7 @@ class Trantorian:
         if self.dead:
             return False
         self.ticks = 0
+        self.kill_others()
         if receivers == []:
             msg = self.received_messages.pop(0)
             self.client.send_cmd("Broadcast " + msg)

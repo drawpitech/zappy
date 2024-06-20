@@ -27,7 +27,7 @@ class GBufferPass {
         void bindStaticShader(const glm::mat4& view, const glm::mat4& proj) const noexcept;
         void bindSkinnedShader(const glm::mat4& view, const glm::mat4& proj) const noexcept;
 
-        void resize(uint16_t width, uint16_t height) const;
+        void resize(const glm::vec2& size) const;
 
         [[nodiscard]] uint32_t getPositionTexture() const noexcept { return m_positionTexture; }
         [[nodiscard]] uint32_t getNormalTexture() const noexcept { return m_normalTexture; }

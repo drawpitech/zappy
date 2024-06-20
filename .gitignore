@@ -12,6 +12,7 @@ result
 # Binaries
 /include
 /lib64
+/lib
 /zappy_server
 /zappy_gui
 /zappy_ai

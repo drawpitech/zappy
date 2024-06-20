@@ -121,7 +121,6 @@ class Trantorian:
         }
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.UP
-        self.team_size: int = 0
         self.last_beacon_direction: int = 0
         self.last_beacon_uid: str = None
         self.last_beacon_time: float = 0
@@ -142,6 +141,8 @@ class Trantorian:
         try:
             self.dprint("live")
             self.start_living(queue)
+            if self.dead:
+                return
             self.first_level()
             while self.iter_food():
                 can_level_up = self.wander(queue)
@@ -163,7 +164,6 @@ class Trantorian:
                 self.dprint("incantation end", success, time())
                 self.dispo_incant = True
                 self.broadcast("just$update", ["all"])
-
         except BrokenPipeError:
             self.dprint("Server closed socket")
             self.dead = True
@@ -242,7 +242,6 @@ class Trantorian:
         """
         if self.dead:
             return False
-        self.get_unused_slot()
         if self.ticks > self.consider_dead - 20:
             self.broadcast('just$update', ["all"])
         return True
@@ -306,8 +305,6 @@ class Trantorian:
         can_level_up = []
         i = 0
         while self.iter_food() and self.state == "wander" and not can_level_up:
-            if len(self.others) < 7 and self.unused_slot > 0:
-                self.asexual_multiplication(queue)
             self.look_around()
             for _ in range(self.level): # TODO maybe some priority order here
                 if not self.take_tile_objects():
@@ -320,9 +317,14 @@ class Trantorian:
                 self.right()
             can_level_up = get_incantation_team(self.inventory, self.level + 1, self.others)
             i += 1
-            if i % 4:
-                self.troll_broadcasts()
-                self.broadcast("just$update", ["all"])
+            if not i % 4:
+                continue
+            self.troll_broadcasts()
+            self.broadcast("just$update", ["all"])
+            self.get_unused_slot()
+            if len(self.others) < 12 and self.unused_slot > 0 and self.level > 1:
+                s = self.asexual_multiplication(queue)
+                print('oooooo', self.unused_slot)
         if can_level_up and self.state != "going somewhere":
             self.state = "shaman"
         return can_level_up
@@ -379,25 +381,15 @@ class Trantorian:
         """
         if not self.iter_food():
             return
+        if len(self.others) > 15:
+            self.suicide()
+            return
+        if self.client.team_size > 0 and len(self.others) < 12:
+            # print(len(self.others), self.client.team_size, self.unused_slot)
+            self.asexual_multiplication(queue)
         self.broadcast("im$alive", ["all"])
-        self.get_unused_slot()
         for _ in range(10): # use to set a first value for tick_time
             self.get_inventory()
-        b2, b3 = True, True
-        team_size = len(self.others) + 1
-        nbr = 0
-        while self.iter_food() and b2 and b3: # TODO check all this with our server
-            # the objective of all those checks is to work even if the server is broken
-            b2 = team_size < self.client.team_size and nbr < 2
-            b3 = team_size < 8 and self.unused_slot > 0
-            new_size = len(self.others.items()) + 1
-            if new_size == team_size:
-                nbr += 1
-            team_size = new_size
-            self.get_unused_slot()
-            self.asexual_multiplication(queue)
-            self.broadcast("im$alive", ["all"])
-        self.broadcast("ready$tolive", ["all"])
         return
 
     def wait_incant(self) -> bool:
@@ -456,15 +448,16 @@ class Trantorian:
         Returns:
             bool: true if all the object where taken, false if one didn't work
         """
-        succes: bool = True
         content: dict = self.get_current_case().content
+        if content["player"] > 1:
+            return False
         for obj, quantity in content.items():
             if obj == "egg" or obj == "player":
                 continue
             for _ in range(quantity):
                 if self.take_object(obj):
-                    succes = False
-        return succes
+                    return False
+        return True
 
     def merge_others(self, received: dict) -> None:
         """merge a received list of user into the current one
@@ -782,6 +775,7 @@ class Trantorian:
         if self.wait_answer() != 'ok':
             return False
         queue.put("birth")
+        print(len(self.others))
         return True
 
     def eject(self) -> bool:

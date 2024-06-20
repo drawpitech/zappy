@@ -9,6 +9,7 @@
 
 #include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,7 +19,6 @@
 #include "arg_parse.h"
 #include "array.h"
 #include "gui_protocols/commands/commands.h"
-#include <signal.h>
 #include "time.h"
 
 const double DENSITIES[R_COUNT] = {
@@ -172,10 +172,9 @@ static void log_new_gui(server_t *serv)
     for (size_t i = 0; i < serv->eggs.nb_elements; ++i)
         gui_cmd_enw(serv, serv->gui_client, serv->eggs.elements[i], -1);
     for (size_t i = 0; i < serv->ai_clients.nb_elements; ++i)
-        gui_cmd_pin(
-            serv, serv->gui_client,
-            ((ai_client_t *)serv->ai_clients.elements[i])->team);
+        gui_cmd_pnw(serv, serv->gui_client, serv->ai_clients.elements[i]);
 }
+
 static void connect_gui_client(server_t *serv, int client_fd)
 {
     gui_client_t *gui = NULL;

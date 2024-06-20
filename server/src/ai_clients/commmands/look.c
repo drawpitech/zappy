@@ -58,9 +58,9 @@ static look_payload_t *look_east(
     server_t *server, ai_client_t *client, look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
-        for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
+        for (int y = client->pos.y - i; y < client->pos.y + i + 1; ++y) {
             get_cell_payload(
-                server, &(vector_t){client->pos.x - i, y},
+                server, &(vector_t){client->pos.x + i, y},
                 &payload->cell_content[(payload->idx)++]);
         }
     }
@@ -84,9 +84,9 @@ static look_payload_t *look_west(
     server_t *server, ai_client_t *client, look_payload_t *payload)
 {
     for (int i = 1; i <= client->lvl; ++i) {
-        for (int y = client->pos.y - i; y < client->pos.y + i; ++y) {
+        for (int y = client->pos.y - i; y < client->pos.y + i + 1; ++y) {
             get_cell_payload(
-                server, &(vector_t){client->pos.x + i, y},
+                server, &(vector_t){client->pos.x - i, y},
                 &payload->cell_content[(payload->idx)++]);
         }
     }

@@ -7,20 +7,17 @@
 
 #pragma once
 
-#include "Models/Animations/Animator.hpp"
-#include "Models/SkeletalMesh.hpp"
 #include "Renderer/Renderer.hpp"
 
-#include "glm/ext/vector_float2.hpp"
-#include "imgui.h"
-#include <memory>
+#define BUFFER_SIZE 1024000
 
+#define LOG(message, color) m_logs.emplace_back(message, color)
 #define GREEN ImVec4(0, 1, 0, 1)
 #define RED ImVec4(1, 0, 0, 1)
 #define BLUE ImVec4(0, 0, 1, 1)
 #define WHITE ImVec4(1, 1, 1, 1)
 #define YELLOW ImVec4(1, 1, 0, 1)
-#define LOG(message, color) m_logs.emplace_back(message, color)
+
 
 class App {
     private:

@@ -2,14 +2,17 @@ Trié par priorité:
 
   Yohan:
   - Animations qui marchent
-  - interpolation entre les tiles
   - Affichage des oeufs
   - plus de triangles sur dan / smooth shading
   - Nouveau style de map
+  - Animations pour tout
 
   JB:
-  - Comm fix avec le server     - DONE ?
-  - Parsing des oeufs           - DONE ?
+  - Comm fix avec le server         - DONE ?
+  - Parsing des oeufs               - DONE
+  - Parser refactoring              - DONE
+  - Parsing mort / elevation        - DONE
+  - interpolation entre les tiles
   - Reflections ssr / skybox
   - Eau
   - Demander a celian de faire crash le GUI

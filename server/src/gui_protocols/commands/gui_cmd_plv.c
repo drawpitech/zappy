@@ -23,5 +23,5 @@ void gui_cmd_plv(server_t *server, gui_client_t *client, char *args)
         return;
     }
     current = server->ai_clients.elements[client_idx];
-    dprintf(client->s_fd, "plv #%d %d\n", client_idx, current->lvl);
+    dprintf(client->s_fd, "plv %d %d\n", client_idx, current->lvl);
 }

@@ -24,7 +24,7 @@ void gui_cmd_pin(server_t *server, gui_client_t *client, char *args)
         return;
     }
     dprintf(
-        client->s_fd, "#%d %d %d %d %d %d %d %d %d %d\n", client_id,
+        client->s_fd, "%d %d %d %d %d %d %d %d %d %d\n", client_id,
         current->pos.x, current->pos.y, current->res[FOOD].quantity,
         current->res[LINEMATE].quantity, current->res[DERAUMERE].quantity,
         current->res[SIBUR].quantity, current->res[MENDIANE].quantity,

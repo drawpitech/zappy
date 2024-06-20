@@ -25,6 +25,6 @@ void gui_cmd_ppo(server_t *server, gui_client_t *client, char *args)
     }
     current = server->ai_clients.elements[client_idx];
     dprintf(
-        client->s_fd, "ppo #%d %d %d %d\n", client_idx, current->pos.x,
+        client->s_fd, "ppo %d %d %d %d\n", client_idx, current->pos.x,
         current->pos.y, current->dir);
 }

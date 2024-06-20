@@ -21,16 +21,19 @@ void move_ai_client(server_t *server, ai_client_t *client, int dir)
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
     switch (dir) {
         case NORTH:
-            client->pos.y = (client->pos.y - 1) % (int)server->ctx.height;
+            client->pos.y = MOD(client->pos.y - 1, server->ctx.height);
             break;
         case SOUTH:
-            client->pos.y = (client->pos.y + 1) % (int)server->ctx.height;
+            client->pos.y = MOD(client->pos.y + 1, server->ctx.height);
             break;
         case EAST:
-            client->pos.x = (client->pos.x + 1) % (int)server->ctx.width;
+            client->pos.x = MOD(client->pos.x + 1, server->ctx.width);
             break;
         case WEST:
-            client->pos.x = (client->pos.x - 1) % (int)server->ctx.width;
+            client->pos.x = MOD(client->pos.x - 1, server->ctx.width);
+            break;
+        default:
+            ERR("Shoudn't happen");
             break;
     }
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;

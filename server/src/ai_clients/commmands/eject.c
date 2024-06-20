@@ -20,7 +20,7 @@ void ai_cmd_eject(server_t *server, ai_client_t *client, UNUSED char *args)
         if (current->s_fd < 0 || current == client)
             continue;
         move_ai_client(server, current, client->dir);
-        ai_dprintf(current, "eject: %d\n", client->dir);
+        ai_dprintf(current, "eject: %d\n", client->dir + 1);
     }
     CELL(server, client->pos.x, client->pos.y)->res[EGG].quantity = 0;
     ai_write(client, "ok\n", 3);

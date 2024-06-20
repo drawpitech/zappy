@@ -77,7 +77,7 @@ void ai_cmd_incantation(
     consume_ressources(server, client, &cell_cpy, false);
     client->last_inc = now;
     cringe += sprintf(buffer, "%d %d %d", cell_cpy.pos.x, cell_cpy.pos.y, lvl);
-    for (size_t i = 0; i < server->ai_clients.size; ++i) {
+    for (size_t i = 0; i < server->ai_clients.nb_elements; ++i) {
         read = server->ai_clients.elements[i];
         if (read->pos.x == client->pos.x && read->pos.y == client->pos.y &&
             can_incantation(read, &cell_cpy)) {

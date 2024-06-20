@@ -15,8 +15,8 @@ void ai_cmd_forward(server_t *server, ai_client_t *client, UNUSED char *args)
 {
     char buf[15] = {0};
 
+    move_ai_client(server, client, client->dir);
     sprintf(buf, "%d", client->id);
     gui_cmd_ppo(server, server->gui_client, buf);
-    move_ai_client(server, client, client->dir);
     ai_write(client, "ok\n", 3);
 }

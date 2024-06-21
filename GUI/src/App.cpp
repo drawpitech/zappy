@@ -47,7 +47,7 @@ App::App(int port) {
             {SIBUR, std::make_shared<StaticMesh>("assets/Ressources/blue.obj")},
             {MENDIANE, std::make_shared<StaticMesh>("assets/Ressources/green.obj")},
             {PHIRAS, std::make_shared<StaticMesh>("assets/Ressources/red.obj")},
-            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/red.obj")}
+            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.obj")}
         };
 
         m_islandMesh = std::make_shared<StaticMesh>("assets/tile.obj");
@@ -55,13 +55,13 @@ App::App(int port) {
     }
 
     static const std::vector<std::string> resIconsFilepaths = {
-        "assets/Ring texture.png",
-        "assets/Ring texture.png",
-        "assets/Ring texture.png",
-        "assets/Ring texture.png",
-        "assets/Ring texture.png",
-        "assets/Ring texture.png",
-        "assets/Ring texture.png",
+        "assets/Ressources Icons/pink.png",
+        "assets/Ressources Icons/pink.png",
+        "assets/Ressources Icons/orange.png",
+        "assets/Ressources Icons/blue.png",
+        "assets/Ressources Icons/green.png",
+        "assets/Ressources Icons/pruple.png",
+        "assets/Ressources Icons/red.png",
     };
 
     m_resIcons = Utils::Instance<Utils::ImageLoader, const std::vector<std::string>&>::Get(resIconsFilepaths)->getImages();
@@ -163,19 +163,29 @@ void App::drawUi() noexcept {
     for (auto& [id, player] : m_players)
     {
         ImGui::Text("%s", (std::to_string(id) + " Trantorian " + player.teamName).c_str());
-        ImGui::Text("Level: %d\n", player.level);
+        ImGui::Text("LEVEL: %d\n", player.level);
         if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
         {
             for (std::size_t i = 0; i < RESNUMBER; ++i)
             {
-                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {15, 15});
-                ImGui::NextColumn();
+                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {60, 60}, ImVec2(0, 1), ImVec2(1, 0));
+                ImGui::SameLine();
                 ImGui::Text("%d", player.inv.ressources[i]);
             }
 
             ImGui::TreePop();
         }
         ImGui::Separator();
+    }
+    ImGui::End();
+
+    static int freq{};
+    ImGui::Begin("Parameters");
+    ImGui::InputInt("Frequency", &freq);
+    if (ImGui::Button("Send request"))
+    {
+        dprintf(m_socket, "sst %d\n", freq);
+        printf("Grod pd\n");
     }
     ImGui::End();
 

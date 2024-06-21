@@ -1,6 +1,6 @@
 /*
 ** EPITECH PROJECT, 2024
-** g
+** zappy
 ** File description:
 ** gui_cmd_pbc
 */

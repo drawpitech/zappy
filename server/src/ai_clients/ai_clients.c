@@ -39,13 +39,13 @@ void move_ai_client(server_t *server, ai_client_t *client, int dir)
     CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
 }
 
-int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
+static ai_client_t *create_client_obj(
+    egg_t *egg, server_t *serv, int client_fd, char *team)
 {
     ai_client_t *client = malloc(sizeof *client);
-    egg_t *egg = serv->eggs.elements[egg_idx];
 
     if (client == NULL)
-        return OOM, RET_ERROR;
+        return OOM, NULL;
     memset(client, 0, sizeof *client);
     strcpy(client->team, team);
     client->s_fd = client_fd;
@@ -54,9 +54,19 @@ int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
     client->lvl = 1;
     client->res[FOOD].quantity = 10;
     if (add_elt_to_array(&serv->ai_clients, client) == RET_ERROR)
-        return free(client), OOM, RET_ERROR;
+        return free(client), OOM, NULL;
     client->id = serv->ai_id;
     serv->ai_id++;
+    return client;
+}
+
+int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx)
+{
+    egg_t *egg = serv->eggs.elements[egg_idx];
+    ai_client_t *client = create_client_obj(egg, serv, client_fd, team);
+
+    if (client == NULL)
+        return RET_ERROR;
     remove_elt_to_array(&serv->eggs, egg_idx);
     CELL(serv, client->pos.x, client->pos.y)->res[PLAYER].quantity++;
     CELL(serv, client->pos.x, client->pos.y)->res[EGG].quantity--;

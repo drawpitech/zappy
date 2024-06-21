@@ -218,7 +218,6 @@ void App::createPlayers() {
         const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
         m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, playerScale, playerRotation});
     }
-    std::cout << "players: " << m_players.size() << std::endl;
 }
 
 void App::updatePlayersAnim() { // NOLINT

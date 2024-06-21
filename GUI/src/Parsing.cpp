@@ -164,6 +164,7 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         const int x = PARSER_NEXT_INT(bufferView, pos);
         const int y = PARSER_NEXT_INT(bufferView, pos);
         const int level = PARSER_NEXT_INT(bufferView, pos);
+        pos = bufferView.find(' ', pos) + 1;
 
         std::vector<int> playerNumbers;
         while (bufferView[pos] != '\n') {

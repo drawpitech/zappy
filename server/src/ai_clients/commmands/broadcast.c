@@ -45,14 +45,12 @@ static int compute_dir(
             result = S_NORTH_WEST;
         if (dy > 0 && dx < 0)
             result = S_NORTH_EAST;
-    }
-    else if (abs(dy) >= abs(dx)) {
+    } else if (abs(dy) >= abs(dx)) {
         if (dy < 0)
             result = S_SOUTH;
         if (dy > 0)
             result = S_NORTH;
-    }
-    else if (abs(dx) >= abs(dy)) {
+    } else if (abs(dx) >= abs(dy)) {
         if (dx > 0)
             result = S_WEST;
         if (dx < 0)

@@ -36,9 +36,8 @@ static int check_flags(const int *array, char *argv[])
 
 int arg_parse(int argc, char *argv[], context_t *ctx)
 {
-    int adjust =
-        strcmp(argv[argc - 1], "-v") == 0 ||
-        strcmp(argv[argc - 1], "--verbose") == 0;
+    int adjust = strcmp(argv[argc - 1], "-v") == 0
+                || strcmp(argv[argc - 1], "--verbose") == 0;
     int array[6] = {1, 3, 5, 7, argc - 4 - adjust, argc - 2 - adjust};
 
     if (argc < 13)

@@ -8,7 +8,10 @@
 #include "App.hpp"
 
 #include <iostream>
+#include <stdexcept>
 #include <thread>
+#include <chrono>
+#include <algorithm>
 
 #define PARSER_INIT() \
     size_t pos = 0;
@@ -35,7 +38,7 @@
     buffer.substr((buffer).find(' ', pos) + 1, (buffer).find('\n', pos) - (buffer).find(' ', pos) - 1); \
     (pos) = (buffer).find('\n', pos) + 1;
 
-void App::updatePlayers(const std::string& bufferView) {
+void App::updatePlayers(const std::string& bufferView) {    // NOLINT
     // Player new connection (pnw playerNumber x y orientation level teamName)
     PARSER_INIT();
     PARSER_FIRST_SYMBOL("pnw");
@@ -71,6 +74,8 @@ void App::updatePlayers(const std::string& bufferView) {
     while (pos != std::string::npos) {
         const int playerNumber = PARSER_NEXT_INT(bufferView, pos);
 
+        if (m_players.find(playerNumber) == m_players.end())
+            throw std::runtime_error("ppo: player [" + std::to_string(playerNumber) + "] not found");
 
         {   // Get the new position
             glm::ivec2 position;
@@ -117,10 +122,11 @@ void App::updatePlayers(const std::string& bufferView) {
     while (pos != std::string::npos) {
         const int playerNumber = PARSER_LAST_INT(bufferView, pos);
 
+        if (m_players.find(playerNumber) == m_players.end())
+            throw std::runtime_error("pdi: player [" + std::to_string(playerNumber) + "] not found");
+
         // Add to the logs
         LOG("Player [" + std::to_string(playerNumber) + "] died", RED);
-
-        std::cout << "Player " << playerNumber << " died" << std::endl;
 
         m_players.erase(playerNumber);
         PARSER_NEXT_SYMBOL("pdi");
@@ -131,8 +137,21 @@ void App::updatePlayers(const std::string& bufferView) {
     PARSER_FIRST_SYMBOL("pbc");
     while (pos != std::string::npos) {
         const int playerNumber = PARSER_NEXT_INT(bufferView, pos);
-
         const std::string message = PARSER_LAST_STRING(bufferView, pos);
+
+        if (m_players.find(playerNumber) == m_players.end())
+            throw std::runtime_error("pbc: player [" + std::to_string(playerNumber) + "] not found");
+
+        // Clear the broadcast at the player position
+        m_broadcasts.erase(std::remove_if(m_broadcasts.begin(), m_broadcasts.end(), [playerNumber, this](const Broadcast& broadcast) {
+            return broadcast.position == m_players[playerNumber].position;
+        }), m_broadcasts.end());
+
+        m_broadcasts.push_back(Broadcast {
+            .startTime = std::chrono::high_resolution_clock::now(),
+            .position = m_players[playerNumber].position
+        });
+
         LOG("Player [" + std::to_string(playerNumber) + "] broadcasted: " + message, GREEN);
 
         PARSER_NEXT_SYMBOL("pbc");
@@ -149,6 +168,9 @@ void App::updatePlayers(const std::string& bufferView) {
         std::vector<int> playerNumbers;
         while (bufferView[pos] != '\n') {
             playerNumbers.push_back(std::stoi(bufferView.substr(pos, bufferView.find(' ', pos) - pos)));
+
+            if (m_players.find(playerNumbers.back()) == m_players.end())
+                throw std::runtime_error("pic: player [" + std::to_string(playerNumbers.back()) + "] not found");
 
             size_t nextSpace = bufferView.find(' ', pos);
             if (nextSpace == std::string::npos)
@@ -217,7 +239,6 @@ void App::parseConnectionResponse() {
     }
 
     const std::string& bufferView(buffer.data());
-    std::cout << bufferView << std::endl;
 
 
     // Get the team names (tna teamName\n * n)
@@ -269,7 +290,6 @@ void App::updateEggs(const std::string& bufferView) {
         };
 
         LOG("Egg [" + std::to_string(eggNumber) + "] was laid by player [" + std::to_string(playerId) + "] at position [" + std::to_string(position[0]) + ", " + std::to_string(position[1]) + "]", YELLOW);
-        std::cout << "Adding egg " << eggNumber << " from player " << playerId << std::endl;
 
         PARSER_NEXT_SYMBOL("enw");
     }
@@ -281,9 +301,7 @@ void App::updateEggs(const std::string& bufferView) {
         const int eggNumber = PARSER_LAST_INT(bufferView, pos);
 
         m_eggs.erase(eggNumber);
-
         LOG("Egg [" + std::to_string(eggNumber) + "] died", YELLOW);
-        std::cout << "Egg " << eggNumber << " died" << std::endl;
 
         PARSER_NEXT_SYMBOL("edi");
     }
@@ -295,9 +313,7 @@ void App::updateEggs(const std::string& bufferView) {
         const int eggNumber = PARSER_LAST_INT(bufferView, pos);
 
         m_eggs.erase(eggNumber);
-
         LOG("Egg [" + std::to_string(eggNumber) + "] gave birth to a player", YELLOW);
-        std::cout << "Player born from egg " << eggNumber << std::endl;
 
         PARSER_NEXT_SYMBOL("ebo");
     }

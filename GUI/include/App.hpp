@@ -69,6 +69,11 @@ class App {
             std::pair<std::string, std::shared_ptr<SkeletalMesh>> mesh;
         };
 
+        struct Broadcast {
+            std::chrono::high_resolution_clock::time_point startTime;
+            glm::vec3 position;
+        };
+
         class LogMessage {
             public:
                 LogMessage(std::string message, ImVec4 color)
@@ -114,6 +119,7 @@ class App {
         std::unordered_map<std::string, Team> m_teams;
         std::map<int, Egg> m_eggs;
         std::map<int, Player> m_players;
+        std::vector<Broadcast> m_broadcasts;
 
         // Dict of all the ressources meshes and offsets on the tiles
         std::map<RessourceType, glm::vec3> m_ressourceOffset;
@@ -123,6 +129,7 @@ class App {
         std::map<std::string, std::shared_ptr<SkeletalMesh>> m_playerMeshes;
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
         std::shared_ptr<StaticMesh> m_islandMesh;
+        std::shared_ptr<StaticMesh> m_broadcastMesh;
 
         std::vector<LogMessage> m_logs;
 
@@ -132,6 +139,7 @@ class App {
         void updateMap(const std::string& bufferView);
         void updatePlayers(const std::string& bufferView);
         void updateEggs(const std::string& bufferView);
+        void addBroadcasts();
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
         void updatePlayersAnim();

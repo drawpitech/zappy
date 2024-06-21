@@ -12,6 +12,7 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
 
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <netinet/in.h>
@@ -49,11 +50,11 @@ App::App(int port) {
         };
 
         m_islandMesh = std::make_shared<StaticMesh>("assets/tile.obj");
+        m_broadcastMesh = std::make_shared<StaticMesh>("assets/broadcast.obj");
     }
 
     connectToServer(port);
     parseConnectionResponse();
-    createScene();
 }
 
 App::~App() {
@@ -91,6 +92,7 @@ void App::createScene() {
     }
 
     createPlayers();
+    addBroadcasts();
 }
 
 void App::connectToServer(int port) {
@@ -175,6 +177,7 @@ void App::createPlayers() {
         const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
         m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, playerScale, playerRotation});
     }
+    std::cout << "players: " << m_players.size() << std::endl;
 }
 
 void App::updatePlayersAnim() {
@@ -204,7 +207,6 @@ void App::updatePlayersAnim() {
             createPlayers();
         }
         if (player.currentAction == BIRTH) {
-            std::cout << player.animator->isAnimationDone() << std::endl;
             if (player.animator->isAnimationDone()) {
                 player.currentAction = IDLE;
                 player.currentAnim = IDLE;
@@ -254,6 +256,24 @@ void App::updatePlayersAnim() {
     }
 }
 
+void App::addBroadcasts() {
+    for (int i = 0; i < m_broadcasts.size(); i++) {
+        std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
+        float elapsedTime = std::chrono::duration<float, std::milli>(currentTime - m_broadcasts[i].startTime).count();
+
+        if (elapsedTime > 2000)
+            m_broadcasts.erase(m_broadcasts.begin() + i);
+        else {
+            m_scene->staticActors.push_back({
+                m_broadcastMesh,
+                glm::vec3(m_broadcasts[i].position),
+                glm::vec3(elapsedTime / 50, 1, elapsedTime / 50),
+                glm::vec3(0, 0, 0)
+            });
+        }
+    }
+}
+
 void App::run() {
     // Load imgui settings
     ImGui::LoadIniSettingsFromDisk("../imgui.ini");
@@ -283,7 +303,6 @@ void App::run() {
             updateMap(bufferView);
             updatePlayers(bufferView);
             updateEggs(bufferView);
-            createScene();
         }
 
         // Begin UI rendering
@@ -295,6 +314,7 @@ void App::run() {
         // Render the scene
         drawUi();
         updatePlayersAnim();
+        createScene();
         m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
 

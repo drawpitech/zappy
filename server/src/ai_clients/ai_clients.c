@@ -96,7 +96,7 @@ int remove_ai_client(server_t *server, size_t idx)
     client = server->ai_clients.elements[idx];
     if (client) {
         gui_cmd_pdi(server, server->gui_client, client->id);
-        ai_write(client, UNPACK("quit\n"));
+        ai_write(client, UNPACK("dead\n"));
         disconnect_ai_client(client);
         CELL(server, client->pos.x, client->pos.y)->res[PLAYER].quantity--;
         free(client->buffer.str);

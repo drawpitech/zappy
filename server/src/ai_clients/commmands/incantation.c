@@ -120,7 +120,7 @@ static incantation_t *count_players(
     if ((size_t)INC_NEEDS[client->lvl - 1][PLAYER] - 1 >
         inc->players.nb_elements)
         return free(array_destructor(&inc->players, free)),
-            ERR("Too few clients"), NULL;
+               ERR("Too few clients"), NULL;
     inc->leader = client->id;
     id = malloc_int(client->id);
     if (id == NULL || add_elt_to_array(&inc->players, id) == RET_ERROR)
@@ -149,12 +149,16 @@ static incantation_t *check_start_incantation(
 static bool check_end_incantation(
     const server_t *server, const cell_t *cell, const incantation_t *inc)
 {
+    int *id = NULL;
+
     for (size_t i = 0; i < R_COUNT; ++i)
         if (cell->res[i].quantity < INC_NEEDS[inc->lvl - 1][i])
-            return false;
-    for (size_t i = 0; i < inc->players.nb_elements; ++i)
-        if (get_client_by_id(server, *(int *)inc->players.elements[i]) == NULL)
-            return false;
+            return ERR("incantation: you lost all your money"), false;
+    for (size_t i = 0; i < inc->players.nb_elements; ++i) {
+        id = inc->players.elements[i];
+        if (id == NULL || get_client_by_id(server, *id) == NULL)
+            return ERR("incantation: friend gone, friendship lost"), false;
+    }
     return true;
 }
 
@@ -172,17 +176,21 @@ static void consume_ressources(
     }
 }
 
-void ai_client_incantation_end(
-    server_t *server, ai_client_t *leader, incantation_t *inc)
+void ai_client_incantation_end(server_t *server, incantation_t *inc)
 {
     char buffer[40];
-    cell_t *cell = CELL(server, leader->pos.x, leader->pos.y);
     ai_client_t *read = NULL;
+    cell_t *cell = NULL;
+    ai_client_t *leader = get_client_by_id(server, inc->leader);
 
+    if (leader == NULL) {
+        ERR("incantation: leader went missing mid-incantation");
+        return;
+    }
+    cell = CELL(server, leader->pos.x, leader->pos.y);
     if (!check_end_incantation(server, cell, inc)) {
         gui_cmd_pie(server, server->gui_client, leader->pos, 0);
         ai_dprintf(leader, "ko\n");
-        ERR("Uwu you lost all your money");
         return;
     }
     sprintf(buffer, "%d %d", leader->pos.x, leader->pos.y);

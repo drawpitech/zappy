@@ -13,7 +13,6 @@
 #include "imgui.h"
 
 #include <chrono>
-#include <iostream>
 #include <memory>
 #include <netinet/in.h>
 
@@ -184,7 +183,6 @@ void App::drawUi() noexcept {   // NOLINT
     if (ImGui::Button("Send request"))
     {
         dprintf(m_socket, "sst %d\n", freq);
-        printf("Grod pd\n");
     }
     ImGui::End();
 
@@ -341,8 +339,8 @@ void App::run() {
 
             // Update the map and players
             updateMap(bufferView);
-            updatePlayers(bufferView);
             updateEggs(bufferView);
+            updatePlayers(bufferView);
         }
 
         // Begin UI rendering
@@ -359,5 +357,5 @@ void App::run() {
     }
 
     // TODO: remove this
-    // ImGui::SaveIniSettingsToDisk("../imgui.ini");
+    ImGui::SaveIniSettingsToDisk("../imgui.ini");
 }

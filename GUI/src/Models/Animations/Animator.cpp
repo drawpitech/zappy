@@ -15,7 +15,7 @@ Animator::Animator(std::shared_ptr<Animation> animation) : m_currentAnimation(st
 }
 
 bool Animator::isAnimationDone() const noexcept {
-    return m_currentTime >= m_currentAnimation->getDuration();
+    return m_currentTime >= m_currentAnimation->getDuration() - 1;
 }
 
 void Animator::updateAnimation(float deltaTime) noexcept  {

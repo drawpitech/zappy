@@ -60,6 +60,7 @@ void App::updatePlayers(const std::string& bufferView) {
             .animStartTime = std::chrono::steady_clock::now(),
             .animator = std::make_shared<Animator>(m_playerAnims["DanIdle"])
         };
+        m_players[playerNumber].currentAnim = BIRTH;
 
         pos = bufferView.find("pnw", pos);
     }
@@ -157,8 +158,10 @@ void App::updatePlayers(const std::string& bufferView) {
         }
 
         std::string players;
-        for (const auto& playerNumber : playerNumbers)
+        for (const auto& playerNumber : playerNumbers) {
             players += std::to_string(playerNumber) + " ";
+            m_players[playerNumber].currentAnim = RITUAL;
+        }
         LOG("Incantation started to level " + std::to_string(level) + " at position [" + std::to_string(x) + ", " + std::to_string(y) + "] with players: " + players, GREEN);
 
         // TODO: use this datas

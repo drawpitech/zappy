@@ -120,10 +120,10 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
     client->lvl += 1;
     sprintf(buffer, "%d %d", client->pos.x, client->pos.y);
     gui_cmd_bct(server, server->gui_client, buffer);
-    sprintf(buffer, "%d", client->id);
-    gui_cmd_plv(server, server->gui_client, buffer);
     ai_dprintf(client, "Current level: %d\n", client->lvl);
     gui_cmd_pie(server, server->gui_client, client->pos, 1);
+    sprintf(buffer, "%d", client->id);
+    gui_cmd_plv(server, server->gui_client, buffer);
 }
 
 void ai_cmd_incantation(

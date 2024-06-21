@@ -14,6 +14,7 @@ void gui_cmd_sst(server_t *server, gui_client_t *client, char *args)
 {
     long freq = 0;
 
+    ERR("sst");
     if (client == NULL || args == NULL)
         return;
     freq = strtol(args, NULL, 10);

@@ -33,6 +33,11 @@
 #define R_COUNT 9
 #define CELL(s, x, y) (&s->map[IDX(x, y, s->ctx.width, s->ctx.height)])
 
+// This should be fine as this is long and it is 2024
+#define GTIME(t) ((double)(t)->tv_sec + (double)(t)->tv_usec / 1000000)
+
+typedef double precise_time_t;
+
 enum {
     RET_VALID = 0,
     RET_ERROR = 84,
@@ -129,14 +134,14 @@ typedef struct ai_client_s {
     int id;
     queued_cmd_t *q_cmds;
     size_t q_size;
-    time_t last_cmd;
-    time_t last_fed;
+    precise_time_t last_cmd;
+    precise_time_t last_fed;
     bool busy;
 } ai_client_t;
 
 typedef struct {
     array_t players;
-    time_t time;
+    precise_time_t time;
     int lvl;
     int leader;
 } incantation_t;
@@ -165,7 +170,7 @@ typedef struct server_s {
     int ai_id;
     int egg_id;
     ressource_t map_res[R_COUNT];
-    time_t last_refill;
+    precise_time_t last_refill;
     array_t incantations;
 } server_t;
 
@@ -186,6 +191,7 @@ ATTR(format(printf, 2, 3))
 ssize_t gui_dprintf(gui_client_t *gui, const char *fmt, ...);
 ssize_t gui_write(gui_client_t *gui, const char *str, size_t n);
 
+precise_time_t gettime(void);
 void iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx);
 int remove_ai_client(server_t *server, size_t idx);

@@ -18,6 +18,7 @@
 
 #include "arg_parse.h"
 #include "array.h"
+#include "sys/time.h"
 #include "time.h"
 
 const double DENSITIES[R_COUNT] = {
@@ -43,6 +44,14 @@ const char *const r_name[R_COUNT] = {
     [EGG] = "egg",
     [PLAYER] = "player",
 };
+
+precise_time_t gettime(void)
+{
+    struct timeval tv = {0};
+
+    gettimeofday(&tv, NULL);
+    return GTIME(&tv);
+}
 
 res_name_t get_ressource_type(char *name)
 {

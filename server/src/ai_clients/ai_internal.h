@@ -14,12 +14,12 @@ typedef void (*ai_cmd_func_t)(server_t *, ai_client_t *, char *);
 struct ai_cmd_s {
     char *cmd;
     ai_cmd_func_t func;
-    time_t time;
+    precise_time_t time;
 };
 
 struct queued_cmd_s {
     ai_cmd_func_t func;
-    time_t time;
+    precise_time_t time;
     char *args;
 };
 

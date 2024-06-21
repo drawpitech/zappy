@@ -7,6 +7,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+
 #include "gui_protocols/commands/commands.h"
 #include "server.h"
 #include "stdio.h"

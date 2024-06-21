@@ -28,6 +28,7 @@ class Animator {
         void playAnimation(const std::shared_ptr<Animation>& animation) noexcept;
         void calculateBoneTransform(const AssimpNodeData& node, glm::mat4 parentTransform) noexcept;
 
+        [[nodiscard]] bool isAnimationDone() const noexcept;
         [[nodiscard]] std::array<glm::mat4, MAX_BONES> getFinalBoneMatrices() const noexcept;
 
     private:

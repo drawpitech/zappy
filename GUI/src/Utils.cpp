@@ -6,10 +6,14 @@
 */
 
 #include "Utils.hpp"
+#include "stb_image.h"
 
-#include "glad/glad.h"
-
+#include <GL/gl.h>
+#include <future>
+#include <mutex>
 #include <ranges>
+#include <stdexcept>
+#include <vector>
 
 void Utils::DeletionQueue::add(std::function<void()>&& function) {
     deletors.push_back(std::move(function));
@@ -126,4 +130,36 @@ void Utils::renderCube() {
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
+}
+
+void Utils::ImageLoader::loadImage(const std::string& filepath)
+{
+    int width{};
+    int height{};
+    int nrChannels{};
+
+    unsigned char* data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 0);
+    if (data == nullptr)
+        throw std::runtime_error("Can't load " + filepath);
+
+    GLuint textureID{};
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
+
+    std::lock_guard<std::mutex> guard(_mutex);
+    _images.push_back(textureID);
+}
+
+void Utils::ImageLoader::loadImages()
+{
+    std::vector<std::future<void>> futures(_filepaths.size());
+    for (const auto& path : _filepaths)
+    {
+        futures.emplace_back(std::async(std::launch::async, &ImageLoader::loadImage, this, path));
+    }
+    for (auto &i : futures)
+        i.get();
 }

@@ -9,11 +9,35 @@
 
 #include <deque>
 #include <functional>
+#include <mutex>
+#include <string>
+#include <vector>
+
+#include "glad/glad.h"
 
 #include "glm/glm.hpp"
 #include "assimp/matrix4x4.h"
 
 namespace Utils {
+
+    template<typename T, typename... Args>
+    class Instance {
+    public:
+        Instance(const Instance&) = delete;
+        Instance& operator=(const Instance&) = delete;
+        Instance(Instance&&) = delete;
+        Instance& operator=(Instance&&) = delete;
+
+        static T* Get(Args&&... args) {
+            static T inst{std::forward<Args>(args)...};
+            return &inst;
+        }
+
+    private:
+        Instance() = default;
+        ~Instance() = default;
+    };
+
     class DeletionQueue {
         public:
             void add(std::function<void()>&& function);
@@ -34,4 +58,27 @@ namespace Utils {
 
     void renderQuad();
     void renderCube();
+
+    class ImageLoader {
+    public:
+        ImageLoader(const std::vector<std::string>& filepaths)
+            : _filepaths(filepaths)
+        {}
+        ImageLoader(ImageLoader &&) = delete;
+        ImageLoader(const ImageLoader &) = delete;
+        ImageLoader &operator=(ImageLoader &&) = delete;
+        ImageLoader &operator=(const ImageLoader &) = delete;
+        ~ImageLoader() = default;
+
+        void loadImages();
+        [[nodiscard]] const std::vector<GLuint>& getImages() const {
+            return _images;
+        }
+
+    private:
+        void loadImage(const std::string& filepath);
+        std::vector<std::string> _filepaths;
+        std::vector<GLuint> _images;
+        std::mutex _mutex;
+    };
 } // namespace Utils

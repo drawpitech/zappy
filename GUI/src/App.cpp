@@ -7,10 +7,13 @@
 
 #include "App.hpp"
 
+#include "Renderer/Camera.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
 
+#include <iostream>
+#include <memory>
 #include <netinet/in.h>
 
 App::App(int port) {
@@ -18,10 +21,10 @@ App::App(int port) {
     m_scene = std::make_shared<Renderer::Scene>();
 
     {   // Load the meshes and animations
-        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("assets/Dan/Dancing Twerk.dae");
-        m_playerAnims["Twerk"] = std::make_shared<Animation>("assets/Dan/Dancing Twerk.dae", m_playerMeshes["Dan"]);
-        m_playerMeshes["Quentin"] = std::make_shared<SkeletalMesh>("assets/Quentin/Breakdance Uprock Var 2.dae");
-        m_playerAnims["Breakdance"] = std::make_shared<Animation>("assets/Quentin/Breakdance Uprock Var 2.dae", m_playerMeshes["Quentin"]);
+        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("assets/Dan/Dan.dae");
+        m_playerAnims["DanIdle"] = std::make_shared<Animation>("assets/Dan/Idle/Idle.dae", m_playerMeshes["Dan"]);
+        m_playerAnims["DanEat"] = std::make_shared<Animation>("assets/Dan/Eat/Drinking.dae", m_playerMeshes["Dan"]);
+        m_playerAnims["DanMove"] = std::make_shared<Animation>("assets/Dan/Move/Fast Run.dae", m_playerMeshes["Dan"]);
 
         m_ressourceOffset = {
             {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
@@ -57,7 +60,6 @@ App::~App() {
 
 void App::createScene() {
     m_scene->staticActors.clear();
-    m_scene->animatedActors.clear();
 
     // Create all island tiles and ressources
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
@@ -86,13 +88,7 @@ void App::createScene() {
     }
 
 
-    // Display the players
-    for (const auto& [playerNumber, player] : m_players) {
-        static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
-        const glm::vec3 playerRotation = glm::vec3(0, (player.orientation - 1) * 90, 0);
-
-        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position, playerScale, playerRotation});
-    }
+    createPlayers();
 }
 
 void App::connectToServer(int port) {
@@ -161,6 +157,84 @@ void App::drawUi() noexcept {
     ImGui::End();
 }
 
+void App::createPlayers() {
+    m_scene->animatedActors.clear();
+    for (auto& [playerNumber, player] : m_players) {
+        static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
+        int newOrientation = 1;
+        if (player.orientation == 1)
+            newOrientation = 3;
+        else if (player.orientation == 2)
+            newOrientation = 2;
+        else if (player.orientation == 3)
+            newOrientation = 1;
+        else if (player.orientation == 4)
+            newOrientation = 0;
+        const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
+        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, playerScale, playerRotation});
+    }
+}
+
+void App::updatePlayersAnim()
+{
+    for (auto& [playerNumber, player] : m_players) {
+        std::string meshName = m_teams[player.teamName].mesh.first;
+        if (player.currentAnim == IDLE) {
+            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Idle"]);
+            player.currentAnim = DEFAULT;
+            createPlayers();
+        }
+        if (player.currentAnim == MOVE) {
+            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Move"]);
+            player.currentAnim = DEFAULT;
+            player.currentAction = MOVE;
+            player.visualPositionOffset = -player.moveOrientation;
+            std::cout << "Visual position offset: " << player.moveOrientation.x << " " << player.moveOrientation.z << std::endl;
+            createPlayers();
+        }
+        if (player.currentAction == MOVE) {
+            if (player.moveOrientation.x > 0) {
+                if (player.visualPositionOffset.x < 0)
+                    player.visualPositionOffset.x += (m_tileSpacing.x + m_tileSize.x) * 0.001 * m_speed;
+                else {
+                    player.visualPositionOffset = {0, 0, 0};
+                    player.currentAction = IDLE;
+                    player.currentAnim = IDLE;
+                }
+            }
+            if (player.moveOrientation.x < 0) {
+                if (player.visualPositionOffset.x > 0)
+                    player.visualPositionOffset.x -= (m_tileSpacing.x + m_tileSize.x) * 0.001 * m_speed;
+                else {
+                    player.visualPositionOffset = {0, 0, 0};
+                    player.currentAction = IDLE;
+                    player.currentAnim = IDLE;
+                }
+            }
+
+            if (player.moveOrientation.z > 0) {
+                if (player.visualPositionOffset.z < 0)
+                    player.visualPositionOffset.z += (m_tileSpacing.y + m_tileSize.z) * 0.001 * m_speed;
+                else {
+                    player.visualPositionOffset = {0, 0, 0};
+                    player.currentAction = IDLE;
+                    player.currentAnim = IDLE;
+                }
+            }
+            if (player.moveOrientation.z < 0) {
+                if (player.visualPositionOffset.z > 0)
+                    player.visualPositionOffset.z -= (m_tileSpacing.y + m_tileSize.z) * 0.001 * m_speed;
+                else {
+                    player.visualPositionOffset = {0, 0, 0};
+                    player.currentAction = IDLE;
+                    player.currentAnim = IDLE;
+                }
+            }
+            createPlayers();
+        }
+    }
+}
+
 void App::run() {
     // Load imgui settings
     ImGui::LoadIniSettingsFromDisk("../imgui.ini");
@@ -201,6 +275,7 @@ void App::run() {
 
         // Render the scene
         drawUi();
+        updatePlayersAnim();
         m_renderer->render(m_scene, static_cast<float>(m_speed));
     }
 

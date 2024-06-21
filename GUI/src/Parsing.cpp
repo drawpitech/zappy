@@ -57,7 +57,8 @@ void App::updatePlayers(const std::string& bufferView) {
             .orientation = orientation,
             .teamName = teamName,
             .level = level,
-            .animator = std::make_shared<Animator>(m_playerAnims["Twerk"])
+            .animStartTime = std::chrono::steady_clock::now(),
+            .animator = std::make_shared<Animator>(m_playerAnims["DanIdle"])
         };
 
         pos = bufferView.find("pnw", pos);
@@ -79,8 +80,11 @@ void App::updatePlayers(const std::string& bufferView) {
             // Add to to the logs if the player moved
             glm::vec3 oldPos = m_players[playerNumber].position / glm::vec3(m_tileSpacing[0] + m_tileSize[0], 0, m_tileSpacing[1] + m_tileSize[1]);
             glm::ivec2 oldPosI = {static_cast<int>(oldPos[0]), static_cast<int>(oldPos[2])};
-            if (oldPosI != position)
+            if (oldPosI != position) {
                 LOG("Player [" + std::to_string(playerNumber) + "] moved forward", BLUE);
+                m_players[playerNumber].currentAnim = MOVE;
+                m_players[playerNumber].moveOrientation = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] +  + m_tileSize[1])) - m_players[playerNumber].position;
+            }
 
             m_players[playerNumber].position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] +  + m_tileSize[1]));
         }
@@ -88,7 +92,6 @@ void App::updatePlayers(const std::string& bufferView) {
 
         {   // Get the new orientation
             const int newOrientation = PARSER_LAST_INT(bufferView, pos);
-
             // Add to the logs if the player changed orientation
             const int oldOrientation = m_players[playerNumber].orientation;
             if (oldOrientation != newOrientation) {

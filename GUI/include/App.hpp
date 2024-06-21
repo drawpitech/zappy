@@ -30,15 +30,33 @@ class App {
             THYSTAME = 6,
         };
 
+        enum AnimationType {
+            DEFAULT = -1,
+            IDLE = 0,
+            MOVE = 1,
+            EAT = 2,
+            COLLECT = 3,
+            RITUAL = 4,
+            RITUALFAILURE = 5,
+            RITUALSUCCESS = 6,
+            BROADCAST = 7,
+            EJECT = 8
+        };
+
         struct TileContent {
             std::array<int, 7> ressources = {0, 0, 0, 0, 0, 0, 0};
         };
 
         struct Player {
             glm::vec3 position;
+            glm::vec3 visualPositionOffset = {0, 0, 0};
             int orientation;
             std::string teamName;
             int level;
+            AnimationType currentAnim = IDLE;
+            AnimationType currentAction = IDLE;
+            glm::vec3 moveOrientation = {0, 0, 0};
+            std::chrono::time_point<std::chrono::steady_clock> animStartTime;
             std::shared_ptr<Animator> animator;
         };
 
@@ -115,9 +133,10 @@ class App {
         void updateEggs(const std::string& bufferView);
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
-
+        void updatePlayersAnim();
         void drawUi() noexcept;
 
         void createScene();
+        void createPlayers();
         void createRessources();
 };

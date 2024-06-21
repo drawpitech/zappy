@@ -16,7 +16,6 @@ void gui_cmd_bct(server_t *server, gui_client_t *client, char *args)
     char **cmd = NULL;
     cell_t *cell = NULL;
 
-    return;
     if (client == NULL)
         return;
     cmd = my_str_to_word_array(args, " ");

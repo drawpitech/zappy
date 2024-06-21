@@ -10,6 +10,7 @@
 #include "Utils.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "glm/ext/vector_float3.hpp"
 #include "imgui.h"
 
 #include <chrono>
@@ -259,6 +260,8 @@ void App::updatePlayersAnim() { // NOLINT
         if (player.currentAnim == RITUAL) {
             player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Ritual"]);
             player.currentAnim = DEFAULT;
+            player.currentAction = RITUAL;
+            player.visualPositionOffset = glm::vec3(0, 0, 0);
             createPlayers();
         }
         if (player.currentAnim == BIRTH) {
@@ -284,7 +287,7 @@ void App::updatePlayersAnim() { // NOLINT
         if (player.currentAction == MOVE) {
             if (player.moveOrientation[0] > 0) {
                 if (player.visualPositionOffset[0] < 0)
-                    player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * 0.001 * m_speed; // NOLINT
+                    player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -293,7 +296,7 @@ void App::updatePlayersAnim() { // NOLINT
             }
             if (player.moveOrientation[0] < 0) {
                 if (player.visualPositionOffset[0] > 0)
-                    player.visualPositionOffset[0] -= (m_tileSpacing[0] + m_tileSize[0]) * 0.001 * m_speed; // NOLINT
+                    player.visualPositionOffset[0] -= (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -303,7 +306,7 @@ void App::updatePlayersAnim() { // NOLINT
 
             if (player.moveOrientation[2] > 0) {
                 if (player.visualPositionOffset[2] < 0)
-                    player.visualPositionOffset[2] += (m_tileSpacing[1] + m_tileSize[2]) * 0.001 * m_speed; // NOLINT
+                    player.visualPositionOffset[2] += (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -312,7 +315,7 @@ void App::updatePlayersAnim() { // NOLINT
             }
             if (player.moveOrientation[2] < 0) {
                 if (player.visualPositionOffset[2] > 0)
-                    player.visualPositionOffset[2] -= (m_tileSpacing[1] + m_tileSize[2]) * 0.001 * m_speed; // NOLINT
+                    player.visualPositionOffset[2] -= (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;

@@ -128,6 +128,7 @@ class App {
         float m_tileHeight = -1;
         float m_playerHeight = 0;
         float m_resourceHeight = 0;
+        float m_moveSpeed = 0.005;
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
 
         std::unordered_map<std::string, Team> m_teams;

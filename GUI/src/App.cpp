@@ -54,7 +54,7 @@ App::App(int port) {
     }
 
     static const std::vector<std::string> resIconsFilepaths = {
-        "assets/Ressources Icons/pink.png",
+        "assets/Ressources Icons/gonstre.png",
         "assets/Ressources Icons/pink.png",
         "assets/Ressources Icons/orange.png",
         "assets/Ressources Icons/blue.png",

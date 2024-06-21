@@ -44,6 +44,7 @@ static void connect_ai_client(
     long egg = -1;
 
     if (!team_valid(serv, team)) {
+        ERR("team is invalid");
         write(client_fd, "ko\n", 3);
         return;
     }
@@ -55,6 +56,7 @@ static void connect_ai_client(
     }
     free(remove_elt_to_array(&serv->waitlist_fd, idx));
     if (init_ai_client(serv, client_fd, team, egg) == RET_ERROR) {
+        OOM;
         write(client_fd, "ko\n", 3);
         close(client_fd);
     }
@@ -72,10 +74,11 @@ static void log_new_gui(server_t *serv)
         gui_cmd_pnw(serv, serv->gui_client, serv->ai_clients.elements[i]);
 }
 
-static void connect_gui_client(server_t *serv, int client_fd)
+static void connect_gui_client(server_t *serv, int idx, int client_fd)
 {
     gui_client_t *gui = NULL;
 
+    free(remove_elt_to_array(&serv->waitlist_fd, idx));
     if (serv->gui_client != NULL) {
         write(client_fd, "ko\n", 3);
         ERR("GUI client is already connected");
@@ -107,7 +110,7 @@ static void handle_waitlist(server_t *serv, size_t i, int client_fd)
     }
     buffer[bytes_read] = '\0';
     if (strncmp(buffer, "GRAPHIC\n", bytes_read) == 0) {
-        connect_gui_client(serv, client_fd);
+        connect_gui_client(serv, i, client_fd);
     } else {
         connect_ai_client(serv, i, client_fd, buffer);
     }

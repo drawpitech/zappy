@@ -194,6 +194,7 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         (void) players;
 
         PARSER_NEXT_SYMBOL("pic");
+
     }
 
 
@@ -212,6 +213,27 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         (void) result;
 
         PARSER_NEXT_SYMBOL("pie");
+    }
+    PARSER_FIRST_SYMBOL("pin");
+    while (pos != std::string::npos)
+    {
+        const int id = PARSER_NEXT_INT(bufferView, pos);
+        [[maybe_unused]] const int x = PARSER_NEXT_INT(bufferView, pos);
+        [[maybe_unused]] const int y = PARSER_NEXT_INT(bufferView, pos);
+        for (std::size_t i = 0; i < RESNUMBER - 1; ++i)
+        {
+            m_players.at(id).inv.ressources[i] = PARSER_NEXT_INT(bufferView, pos);
+        }
+        m_players.at(id).inv.ressources[RESNUMBER - 1] = PARSER_LAST_INT(bufferView, pos);
+        PARSER_NEXT_SYMBOL("pin");
+    }
+    PARSER_FIRST_SYMBOL("plv");
+    while (pos != std::string::npos)
+    {
+        const int id = PARSER_NEXT_INT(bufferView, pos);
+        const int lvl = PARSER_LAST_INT(bufferView, pos);
+        m_players.at(id).level = lvl;
+        PARSER_NEXT_SYMBOL("plv");
     }
 }
 

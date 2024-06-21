@@ -142,24 +142,34 @@ void Utils::ImageLoader::loadImage(const std::string& filepath)
     if (data == nullptr)
         throw std::runtime_error("Can't load " + filepath);
 
-    GLuint textureID{};
+    GLuint textureID = 0;
+
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
     stbi_image_free(data);
 
-    std::lock_guard<std::mutex> guard(_mutex);
+    //std::lock_guard<std::mutex> guard(_mutex);
     _images.push_back(textureID);
 }
 
 void Utils::ImageLoader::loadImages()
 {
-    std::vector<std::future<void>> futures(_filepaths.size());
+    //std::vector<std::future<void>> futures;
     for (const auto& path : _filepaths)
     {
-        futures.emplace_back(std::async(std::launch::async, &ImageLoader::loadImage, this, path));
+        //futures.emplace_back(std::async(std::launch::async, &ImageLoader::loadImage, this, path));
+        loadImage(path);
     }
+    /*
     for (auto &i : futures)
         i.get();
+    */
 }

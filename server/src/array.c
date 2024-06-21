@@ -54,14 +54,14 @@ array_t *array_constructor(void)
     return array;
 }
 
-void array_destructor(array_t *array, void (*free_elt)(void *))
+void *array_destructor(array_t *array, void (*free_elt)(void *))
 {
     if (array == NULL)
-        return;
+        return NULL;
     if (array->elements != NULL) {
         for (size_t i = 0; free_elt != NULL && i < array->nb_elements; i++)
             free_elt(array->elements[i]);
         free(array->elements);
     }
-    free(array);
+    return array;
 }

@@ -175,8 +175,7 @@ void App::createPlayers() {
     }
 }
 
-void App::updatePlayersAnim()
-{
+void App::updatePlayersAnim() {
     for (auto& [playerNumber, player] : m_players) {
         std::string meshName = m_teams[player.teamName].mesh.first;
         if (player.currentAnim == IDLE) {
@@ -189,7 +188,6 @@ void App::updatePlayersAnim()
             player.currentAnim = DEFAULT;
             player.currentAction = MOVE;
             player.visualPositionOffset = -player.moveOrientation;
-            std::cout << "Visual position offset: " << player.moveOrientation.x << " " << player.moveOrientation.z << std::endl;
             createPlayers();
         }
         if (player.currentAction == MOVE) {

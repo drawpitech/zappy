@@ -52,7 +52,17 @@ App::App(int port) {
         m_islandMesh = std::make_shared<StaticMesh>("assets/tile.obj");
     }
 
-    m_resIcons = Utils::Instance<Utils::ImageLoader, std::vector<std::string>>::Get({})->getImages();
+    static const std::vector<std::string> resIconsFilepaths = {
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+    };
+
+    m_resIcons = Utils::Instance<Utils::ImageLoader, const std::vector<std::string>&>::Get(resIconsFilepaths)->getImages();
     connectToServer(port);
     parseConnectionResponse();
     createScene();
@@ -150,18 +160,20 @@ void App::drawUi() noexcept {
     ImGui::Begin("Trantorians");
     for (auto& [id, player] : m_players)
     {
-        ImGui::CollapsingHeader((player.teamName + " Trantorian " + std::to_string(id)).c_str());
+        ImGui::Text("%s", (std::to_string(id) + " Trantorian " + player.teamName).c_str());
         ImGui::Text("Level: %d\n", player.level);
-        ImGui::TreeNode((std::to_string(id) + " Inventory").c_str());
+        if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
         {
             for (std::size_t i = 0; i < RESNUMBER; ++i)
             {
-                // TODO try placeholders
-                //ImGui::Image(ImTextureID user_texture_id, const ImVec2 &image_size);
+                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {15, 15});
+                ImGui::NextColumn();
                 ImGui::Text("%d", player.inv.ressources[i]);
             }
+
+            ImGui::TreePop();
         }
-        ImGui::TreePop();
+        ImGui::Separator();
     }
     ImGui::End();
 

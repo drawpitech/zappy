@@ -58,7 +58,7 @@ class App {
             int orientation;
             std::string teamName;
             int level;
-            inventory inv;
+            inventory inv{};
             AnimationType currentAnim = IDLE;
             AnimationType currentAction = IDLE;
             glm::vec3 moveOrientation = {0, 0, 0};

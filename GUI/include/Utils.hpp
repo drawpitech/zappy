@@ -63,7 +63,7 @@ namespace Utils {
     public:
         ImageLoader(const std::vector<std::string>& filepaths)
             : _filepaths(filepaths)
-        {}
+        { loadImages(); }
         ImageLoader(ImageLoader &&) = delete;
         ImageLoader(const ImageLoader &) = delete;
         ImageLoader &operator=(ImageLoader &&) = delete;

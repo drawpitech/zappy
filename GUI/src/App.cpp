@@ -49,7 +49,8 @@ App::App(int port) {
             {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.obj")}
         };
 
-        m_islandMesh = std::make_shared<StaticMesh>("assets/tile.obj");
+        m_tilesMeshes["white"] = std::make_shared<StaticMesh>("assets/whiteRock.obj");
+        m_tilesMeshes["black"] = std::make_shared<StaticMesh>("assets/greyRock.obj");
         m_broadcastMesh = std::make_shared<StaticMesh>("assets/broadcast.obj");
     }
 
@@ -66,6 +67,22 @@ App::App(int port) {
     m_resIcons = Utils::Instance<Utils::ImageLoader, const std::vector<std::string>&>::Get(resIconsFilepaths)->getImages();
     connectToServer(port);
     parseConnectionResponse();
+    createTiles();
+}
+
+void App::createTiles() {
+    for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
+        for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
+            int randomHight = rand() % 10 + 1;
+            for (int k = 0; k < randomHight; k++)
+                m_tilesDecor.push_back(
+                    Tile {
+                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * k, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1]))),
+                        .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
+                    }
+                );
+        }
+    }
 }
 
 App::~App() {
@@ -76,13 +93,26 @@ void App::createScene() {
     m_scene->staticActors.clear();
     m_scene->animatedActors.clear();
 
+    // Create the island tiles
+
+    for (int i = 0; i < m_tilesDecor.size(); i++)
+        m_scene->staticActors.push_back(
+            Renderer::StaticActor(
+                {
+                    .mesh = m_tilesDecor[i].mesh,
+                    .position = m_tilesDecor[i].position,
+                    .scale = m_tileSize,
+                    .rotation = glm::vec3(0, 0, 0)
+                }
+            )
+        );
+
     // Create all island tiles and ressources
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
             const TileContent& tile = m_map[i + m_mapSize[0] / 2][j + m_mapSize[1] / 2];
 
             // Add the island tile
-            m_scene->staticActors.push_back(Renderer::StaticActor({m_islandMesh, glm::vec3(static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0]), m_tileHeight, static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])), m_tileSize, glm::vec3(0, 0, 0)}));
 
             // Display the ressources
             for (const auto& [ressourceType, offset] : m_ressourceOffset) {

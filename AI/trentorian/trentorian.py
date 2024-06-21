@@ -311,6 +311,7 @@ class Trantorian:
             self.look_around()
             for _ in range(self.level): # TODO maybe some priority order here
                 if not self.take_tile_objects():
+                    self.forward()
                     break
                 self.forward()
             direct: int = random.randint(0, 5)
@@ -366,6 +367,10 @@ class Trantorian:
         self.state = "beacon"
         self.number_of_ritual_ready = 0
         while self.iter() and self.state == "beacon":
+            self.kill_others()
+            if not all(e in self.others for e in receivers):
+                self.state = "wander"
+                return
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
             if self.number_of_ritual_ready >= LEVELS[self.level + 1][0] - 1:
                 self.dprint("we are ready", receivers)
@@ -380,9 +385,9 @@ class Trantorian:
         """
         if not self.iter_food():
             return
-        if len(self.others) > 15:
-            self.suicide()
-            return
+        # if len(self.others) > 15:
+        #     self.suicide()
+        #     return
         if self.client.team_size > 0 and len(self.others) < MAX_PLAYER:
             self.asexual_multiplication(queue)
         self.broadcast("im$alive", ["all"])

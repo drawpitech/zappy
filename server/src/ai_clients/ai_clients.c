@@ -110,6 +110,7 @@ int remove_ai_client(server_t *server, size_t idx)
 static bool starve_to_death(server_t *server, ai_client_t *ai)
 {
     time_t now = time(NULL);
+    char buff[256] = {0};
 
     if (ai->res[FOOD].quantity <= 0)
         return ERR("Starved to death"), true;
@@ -120,6 +121,8 @@ static bool starve_to_death(server_t *server, ai_client_t *ai)
     if (server->ctx.freq >= 0 && now - ai->last_fed > 126 / server->ctx.freq) {
         ai->res[FOOD].quantity -= 1;
         ai->last_fed = now;
+        sprintf(buff, "%d", ai->id);
+        gui_cmd_pin(server, server->gui_client, buff);
     }
     if (ai->res[FOOD].quantity <= 0)
         return ERR("Starved to death"), true;

@@ -89,8 +89,11 @@ Window::Window(int width, int height, const std::string& title) : m_width(width)
     #endif
 
     m_window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
-    if (m_window == nullptr)
-        throw std::runtime_error("Failed to create GLFW window");
+    if (m_window == nullptr) {
+        char const *error = nullptr;
+        glfwGetError(&error);
+        throw std::runtime_error("Failed to create GLFW window: " + std::string(error));
+    }
     m_deletionQueue.add([this]() {
         glfwDestroyWindow(m_window);
     });

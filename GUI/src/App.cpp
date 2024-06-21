@@ -8,6 +8,7 @@
 #include "App.hpp"
 
 #include "Renderer/Camera.hpp"
+#include "Utils.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
@@ -51,6 +52,17 @@ App::App(int port) {
         m_islandMesh = std::make_shared<StaticMesh>("assets/tile.obj");
     }
 
+    static const std::vector<std::string> resIconsFilepaths = {
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+        "assets/Ring texture.png",
+    };
+
+    m_resIcons = Utils::Instance<Utils::ImageLoader, const std::vector<std::string>&>::Get(resIconsFilepaths)->getImages();
     connectToServer(port);
     parseConnectionResponse();
     createScene();
@@ -144,6 +156,26 @@ void App::drawUi() noexcept {
 
         ImGui::End();
     }
+
+    ImGui::Begin("Trantorians");
+    for (auto& [id, player] : m_players)
+    {
+        ImGui::Text("%s", (std::to_string(id) + " Trantorian " + player.teamName).c_str());
+        ImGui::Text("Level: %d\n", player.level);
+        if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
+        {
+            for (std::size_t i = 0; i < RESNUMBER; ++i)
+            {
+                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {15, 15});
+                ImGui::NextColumn();
+                ImGui::Text("%d", player.inv.ressources[i]);
+            }
+
+            ImGui::TreePop();
+        }
+        ImGui::Separator();
+    }
+    ImGui::End();
 
     // Add logs to the UI
     ImGui::Begin("Logs");

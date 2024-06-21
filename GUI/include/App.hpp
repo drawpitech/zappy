@@ -44,9 +44,13 @@ class App {
             BIRTH = 9
         };
 
+        static constexpr std::size_t RESNUMBER = 7;
+
         struct TileContent {
-            std::array<int, 7> ressources = {0, 0, 0, 0, 0, 0, 0};
+            std::array<int, RESNUMBER> ressources = {0, 0, 0, 0, 0, 0, 0};
         };
+
+        using inventory = TileContent;
 
         struct Player {
             glm::vec3 position;
@@ -54,6 +58,7 @@ class App {
             int orientation;
             std::string teamName;
             int level;
+            inventory inv{};
             AnimationType currentAnim = IDLE;
             AnimationType currentAction = IDLE;
             glm::vec3 moveOrientation = {0, 0, 0};
@@ -123,6 +128,7 @@ class App {
         std::map<std::string, std::shared_ptr<SkeletalMesh>> m_playerMeshes;
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
         std::shared_ptr<StaticMesh> m_islandMesh;
+        std::vector<GLuint> m_resIcons;
 
         std::vector<LogMessage> m_logs;
 

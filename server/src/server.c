@@ -135,9 +135,13 @@ size_t count_team(server_t *serv, char *team)
 
 static long get_egg(server_t *serv, const char *team)
 {
-    for (size_t i = 0; i < serv->eggs.nb_elements; i++)
-        if (strcmp(team, ((egg_t *)serv->eggs.elements[i])->team) == 0)
+    egg_t *egg = NULL;
+
+    for (size_t i = 0; i < serv->eggs.nb_elements; i++) {
+        egg = serv->eggs.elements[i];
+        if (egg->team == NULL || strcmp(team, egg->team) == 0)
             return (long)i;
+    }
     return -1;
 }
 
@@ -270,9 +274,9 @@ static int init_map(server_t *server, context_t *ctx)
     refill_map(server, ctx);
     for (size_t i = 0; i < server->ctx.map_size; ++i)
         server->map[i].pos = (vector_t){i % ctx->width, i / ctx->width};
-    for (size_t i = 0; i < server->ctx.names.nb_elements; ++i)
-        for (size_t j = 0; j < server->ctx.client_nb; ++j)
-            spawn_egg(server, server->ctx.names.elements[i]);
+    for (size_t i = 0;
+         i < server->ctx.names.nb_elements * server->ctx.client_nb; ++i)
+        spawn_egg(server, NULL);
     return RET_VALID;
 }
 

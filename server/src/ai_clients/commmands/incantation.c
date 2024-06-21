@@ -112,6 +112,7 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
 
     client->last_inc = 0;
     if (!can_incantation(client, cell)) {
+        gui_cmd_pie(server, server->gui_client, client->pos, 0);
         ai_dprintf(client, "ko\n");
         ERR("Uwu you lost all your money");
         return;
@@ -129,14 +130,12 @@ void ai_client_incantation_end(server_t *server, ai_client_t *client)
 void ai_cmd_incantation(
     server_t *server, ai_client_t *client, UNUSED char *args)
 {
-    cell_t cell_cpy;
+    cell_t cell_cpy = *CELL(server, client->pos.x, client->pos.y);
     ai_client_t *read = NULL;
     char buffer[4096];
     char *cringe = buffer;
     time_t now = time(NULL);
 
-    memcpy(
-        &cell_cpy, CELL(server, client->pos.x, client->pos.y), sizeof cell_cpy);
     if (!can_incantation(client, &cell_cpy)) {
         ai_write(client, "ko\n", 3);
         ERR("Skill issue");

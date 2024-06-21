@@ -25,6 +25,8 @@ App::App(int port) {
         m_playerAnims["DanIdle"] = std::make_shared<Animation>("assets/Dan/Idle/Idle.dae", m_playerMeshes["Dan"]);
         m_playerAnims["DanEat"] = std::make_shared<Animation>("assets/Dan/Eat/Drinking.dae", m_playerMeshes["Dan"]);
         m_playerAnims["DanMove"] = std::make_shared<Animation>("assets/Dan/Move/Fast Run.dae", m_playerMeshes["Dan"]);
+        m_playerAnims["DanRitual"] = std::make_shared<Animation>("assets/Dan/Ritual/Tut Hip Hop Dance.dae", m_playerMeshes["Dan"]);
+        m_playerAnims["DanBirth"] = std::make_shared<Animation>("assets/Dan/Birth/Standing Taunt Battlecry.dae", m_playerMeshes["Dan"]);
 
         m_ressourceOffset = {
             {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
@@ -183,12 +185,31 @@ void App::updatePlayersAnim() {
             player.currentAnim = DEFAULT;
             createPlayers();
         }
+        if (player.currentAnim == RITUAL) {
+            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Ritual"]);
+            player.currentAnim = DEFAULT;
+            createPlayers();
+        }
+        if (player.currentAnim == BIRTH) {
+            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Birth"]);
+            player.currentAnim = DEFAULT;
+            player.currentAction = BIRTH;
+            createPlayers();
+        }
         if (player.currentAnim == MOVE) {
             player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Move"]);
             player.currentAnim = DEFAULT;
             player.currentAction = MOVE;
             player.visualPositionOffset = -player.moveOrientation;
             createPlayers();
+        }
+        if (player.currentAction == BIRTH) {
+            std::cout << player.animator->isAnimationDone() << std::endl;
+            if (player.animator->isAnimationDone()) {
+                player.currentAction = IDLE;
+                player.currentAnim = IDLE;
+                createPlayers();
+            }
         }
         if (player.currentAction == MOVE) {
             if (player.moveOrientation.x > 0) {

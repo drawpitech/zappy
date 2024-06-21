@@ -40,7 +40,8 @@ class App {
             RITUALFAILURE = 5,
             RITUALSUCCESS = 6,
             BROADCAST = 7,
-            EJECT = 8
+            EJECT = 8,
+            BIRTH = 9
         };
 
         struct TileContent {

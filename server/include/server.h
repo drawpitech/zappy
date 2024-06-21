@@ -174,6 +174,9 @@ payload_t *get_cell_payload(server_t *serv, vector_t *pos, payload_t *payload);
 res_name_t get_ressource_type(char *name);
 egg_t *spawn_egg(server_t *server, char *team);
 size_t count_team(server_t *serv, char *team);
+void refill_map(server_t *server, context_t *ctx);
+int init_map(server_t *server, context_t *ctx);
+int iterate_waitlist(server_t *server);
 
 ATTR(format(printf, 2, 3))
 ssize_t ai_dprintf(ai_client_t *client, const char *fmt, ...);

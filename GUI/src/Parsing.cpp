@@ -116,22 +116,6 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
     }
 
 
-    // Player death (pdi playerNumber)
-    PARSER_FIRST_SYMBOL("pdi");
-    while (pos != std::string::npos) {
-        const int playerNumber = PARSER_LAST_INT(bufferView, pos);
-
-        if (m_players.find(playerNumber) == m_players.end())
-            throw std::runtime_error("pdi: player [" + std::to_string(playerNumber) + "] not found");
-
-        // Add to the logs
-        LOG("Player [" + std::to_string(playerNumber) + "] died", RED);
-
-        m_players.erase(playerNumber);
-        PARSER_NEXT_SYMBOL("pdi");
-    }
-
-
     // Player broadcast (pbc playerNumber message)
     PARSER_FIRST_SYMBOL("pbc");
     while (pos != std::string::npos) {
@@ -215,6 +199,8 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
 
         PARSER_NEXT_SYMBOL("pie");
     }
+
+    // Player inventory (pin playerNumber x y q0 q1 q2 q3 q4 q5 q6)
     PARSER_FIRST_SYMBOL("pin");
     while (pos != std::string::npos)
     {
@@ -228,6 +214,9 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         m_players.at(id).inv.ressources[RESNUMBER - 1] = PARSER_LAST_INT(bufferView, pos);
         PARSER_NEXT_SYMBOL("pin");
     }
+
+
+    // Player level (plv playerNumber level)
     PARSER_FIRST_SYMBOL("plv");
     while (pos != std::string::npos)
     {
@@ -235,6 +224,22 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         const int lvl = PARSER_LAST_INT(bufferView, pos);
         m_players.at(id).level = lvl;
         PARSER_NEXT_SYMBOL("plv");
+    }
+
+
+    // Player death (pdi playerNumber)
+    PARSER_FIRST_SYMBOL("pdi");
+    while (pos != std::string::npos) {
+        const int playerNumber = PARSER_LAST_INT(bufferView, pos);
+
+        if (m_players.find(playerNumber) == m_players.end())
+            throw std::runtime_error("pdi: player [" + std::to_string(playerNumber) + "] not found");
+
+        // Add to the logs
+        LOG("Player [" + std::to_string(playerNumber) + "] died", RED);
+
+        m_players.erase(playerNumber);
+        PARSER_NEXT_SYMBOL("pdi");
     }
 }
 

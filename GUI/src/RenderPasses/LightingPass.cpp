@@ -10,8 +10,8 @@
 
 #include "imgui.h"
 #include "stb_image.h"
-#include "glm/gtc/matrix_transform.hpp"
-
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include <filesystem>
 
 LightingPass::LightingPass(std::shared_ptr<Window>& window) : m_window(window) {
@@ -206,7 +206,7 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
 
     m_lightingProgram->setVec3("camPos", camPos);
 
-    glViewport(0, 0, m_lightingPassSize.x, m_lightingPassSize.y);
+    glViewport(0, 0, static_cast<GLsizei>(m_lightingPassSize[0]), static_cast<GLsizei>(m_lightingPassSize[1]));
     glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -253,7 +253,7 @@ void LightingPass::bind(uint32_t positionTexture, uint32_t albedoTexture, uint32
         }
 
         ImGui::Image(
-            reinterpret_cast<ImTextureID>(m_renderbuffer),
+            reinterpret_cast<ImTextureID>(m_renderbuffer),  // NOLINT
             newSize,
             ImVec2(0, 1),
             ImVec2(1, 0)

@@ -9,8 +9,6 @@
 #include "stb_image.h"
 
 #include <GL/gl.h>
-#include <future>
-#include <mutex>
 #include <ranges>
 #include <stdexcept>
 #include <vector>

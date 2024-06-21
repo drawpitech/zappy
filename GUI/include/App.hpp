@@ -76,6 +76,7 @@ class App {
 
         struct Broadcast {
             std::chrono::high_resolution_clock::time_point startTime;
+            int playerID;
             glm::vec3 position;
         };
 

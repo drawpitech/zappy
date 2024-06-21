@@ -31,7 +31,7 @@ class LightingPass {
         void bind(uint32_t positionTexture, uint32_t albedoTexture, uint32_t normalTexture, uint32_t pbrTexture, uint32_t ssaoTexture, uint32_t ssrTexture, const glm::vec3& camPos, const glm::mat4& view, const glm::mat4& proj, int debugView) noexcept;
 
         [[nodiscard]] glm::vec2 getViewportSize() const noexcept { return {m_lightingPassSize.x, m_lightingPassSize.y}; }
-        bool wasResized = false;
+        bool wasResized = false;    // NOLINT
 
     private:
         std::shared_ptr<Window> m_window;

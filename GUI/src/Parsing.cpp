@@ -7,7 +7,6 @@
 
 #include "App.hpp"
 
-#include <iostream>
 #include <stdexcept>
 #include <thread>
 #include <chrono>
@@ -142,13 +141,14 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         if (m_players.find(playerNumber) == m_players.end())
             throw std::runtime_error("pbc: player [" + std::to_string(playerNumber) + "] not found");
 
-        // Clear the broadcast at the player position
+        // Clear the broadcast at the player position & playerNumber
         m_broadcasts.erase(std::remove_if(m_broadcasts.begin(), m_broadcasts.end(), [playerNumber, this](const Broadcast& broadcast) {
-            return broadcast.position == m_players[playerNumber].position;
+            return broadcast.position == m_players[playerNumber].position || broadcast.playerID == playerNumber;
         }), m_broadcasts.end());
 
         m_broadcasts.push_back(Broadcast {
             .startTime = std::chrono::high_resolution_clock::now(),
+            .playerID = playerNumber,
             .position = m_players[playerNumber].position
         });
 

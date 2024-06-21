@@ -7,7 +7,6 @@
 
 #include "App.hpp"
 
-#include "Renderer/Camera.hpp"
 #include "Utils.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -135,7 +134,7 @@ void App::connectToServer(int port) {
     LOG("Connected to server", GREEN);
 }
 
-void App::drawUi() noexcept {
+void App::drawUi() noexcept {   // NOLINT
     // Mesh selection
     if (ImGui::Begin("Mesh and Animation Selection")) {
         for (auto& [teamName, team] : m_teams) {
@@ -168,7 +167,7 @@ void App::drawUi() noexcept {
         {
             for (std::size_t i = 0; i < RESNUMBER; ++i)
             {
-                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {15, 15});
+                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {15, 15}); // NOLINT
                 ImGui::NextColumn();
                 ImGui::Text("%d", player.inv.ressources[i]);
             }
@@ -212,7 +211,7 @@ void App::createPlayers() {
     std::cout << "players: " << m_players.size() << std::endl;
 }
 
-void App::updatePlayersAnim() {
+void App::updatePlayersAnim() { // NOLINT
     for (auto& [playerNumber, player] : m_players) {
         std::string meshName = m_teams[player.teamName].mesh.first;
         if (player.currentAnim == IDLE) {
@@ -246,18 +245,18 @@ void App::updatePlayersAnim() {
             }
         }
         if (player.currentAction == MOVE) {
-            if (player.moveOrientation.x > 0) {
-                if (player.visualPositionOffset.x < 0)
-                    player.visualPositionOffset.x += (m_tileSpacing.x + m_tileSize.x) * 0.001 * m_speed;
+            if (player.moveOrientation[0] > 0) {
+                if (player.visualPositionOffset[0] < 0)
+                    player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * 0.001 * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
                     player.currentAnim = IDLE;
                 }
             }
-            if (player.moveOrientation.x < 0) {
-                if (player.visualPositionOffset.x > 0)
-                    player.visualPositionOffset.x -= (m_tileSpacing.x + m_tileSize.x) * 0.001 * m_speed;
+            if (player.moveOrientation[0] < 0) {
+                if (player.visualPositionOffset[0] > 0)
+                    player.visualPositionOffset[0] -= (m_tileSpacing[0] + m_tileSize[0]) * 0.001 * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -265,18 +264,18 @@ void App::updatePlayersAnim() {
                 }
             }
 
-            if (player.moveOrientation.z > 0) {
-                if (player.visualPositionOffset.z < 0)
-                    player.visualPositionOffset.z += (m_tileSpacing.y + m_tileSize.z) * 0.001 * m_speed;
+            if (player.moveOrientation[2] > 0) {
+                if (player.visualPositionOffset[2] < 0)
+                    player.visualPositionOffset[2] += (m_tileSpacing[1] + m_tileSize[2]) * 0.001 * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
                     player.currentAnim = IDLE;
                 }
             }
-            if (player.moveOrientation.z < 0) {
-                if (player.visualPositionOffset.z > 0)
-                    player.visualPositionOffset.z -= (m_tileSpacing.y + m_tileSize.z) * 0.001 * m_speed;
+            if (player.moveOrientation[2] < 0) {
+                if (player.visualPositionOffset[2] > 0)
+                    player.visualPositionOffset[2] -= (m_tileSpacing[1] + m_tileSize[2]) * 0.001 * m_speed; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;

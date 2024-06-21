@@ -23,7 +23,7 @@ SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
     );
 
     if ((scene == nullptr) || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0) || (scene->mRootNode == nullptr))
-        throw std::runtime_error("Failed to load model: " + std::string(importer.GetErrorString()));
+        throw std::runtime_error("Failed to load model: " + modelPath + " " + std::string(importer.GetErrorString()));
 
     loadMaterials(scene, modelPath);
     processNode(scene->mRootNode, scene);

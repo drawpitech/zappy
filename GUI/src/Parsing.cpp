@@ -92,6 +92,7 @@ void App::updatePlayers(const std::string& bufferView) {
 
         {   // Get the new orientation
             const int newOrientation = PARSER_LAST_INT(bufferView, pos);
+
             // Add to the logs if the player changed orientation
             const int oldOrientation = m_players[playerNumber].orientation;
             if (oldOrientation != newOrientation) {

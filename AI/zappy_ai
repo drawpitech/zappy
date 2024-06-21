@@ -39,7 +39,7 @@ def main(host: str, port: int, team: str):
         if queue.empty():
             continue
         sended = queue.get()
-        if sended == "birth" and len(threads) != 5:  # TODO remove the size check, should be know before asking
+        if sended == "birth":
             t = Trantorian(host, port, team)
             threads.append(Process(target=t.born, args=(queue,)))
             threads[-1].start()

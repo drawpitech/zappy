@@ -15,15 +15,15 @@
 int add_elt_to_array(array_t *array, void *element)
 {
     void *tmp = NULL;
+    size_t new = 0;
 
     if (array->nb_elements + 1 >= array->size) {
-        tmp = reallocarray(
-            array->elements, ((array->size) ? array->size * 2 : DEFAULT_SIZE),
-            sizeof(void *));
+        new = (array->size > 1) ? array->size * 2 : DEFAULT_SIZE;
+        tmp = reallocarray(array->elements, new, sizeof(void *));
         if (NULL == tmp)
             return OOM, RET_ERROR;
         array->elements = tmp;
-        array->size *= 2;
+        array->size = new;
     }
     array->elements[array->nb_elements] = element;
     array->nb_elements++;

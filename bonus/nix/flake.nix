@@ -11,16 +11,10 @@
       in {
         formatter = pkgs.alejandra;
 
-        devShells = {
-          default = pkgs.mkShell {
-            inputsFrom = builtins.attrValues self.packages.${system} ++ (with pkgs; [glfw assimp]);
-            packages = with pkgs; [clang-tools_18 strace];
-            env.MAKEFLAGS = "-j12";
-          };
-          fhs = (pkgs.buildFHSUserEnv {
-            name = "fhs-shell";
-            targetPkgs = p: with p; [sfml] ;
-          }).env;
+        devShells.default = pkgs.mkShell {
+          inputsFrom = builtins.attrValues self.packages.${system} ++ (with pkgs; [glfw assimp]);
+          packages = with pkgs; [clang-tools_18 strace];
+          env.MAKEFLAGS = "-j12";
         };
 
         packages = {
@@ -29,6 +23,11 @@
             src = ../../server;
             nativeBuildInputs = with pkgs; [cmake libuuid];
             enableParallelBuilding = true;
+          };
+          reference_gui = pkgs.buildFHSUserEnv {
+            name = "reference_gui-fhs-shell";
+            targetPkgs = p: [p.sfml] ;
+            runScript = "env --chdir=${../ref} -S ./zappy_gui";
           };
         };
       }

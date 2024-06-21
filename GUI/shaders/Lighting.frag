@@ -154,6 +154,13 @@ void main() {
 
     vec3 fragPos = texture(positionMap, inTexCoords).xyz;
     vec3 albedo = pow(texture(albedoMap, inTexCoords).rgb, vec3(2.2));
+    if (fragPos == vec3(0.0)) {
+        albedo = albedo / (albedo + vec3(1.0));
+        albedo = pow(albedo, vec3(1.0/2.2));
+        FragColor = vec4(albedo, 1);
+        return;
+    }
+
     vec3 N = normalize(texture(normalMap, inTexCoords).rgb);
     vec2 pbr = texture(pbrMap, inTexCoords).rg;
     float ssao = texture(ssaoMap, inTexCoords).r;

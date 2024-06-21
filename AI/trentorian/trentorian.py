@@ -5,7 +5,6 @@ Module providing the trantorian class
 from enum import IntEnum
 from time import time
 import random
-import os
 from warnings import warn
 
 from multiprocessing import Queue
@@ -37,6 +36,7 @@ from utils import (
 #-----------------------------------------------------------------------------#
 
 FOOD = 126
+MAX_PLAYER = 12
 class TrantorianDirection(IntEnum):
     """Trantorian direction enum
     """
@@ -72,6 +72,15 @@ class TrantorianDirection(IntEnum):
         if self == 3:
             return "DOWN"
         return "UNKWOW"
+
+class OtherIndex(IntEnum):
+    """Other index enum
+    """
+    INV = 0
+    LVL = 1
+    X = 2
+    Y = 3
+    LAST_UPDATE = 4
 
 class SoundDirection(IntEnum):
     """Sound direction enum
@@ -112,7 +121,6 @@ class Trantorian:
         }
         self.known_map = create_default_map(self.client.size_x, self.client.size_y)
         self.direction: TrantorianDirection = TrantorianDirection.UP
-        self.team_size: int = 0
         self.last_beacon_direction: int = 0
         self.last_beacon_uid: str = None
         self.last_beacon_time: float = 0
@@ -133,6 +141,8 @@ class Trantorian:
         try:
             self.dprint("live")
             self.start_living(queue)
+            if self.dead:
+                return
             self.first_level()
             while self.iter_food():
                 can_level_up = self.wander(queue)
@@ -144,21 +154,19 @@ class Trantorian:
                     if not success:
                         self.broadcast(MessageTypeParser().serialize(
                             MessageType.RITUAL_FAILED, self), can_level_up)
-                    self.number_of_ritual_ready = 0
 
                 if self.state == 'going somewhere':
                     success = self.follow_the_leader()
 
                 if success:
                     success = self.wait_incant()
-                self.dprint("incantation end", success, time())
+                self.dprint("incantation end", success)
                 self.dispo_incant = True
                 self.broadcast("just$update", ["all"])
-
         except BrokenPipeError:
             self.dprint("Server closed socket")
             self.dead = True
-        self.dprint("died", time())
+        self.dprint("died")
         return
 
     def be_the_shaman(self, can_do_incant: list) -> bool:
@@ -188,6 +196,7 @@ class Trantorian:
         self.dispo_incant = False
         self.broadcast("just$update", ["all"])
         if not self.follow_beacon():
+            self.dprint("didnt go to beacon")
             return False
         self.drop_stuff()
         self.broadcast(MessageTypeParser().serialize(
@@ -233,7 +242,6 @@ class Trantorian:
         """
         if self.dead:
             return False
-        self.get_unused_slot()
         if self.ticks > self.consider_dead - 20:
             self.broadcast('just$update', ["all"])
         return True
@@ -297,6 +305,7 @@ class Trantorian:
         can_level_up = []
         i = 0
         while self.iter_food() and self.state == "wander" and not can_level_up:
+            self.get_unused_slot()
             if len(self.others) < 7 and self.unused_slot > 0:
                 self.asexual_multiplication(queue)
             self.look_around()
@@ -311,9 +320,13 @@ class Trantorian:
                 self.right()
             can_level_up = get_incantation_team(self.inventory, self.level + 1, self.others)
             i += 1
-            if i % 4:
-                self.troll_broadcasts()
-                self.broadcast("just$update", ["all"])
+            if not i % 4:
+                continue
+            # self.troll_broadcasts() # TODO put this back
+            self.broadcast("just$update", ["all"])
+            self.get_unused_slot()
+            if len(self.others) < MAX_PLAYER and self.unused_slot > 0:
+                self.asexual_multiplication(queue)
         if can_level_up and self.state != "going somewhere":
             self.state = "shaman"
         return can_level_up
@@ -324,10 +337,10 @@ class Trantorian:
         Returns:
             bool: true if we are on the same case at the end
         """
-        last_recep = 0
         while self.iter() and self.state == "going somewhere":
             if self.last_beacon_direction == 0:
                 self.state = "ritual_prep"
+                self.dprint(" I am ready with", self.last_beacon_uid)
                 break
 
             if self.last_beacon_direction < 5 and self.last_beacon_direction != 1:
@@ -339,12 +352,9 @@ class Trantorian:
                 self.right()
 
             self.forward()
-            if self.last_beacon_time == last_recep:
-                self.look_around()
-                if self.last_beacon_time == last_recep:
-                    self.state = "wander"
-                    return False
-            last_recep = self.last_beacon_time
+            self.state = "wait"
+            while not self.dead and self.state == "wait":
+                self.get_answer()
         return not self.dead and self.state == "ritual_prep"
 
     def beacon(self, receivers: list) -> None:
@@ -354,7 +364,7 @@ class Trantorian:
             receivers (list): people to regroup
         """
         self.state = "beacon"
-
+        self.number_of_ritual_ready = 0
         while self.iter() and self.state == "beacon":
             self.broadcast(MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
             if self.number_of_ritual_ready >= LEVELS[self.level + 1][0] - 1:
@@ -370,25 +380,14 @@ class Trantorian:
         """
         if not self.iter_food():
             return
+        if len(self.others) > 15:
+            self.suicide()
+            return
+        if self.client.team_size > 0 and len(self.others) < MAX_PLAYER:
+            self.asexual_multiplication(queue)
         self.broadcast("im$alive", ["all"])
-        self.get_unused_slot()
         for _ in range(10): # use to set a first value for tick_time
             self.get_inventory()
-        b2, b3 = True, True
-        team_size = len(self.others) + 1
-        nbr = 0
-        while self.iter_food() and b2 and b3: # TODO check all this with our server
-            # the objective of all those checks is to work even if the server is broken
-            b2 = team_size < self.client.team_size and nbr < 2
-            b3 = team_size < 8 and self.unused_slot > 0
-            new_size = len(self.others.items()) + 1
-            if new_size == team_size:
-                nbr += 1
-            team_size = new_size
-            self.get_unused_slot()
-            self.asexual_multiplication(queue)
-            self.broadcast("im$alive", ["all"])
-        self.broadcast("ready$tolive", ["all"])
         return
 
     def wait_incant(self) -> bool:
@@ -447,15 +446,16 @@ class Trantorian:
         Returns:
             bool: true if all the object where taken, false if one didn't work
         """
-        succes: bool = True
         content: dict = self.get_current_case().content
+        if content["player"] > 1:
+            return False
         for obj, quantity in content.items():
             if obj == "egg" or obj == "player":
                 continue
             for _ in range(quantity):
                 if self.take_object(obj):
-                    succes = False
-        return succes
+                    return False
+        return True
 
     def merge_others(self, received: dict) -> None:
         """merge a received list of user into the current one
@@ -469,9 +469,9 @@ class Trantorian:
             update = infos[4]
             if uuid not in self.others:
                 self.others[uuid] = infos
-            elif update > self.others[uuid][4]:
+            elif update > self.others[uuid][OtherIndex.LAST_UPDATE]:
                 self.others[uuid] = infos
-            diff = time() - self.others[uuid][4]
+            diff = time() - self.others[uuid][OtherIndex.LAST_UPDATE]
             if diff > dead_time:
                 self.others.pop(uuid)
         return
@@ -488,13 +488,13 @@ class Trantorian:
         return
 
     def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
-        """wait for an answer, handle the message and eject
+        """wait for an answer, handle the message, eject and current level
 
         Returns:
             str: last server answer
         """
         answer: str = self.get_answer()
-        while answer.startswith('message') or answer.startswith('eject'):
+        while answer.startswith('message') or answer.startswith('eject') or answer.startswith("Current level: "):
             answer = self.get_answer()
         if answer.startswith("dead"):
             self.dead = True
@@ -648,16 +648,8 @@ class Trantorian:
 
         cases = split_list(self.wait_answer())
         if cases == []:
+            self.dprint('look parse failed')
             return False
-        nb_case: int = len(cases)
-        i: int = 1
-        current = 1
-        while i < 9 and current < nb_case:
-            current += 1 + 2 * i
-            i += 1
-        if nb_case != current:
-            return False
-        self.level = i - 1
 
         self.get_current_case().fill_from_str(cases.pop(0))
         direct: int = -1
@@ -694,6 +686,7 @@ class Trantorian:
 
         content = split_list(answer)
         if content == []:
+            self.dprint('inventory parse faile')
             return False
         self.tick_time = ((self.tick_time * self.nbr_tests_ticks + (t2 - t1))
                         / (self.nbr_tests_ticks + 1))

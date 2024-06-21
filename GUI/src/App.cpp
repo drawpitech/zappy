@@ -62,6 +62,7 @@ App::~App() {
 
 void App::createScene() {
     m_scene->staticActors.clear();
+    m_scene->animatedActors.clear();
 
     // Create all island tiles and ressources
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
@@ -88,7 +89,6 @@ void App::createScene() {
             }
         }
     }
-
 
     createPlayers();
 }

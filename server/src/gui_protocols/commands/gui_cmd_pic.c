@@ -12,12 +12,7 @@
 
 void gui_cmd_pic(UNUSED server_t *server, gui_client_t *client, char *args)
 {
-    char **cmd = my_str_to_word_array(args, " ");
-
     if (client == NULL)
         return;
-    if (!cmd)
-        return;
     gui_dprintf(client, "pic %s\n", args);
-    free_array((void **)cmd);
 }

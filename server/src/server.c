@@ -9,6 +9,7 @@
 
 #include <bits/types/struct_timeval.h>
 #include <netinet/in.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,7 +59,8 @@ static int init_server(server_t *serv, int port)
     if (serv->s_fd == -1)
         return ERR("socket failed"), RET_ERROR;
     if (setsockopt(
-            serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
+            serv->s_fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) ==
+        -1)
         return ERR("setsockopt failed"), RET_ERROR;
     serv->s_addr.sin_family = AF_INET;
     serv->s_addr.sin_port = htons(port);
@@ -134,9 +136,13 @@ size_t count_team(server_t *serv, char *team)
 
 static long get_egg(server_t *serv, const char *team)
 {
-    for (size_t i = 0; i < serv->eggs.nb_elements; i++)
-        if (strcmp(team, ((egg_t *)serv->eggs.elements[i])->team) == 0)
+    egg_t *egg = NULL;
+
+    for (size_t i = 0; i < serv->eggs.nb_elements; i++) {
+        egg = serv->eggs.elements[i];
+        if (egg->team == NULL || strcmp(team, egg->team) == 0)
             return (long)i;
+    }
     return -1;
 }
 
@@ -171,10 +177,9 @@ static void log_new_gui(server_t *serv)
     for (size_t i = 0; i < serv->eggs.nb_elements; ++i)
         gui_cmd_enw(serv, serv->gui_client, serv->eggs.elements[i], -1);
     for (size_t i = 0; i < serv->ai_clients.nb_elements; ++i)
-        gui_cmd_pin(
-            serv, serv->gui_client,
-            ((ai_client_t *)serv->ai_clients.elements[i])->team);
+        gui_cmd_pnw(serv, serv->gui_client, serv->ai_clients.elements[i]);
 }
+
 static void connect_gui_client(server_t *serv, int client_fd)
 {
     gui_client_t *gui = NULL;
@@ -255,8 +260,7 @@ static void refill_map(server_t *server, context_t *ctx)
             server->map_res[i].quantity++;
         }
     }
-    if (server->gui_client)
-        gui_cmd_mct(server, server->gui_client, NULL);
+    gui_cmd_mct(server, server->gui_client, NULL);
 }
 
 static int init_map(server_t *server, context_t *ctx)
@@ -270,9 +274,9 @@ static int init_map(server_t *server, context_t *ctx)
     refill_map(server, ctx);
     for (size_t i = 0; i < server->ctx.map_size; ++i)
         server->map[i].pos = (vector_t){i % ctx->width, i / ctx->width};
-    for (size_t i = 0; i < server->ctx.names.nb_elements; ++i)
-        for (size_t j = 0; j < server->ctx.client_nb; ++j)
-            spawn_egg(server, server->ctx.names.elements[i]);
+    for (size_t i = 0;
+         i < server->ctx.names.nb_elements * server->ctx.client_nb; ++i)
+        spawn_egg(server, NULL);
     return RET_VALID;
 }
 
@@ -307,6 +311,7 @@ int server(int argc, char **argv)
 {
     server_t server = {0};
 
+    signal(13, SIG_IGN);
     srand(time(NULL));
     if (arg_parse(argc, argv, &server.ctx) != RET_VALID ||
         init_server(&server, server.ctx.port) != RET_VALID ||

@@ -312,6 +312,7 @@ void App::updateEggs(const std::string& bufferView) {
         const int playerId = PARSER_NEXT_INT(bufferView, pos);
         position[0] = PARSER_NEXT_INT(bufferView, pos);
         position[1] = PARSER_LAST_INT(bufferView, pos);
+        position = (position - m_mapSize / 2);
 
         m_eggs[eggNumber] = Egg{
             .position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] + m_tileSize[1]))

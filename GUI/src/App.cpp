@@ -52,6 +52,7 @@ App::App(int port) {
         m_tilesMeshes["white"] = std::make_shared<StaticMesh>("assets/whiteRock.gltf");
         m_tilesMeshes["black"] = std::make_shared<StaticMesh>("assets/greyRock.gltf");
         m_broadcastMesh = std::make_shared<StaticMesh>("assets/broadcast.obj");
+        m_eggMesh = std::make_shared<StaticMesh>("assets/egg/scene.gltf");
     }
 
     static const std::vector<std::string> resIconsFilepaths = {
@@ -77,7 +78,7 @@ void App::createTiles() {
             for (int k = 0; k < randomHight; k++)
                 m_tilesDecor.push_back(
                     Tile {
-                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * k, (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
+                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * k, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1]))),
                         .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
                     }
                 );
@@ -93,26 +94,30 @@ void App::createScene() {
     m_scene->staticActors.clear();
     m_scene->animatedActors.clear();
 
-    // Create the island tiles
+    // Island tiles creation
+    for (const auto& tile : m_tilesDecor) {
+        m_scene->staticActors.push_back(Renderer::StaticActor({
+            .mesh = tile.mesh,
+            .position = tile.position,
+            .scale = m_tileSize,
+            .rotation = glm::vec3(0, 0, 0)
+        }));
+    }
 
-    for (int i = 0; i < m_tilesDecor.size(); i++)
-        m_scene->staticActors.push_back(
-            Renderer::StaticActor(
-                {
-                    .mesh = m_tilesDecor[i].mesh,
-                    .position = m_tilesDecor[i].position,
-                    .scale = m_tileSize,
-                    .rotation = glm::vec3(0, 0, 0)
-                }
-            )
-        );
+    // Eggs creation
+    for (const auto& egg : m_eggs) {
+        m_scene->staticActors.push_back(Renderer::StaticActor({
+            .mesh = m_eggMesh,
+            .position = egg.second.position,
+            .scale = glm::vec3(0.1),
+            .rotation = glm::vec3(270, 0, 0)
+        }));
+    }
 
     // Create all island tiles and ressources
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
             const TileContent& tile = m_map[i + m_mapSize[0] / 2][j + m_mapSize[1] / 2];
-
-            // Add the island tile
 
             // Display the ressources
             for (const auto& [ressourceType, offset] : m_ressourceOffset) {
@@ -214,6 +219,7 @@ void App::drawUi() noexcept {   // NOLINT
     if (ImGui::Button("Send request"))
     {
         dprintf(m_socket, "sst %d\n", freq);
+        m_speed = freq;
     }
     ImGui::End();
 
@@ -396,5 +402,5 @@ void App::run() {
     }
 
     // TODO: remove this
-    ImGui::SaveIniSettingsToDisk("../imgui.ini");
+    // ImGui::SaveIniSettingsToDisk("../imgui.ini");
 }

@@ -75,7 +75,7 @@ class App {
         };
 
         struct Egg {
-            glm::vec2 position;
+            glm::vec3 position;
         };
 
         struct Team {
@@ -147,6 +147,7 @@ class App {
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
         std::shared_ptr<StaticMesh> m_broadcastMesh;
         std::vector<GLuint> m_resIcons;
+        std::shared_ptr<StaticMesh> m_eggMesh;
 
         std::vector<LogMessage> m_logs;
 
@@ -162,6 +163,7 @@ class App {
         void updatePlayersAnim();
         void createTiles();
         void drawUi() noexcept;
+        void addEggs();
 
         void createScene();
         void createPlayers();

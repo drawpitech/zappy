@@ -46,19 +46,19 @@ static void connect_ai_client(
 
     if (!team_valid(serv, team)) {
         ERR("team is invalid");
-        write(client_fd, "ko\n", 3);
+        (void)!write(client_fd, "ko\n", 3);
         return;
     }
     egg = get_egg(serv, team);
     if (count_team(serv, team) >= serv->ctx.client_nb || egg == -1) {
         ERR("team is full");
-        write(client_fd, "ko\n", 3);
+        (void)!write(client_fd, "ko\n", 3);
         return;
     }
     free(remove_elt_to_array(&serv->waitlist_fd, idx));
     if (init_ai_client(serv, client_fd, team, egg) == RET_ERROR) {
         OOM;
-        write(client_fd, "ko\n", 3);
+        (void)!write(client_fd, "ko\n", 3);
         close(client_fd);
     }
 }
@@ -81,14 +81,14 @@ static void connect_gui_client(server_t *serv, int idx, int client_fd)
 
     free(remove_elt_to_array(&serv->waitlist_fd, idx));
     if (serv->gui_client != NULL) {
-        write(client_fd, "ko\n", 3);
+        (void)!write(client_fd, "ko\n", 3);
         ERR("GUI client is already connected");
         close(client_fd);
         return;
     }
     gui = calloc(1, sizeof *serv->gui_client);
     if (gui == NULL) {
-        write(client_fd, "ko\n", 3);
+        (void)!write(client_fd, "ko\n", 3);
         OOM;
         close(client_fd);
         return;

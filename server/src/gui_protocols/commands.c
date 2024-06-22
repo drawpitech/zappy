@@ -110,7 +110,6 @@ static void handle_gui(server_t *server)
     char *ptr = NULL;
     gui_client_t *gui = server->gui_client;
 
-    ERR("goofy");
     if (resize_buffer(gui, bufsiz) == RET_ERROR) {
         ERR("resize_buffer"), gui_write(gui, "ko\n", 3);
         return;
@@ -154,7 +153,7 @@ int iterate_gui(server_t *server)
     FD_SET(gui->s_fd, &rfd);
     if (select(
             gui->s_fd + 1, &rfd, NULL, NULL,
-            &(struct timeval){0, 1000}) > 0 &&
+            &(struct timeval){0, 0}) > 0 &&
         FD_ISSET(gui->s_fd, &rfd))
         handle_gui(server);
     return RET_VALID;

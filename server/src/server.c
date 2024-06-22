@@ -18,6 +18,7 @@
 
 #include "arg_parse.h"
 #include "array.h"
+#include "sys/time.h"
 #include "time.h"
 
 const double DENSITIES[R_COUNT] = {
@@ -43,6 +44,14 @@ const char *const r_name[R_COUNT] = {
     [EGG] = "egg",
     [PLAYER] = "player",
 };
+
+static precise_time_t gettime(void)
+{
+    struct timeval tv = {0};
+
+    gettimeofday(&tv, NULL);
+    return GTIME(&tv);
+}
 
 res_name_t get_ressource_type(char *name)
 {
@@ -90,13 +99,13 @@ static void add_client(server_t *serv, int fd)
 
     if (!fd_ptr) {
         OOM;
-        write(fd, "ko\n", 3);
+        (void)!write(fd, "ko\n", 3);
         close(fd);
         return;
     }
     *fd_ptr = fd;
     if (add_elt_to_array(&serv->waitlist_fd, fd_ptr) == RET_ERROR) {
-        write(fd, "ko\n", 3);
+        (void)!write(fd, "ko\n", 3);
         close(fd);
         return;
     }
@@ -105,7 +114,6 @@ static void add_client(server_t *serv, int fd)
 
 static int new_client(server_t *serv)
 {
-    struct timeval tv = {.tv_sec = 0, .tv_usec = 1000};
     socklen_t len = sizeof serv->s_addr;
     fd_set fdread;
     fd_set fdwrite;
@@ -114,7 +122,9 @@ static int new_client(server_t *serv)
     FD_ZERO(&fdwrite);
     FD_SET(serv->s_fd, &fdread);
     FD_SET(serv->s_fd, &fdwrite);
-    if (select(serv->s_fd + 1, &fdread, &fdwrite, NULL, &tv) <= 0)
+    if (select(
+            serv->s_fd + 1, &fdread, &fdwrite, NULL, &(struct timeval){0}) <=
+        0)
         return -1;
     return accept(serv->s_fd, (struct sockaddr *)&serv->s_addr, &len);
 }
@@ -130,6 +140,7 @@ int server(int argc, char **argv)
         init_map(&server, &server.ctx) != RET_VALID)
         return RET_ERROR;
     for (int fd = -1;; fd = -1) {
+        server.now = gettime();
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);

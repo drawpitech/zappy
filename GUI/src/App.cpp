@@ -73,7 +73,6 @@ App::App(int port) {
 void App::loadPlayer(std::string playerName, glm::vec3 scale) {
     m_playerMeshes[playerName].first = std::make_shared<SkeletalMesh>("assets/Players/" + playerName + "/" + playerName + ".dae");
     m_playerMeshes[playerName].second = scale;
-    std::cout << m_playerMeshes[playerName].second.x << " " << m_playerMeshes[playerName].second.y << " " << m_playerMeshes[playerName].second.z << std::endl;
     m_playerAnims[playerName + "Idle"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Idle.dae", m_playerMeshes[playerName].first);
     m_playerAnims[playerName + "Move"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Move.dae", m_playerMeshes[playerName].first);
     m_playerAnims[playerName + "Ritual"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Ritual.dae", m_playerMeshes[playerName].first);
@@ -364,8 +363,8 @@ void App::addBroadcasts() {
         else {
             m_scene->staticActors.push_back({
                 m_broadcastMesh,
-                glm::vec3(m_broadcasts[i].position),
-                glm::vec3(elapsedTime / 50, 1, elapsedTime / 50),
+                glm::vec3(m_broadcasts[i].position) + glm::vec3(0, 0.5, 0),
+                glm::vec3(elapsedTime / 50, 1.5, elapsedTime / 50),
                 glm::vec3(0, 0, 0)
             });
         }

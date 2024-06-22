@@ -26,6 +26,10 @@ App::App(int port) {
     {   // Load the meshes and animations
         loadPlayer("Dan", glm::vec3(150, 150, 150));
         loadPlayer("Quentin", glm::vec3(100, 100, 100));
+        loadPlayer("Steve", glm::vec3(0.35, 0.35, 0.35));
+
+        m_teamIndicatorMesh = std::make_shared<StaticMesh>("assets/cone.obj");
+
         m_ressourceOffset = {
             {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
             {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
@@ -107,7 +111,8 @@ void App::createScene() {
             .mesh = tile.mesh,
             .position = tile.position,
             .scale = m_tileSize,
-            .rotation = glm::vec3(0, 0, 0)
+            .rotation = glm::vec3(0, 0, 0),
+            .color = glm::vec3(-glm::abs(tile.position.y) / 100 + 1, -glm::abs(tile.position.y) / 100 + 1, -glm::abs(tile.position.y) / 100 + 1)
         }));
     }
 
@@ -140,7 +145,8 @@ void App::createScene() {
                             m_ressourceMesh.at(ressourceType),
                             ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb) / static_cast<float>(m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
                             m_resourceSize,
-                            ressourceRotation
+                            ressourceRotation,
+                            glm::vec3(1, 1, 1)
                         })
                     );
             }
@@ -183,7 +189,7 @@ void App::drawUi() noexcept {   // NOLINT
     // Mesh selection
     ImGui::Begin("Mesh and Animation Selection");
     for (auto& [teamName, team] : m_teams) {
-        ImGui::Text("%s", teamName.c_str());
+        ImGui::TextColored(ImVec4(team.teamColor.x, team.teamColor.y, team.teamColor.z, 1.0f), "%s", teamName.c_str());
         const char* currentMesh = team.mesh.first.c_str();
         if (ImGui::BeginCombo(("Mesh##" + teamName).c_str(), currentMesh)) {
             for (auto& [playerName, playerMesh] : m_playerMeshes) {
@@ -260,9 +266,7 @@ void App::createPlayers() {
         else if (player.orientation == 4)
             newOrientation = 0;
         const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
-        //std::cout << m_playerMeshes[player.teamName].second.x << " " << m_playerMeshes[player.teamName].second.y << " " << m_playerMeshes[player.teamName].second.z << std::endl;
-        //std::cout << m_teams[player.teamName].mesh.first << std::endl;
-        //std::cout << m_playerMeshes[player.teamName].second.x << " " << m_playerMeshes[player.teamName].second.y << " " << m_playerMeshes[player.teamName].second.z << std::endl;
+        
         m_scene->animatedActors.push_back({
             m_teams[player.teamName].mesh.second,
             player.animator,
@@ -270,6 +274,13 @@ void App::createPlayers() {
             m_playerMeshes[m_teams[player.teamName].mesh.first].second,
             playerRotation,
             glm::vec3(1, 1, 1)
+        });
+        m_scene->staticActors.push_back({
+            .mesh = m_teamIndicatorMesh,
+            .position = player.position + player.visualPositionOffset + glm::vec3(0, 3.5, 0),
+            .scale = glm::vec3(1, 1, 1),
+            .rotation = glm::vec3(0, 0, 0),
+            .color = m_teams[player.teamName].teamColor
         });
     }
 }

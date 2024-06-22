@@ -280,7 +280,10 @@ void App::parseConnectionResponse() {
 
         m_teams[teamName].mesh.first = "Dan";
         m_teams[teamName].mesh.second = m_playerMeshes[m_teams[teamName].mesh.first].first;
-
+        float r = static_cast<float>(rand()) / RAND_MAX;
+        float g = static_cast<float>(rand()) / RAND_MAX;
+        float b = static_cast<float>(rand()) / RAND_MAX;
+        m_teams[teamName].teamColor = glm::vec3(r, g, b);
         PARSER_NEXT_SYMBOL("tna");
     }
 

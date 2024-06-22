@@ -18,5 +18,6 @@ void main() {
     vec2 uv = SampleSphericalMap(normalize(inWorldPos));
     vec3 color = texture(equirectangularMap, uv).rgb;
 
+    color = color / (color + vec3(1.0));    // HDR tonemapping
     FragColor = vec4(color, 1.0);
 }

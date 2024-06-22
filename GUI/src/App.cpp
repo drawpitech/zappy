@@ -16,7 +16,6 @@
 
 #include <chrono>
 #include <cstdio>
-#include <iostream>
 #include <memory>
 #include <netinet/in.h>
 
@@ -25,7 +24,6 @@ App::App(int port) {
     m_scene = std::make_shared<Renderer::Scene>();
 
     {   // Load the meshes and animations
-        
         loadPlayer("Dan", glm::vec3(150, 150, 150));
         loadPlayer("Quentin", glm::vec3(100, 100, 100));
         m_ressourceOffset = {
@@ -70,7 +68,7 @@ App::App(int port) {
     createTiles();
 }
 
-void App::loadPlayer(std::string playerName, glm::vec3 scale) {
+void App::loadPlayer(const std::string& playerName, glm::vec3 scale) {
     m_playerMeshes[playerName].first = std::make_shared<SkeletalMesh>("assets/Players/" + playerName + "/" + playerName + ".dae");
     m_playerMeshes[playerName].second = scale;
     m_playerAnims[playerName + "Idle"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Idle.dae", m_playerMeshes[playerName].first);
@@ -87,7 +85,7 @@ void App::createTiles() {
             for (int k = 0; k < randomHight - centerHight; k++)
                 m_tilesDecor.push_back(
                     Tile {
-                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * k, (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
+                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * static_cast<float>(k), (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
                         .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
                     }
                 );
@@ -135,7 +133,7 @@ void App::createScene() {
                 m_ressourcesRotation += m_ressourcesRotationSpeed;
                 if (m_ressourcesRotation > 360)
                     m_ressourcesRotation = 0;
-                
+
                 for (int nb = 0; nb < tile.ressources[ressourceType]; nb++)
                     m_scene->staticActors.push_back(
                         Renderer::StaticActor({
@@ -202,7 +200,7 @@ void App::drawUi() noexcept {   // NOLINT
             ImGui::EndCombo();
         }
     }
-    
+
     ImGui::End();
 
     ImGui::Begin("Trantorians");

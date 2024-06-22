@@ -163,7 +163,7 @@ class App {
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
         void updatePlayersAnim();
-        void loadPlayer(std::string playerName, glm::vec3 scale);
+        void loadPlayer(const std::string& playerName, glm::vec3 scale);
         void createTiles();
         void drawUi() noexcept;
         void addEggs();

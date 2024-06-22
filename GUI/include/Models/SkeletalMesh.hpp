@@ -62,7 +62,7 @@ class SkeletalMesh {
         auto& GetBoneInfoMap() { return m_boneInfoMap; }
         int& GetBoneCount() { return m_boneCounter; }
 
-        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept;
+        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform, const glm::vec3& color) const noexcept;
 
     private:
         std::map<std::string, BoneInfo> m_boneInfoMap;

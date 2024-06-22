@@ -32,7 +32,7 @@ StaticMesh::StaticMesh(const std::string& modelPath) {
 StaticMesh::~StaticMesh() {
 }
 
-void StaticMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept {
+void StaticMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform, const glm::vec3& color) const noexcept {
     glEnable(GL_DEPTH_TEST);
 
     for (const auto& submesh : m_submeshes) {
@@ -64,6 +64,7 @@ void StaticMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const
         }
 
         shaderProgram->setMat4("model", submesh.transform * transform);
+        shaderProgram->setVec3("color", color);
         glBindVertexArray(submesh.vao);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(submesh.indexCount), GL_UNSIGNED_INT, nullptr);
     }

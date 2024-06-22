@@ -263,7 +263,14 @@ void App::createPlayers() {
         //std::cout << m_playerMeshes[player.teamName].second.x << " " << m_playerMeshes[player.teamName].second.y << " " << m_playerMeshes[player.teamName].second.z << std::endl;
         //std::cout << m_teams[player.teamName].mesh.first << std::endl;
         //std::cout << m_playerMeshes[player.teamName].second.x << " " << m_playerMeshes[player.teamName].second.y << " " << m_playerMeshes[player.teamName].second.z << std::endl;
-        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, m_playerMeshes[m_teams[player.teamName].mesh.first].second, playerRotation});
+        m_scene->animatedActors.push_back({
+            m_teams[player.teamName].mesh.second,
+            player.animator,
+            player.position + player.visualPositionOffset,
+            m_playerMeshes[m_teams[player.teamName].mesh.first].second,
+            playerRotation,
+            glm::vec3(1, 1, 1)
+        });
     }
 }
 

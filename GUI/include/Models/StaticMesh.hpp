@@ -28,7 +28,7 @@ class StaticMesh {
         StaticMesh(StaticMesh&&) = default;
         StaticMesh& operator=(StaticMesh&&) = delete;
 
-        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept;
+        void draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform, const glm::vec3& color) const noexcept;
 
     private:
         struct Material {

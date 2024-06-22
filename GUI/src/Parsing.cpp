@@ -279,7 +279,7 @@ void App::parseConnectionResponse() {
         const std::string teamName = PARSER_LAST_STRING(bufferView, pos);
 
         m_teams[teamName].mesh.first = "Dan";
-        m_teams[teamName].mesh.second = m_playerMeshes[m_teams[teamName].mesh.first];
+        m_teams[teamName].mesh.second = m_playerMeshes[m_teams[teamName].mesh.first].first;
 
         PARSER_NEXT_SYMBOL("tna");
     }

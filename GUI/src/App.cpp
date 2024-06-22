@@ -15,6 +15,8 @@
 #include "imgui.h"
 
 #include <chrono>
+#include <cstdio>
+#include <iostream>
 #include <memory>
 #include <netinet/in.h>
 
@@ -23,13 +25,9 @@ App::App(int port) {
     m_scene = std::make_shared<Renderer::Scene>();
 
     {   // Load the meshes and animations
-        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("assets/Dan/Dan.dae");
-        m_playerAnims["DanIdle"] = std::make_shared<Animation>("assets/Dan/Idle/Idle.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanEat"] = std::make_shared<Animation>("assets/Dan/Eat/Drinking.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanMove"] = std::make_shared<Animation>("assets/Dan/Move/Fast Run.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanRitual"] = std::make_shared<Animation>("assets/Dan/Ritual/Tut Hip Hop Dance.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanBirth"] = std::make_shared<Animation>("assets/Dan/Birth/Standing Taunt Battlecry.dae", m_playerMeshes["Dan"]);
-
+        
+        loadPlayer("Dan", glm::vec3(150, 150, 150));
+        loadPlayer("Quentin", glm::vec3(100, 100, 100));
         m_ressourceOffset = {
             {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
             {LINEMATE, {0.50, 0.25, m_tileSize[2] * 2/8}},
@@ -70,6 +68,16 @@ App::App(int port) {
     connectToServer(port);
     parseConnectionResponse();
     createTiles();
+}
+
+void App::loadPlayer(std::string playerName, glm::vec3 scale) {
+    m_playerMeshes[playerName].first = std::make_shared<SkeletalMesh>("assets/Players/" + playerName + "/" + playerName + ".dae");
+    m_playerMeshes[playerName].second = scale;
+    std::cout << m_playerMeshes[playerName].second.x << " " << m_playerMeshes[playerName].second.y << " " << m_playerMeshes[playerName].second.z << std::endl;
+    m_playerAnims[playerName + "Idle"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Idle.dae", m_playerMeshes[playerName].first);
+    m_playerAnims[playerName + "Move"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Move.dae", m_playerMeshes[playerName].first);
+    m_playerAnims[playerName + "Ritual"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Ritual.dae", m_playerMeshes[playerName].first);
+    m_playerAnims[playerName + "Birth"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Birth.dae", m_playerMeshes[playerName].first);
 }
 
 void App::createTiles() {
@@ -176,27 +184,27 @@ void App::connectToServer(int port) {
 
 void App::drawUi() noexcept {   // NOLINT
     // Mesh selection
-    if (ImGui::Begin("Mesh and Animation Selection")) {
-        for (auto& [teamName, team] : m_teams) {
-            ImGui::Text("%s", teamName.c_str());
-            const char* currentMesh = team.mesh.first.c_str();
-            if (ImGui::BeginCombo("Mesh", currentMesh)) {
-                for (auto& [playerName, playerMesh] : m_playerMeshes) {
-                    bool isSelected = (team.mesh.second == playerMesh);
-                    if (ImGui::Selectable(playerName.c_str(), isSelected)) {
-                        team.mesh.second = playerMesh;
-                        team.mesh.first = playerName;
-                        createScene();
-                    }
-                    if (isSelected)
-                        ImGui::SetItemDefaultFocus();
+    ImGui::Begin("Mesh and Animation Selection");
+    for (auto& [teamName, team] : m_teams) {
+        ImGui::Text("%s", teamName.c_str());
+        const char* currentMesh = team.mesh.first.c_str();
+        if (ImGui::BeginCombo(("Mesh##" + teamName).c_str(), currentMesh)) {
+            for (auto& [playerName, playerMesh] : m_playerMeshes) {
+                bool isSelected = (team.mesh.second == playerMesh.first);
+                if (ImGui::Selectable(playerName.c_str(), isSelected)) {
+                    team.mesh.second = playerMesh.first;
+                    team.mesh.first = playerName;
+                    updatePlayersAnim();
+                    createScene();
                 }
-                ImGui::EndCombo();
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
             }
+            ImGui::EndCombo();
         }
-
-        ImGui::End();
     }
+    
+    ImGui::End();
 
     ImGui::Begin("Trantorians");
     for (auto& [id, player] : m_players)
@@ -245,7 +253,6 @@ void App::drawUi() noexcept {   // NOLINT
 void App::createPlayers() {
     m_scene->animatedActors.clear();
     for (auto& [playerNumber, player] : m_players) {
-        static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         int newOrientation = 1;
         if (player.orientation == 1)
             newOrientation = 3;
@@ -256,7 +263,10 @@ void App::createPlayers() {
         else if (player.orientation == 4)
             newOrientation = 0;
         const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
-        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, playerScale, playerRotation});
+        //std::cout << m_playerMeshes[player.teamName].second.x << " " << m_playerMeshes[player.teamName].second.y << " " << m_playerMeshes[player.teamName].second.z << std::endl;
+        //std::cout << m_teams[player.teamName].mesh.first << std::endl;
+        //std::cout << m_playerMeshes[player.teamName].second.x << " " << m_playerMeshes[player.teamName].second.y << " " << m_playerMeshes[player.teamName].second.z << std::endl;
+        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, m_playerMeshes[m_teams[player.teamName].mesh.first].second, playerRotation});
     }
 }
 

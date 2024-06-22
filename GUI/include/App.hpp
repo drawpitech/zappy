@@ -128,11 +128,14 @@ class App {
         float m_tileHeight = -2;
         float m_playerHeight = 0;
         float m_resourceHeight = 0;
-        float m_moveSpeed = 0.015;
+        float m_moveSpeed = 0.0015;
         glm::vec3 m_resourceSize = {0.35, 0.35, 0.35};
         float m_ressourcesRotation = 0;
         float m_ressourcesRotationSpeed = 0.0001;
 
+        std::chrono::high_resolution_clock::time_point m_startFrameTime;
+        std::chrono::high_resolution_clock::time_point m_endFrameTime;
+        float m_frameTime = 0.0f;
         std::unordered_map<std::string, Team> m_teams;
         std::map<int, Egg> m_eggs;
         std::map<int, Player> m_players;

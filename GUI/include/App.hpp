@@ -130,7 +130,8 @@ class App {
         float m_resourceHeight = 0;
         float m_moveSpeed = 0.015;
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
-
+        float m_ressourcesRotation = 0;
+        float m_ressourcesRotationSpeed = 0.00001;
         std::unordered_map<std::string, Team> m_teams;
         std::map<int, Egg> m_eggs;
         std::map<int, Player> m_players;

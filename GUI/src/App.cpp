@@ -122,8 +122,8 @@ void App::createScene() {
             // Display the ressources
             for (const auto& [ressourceType, offset] : m_ressourceOffset) {
                 const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_resourceHeight, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])));
-                static constexpr glm::vec3 ressourceRotation = glm::vec3(0, 0, 0);
-
+                glm::vec3 ressourceRotation = glm::vec3(0, m_ressourcesRotation, 0);
+                m_ressourcesRotation += m_ressourcesRotationSpeed * static_cast<float>(m_speed);
                 for (int nb = 0; nb < tile.ressources[ressourceType]; nb++)
                     m_scene->staticActors.push_back(
                         Renderer::StaticActor({

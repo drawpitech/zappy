@@ -11,6 +11,7 @@
 #include <thread>
 #include <chrono>
 #include <algorithm>
+#include <iostream>
 
 #define PARSER_INIT() \
     size_t pos = 0;
@@ -267,6 +268,7 @@ void App::parseConnectionResponse() {
     }
 
     const std::string& bufferView(buffer.data());
+    std::cout << bufferView << std::endl;
 
 
     // Get the team names (tna teamName\n * n)

@@ -10,6 +10,7 @@
 #include "Utils.hpp"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
+#include "glm/common.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "imgui.h"
 
@@ -74,8 +75,9 @@ App::App(int port) {
 void App::createTiles() {
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
-            int randomHight = rand() % 10 + 1;
-            for (int k = 0; k < randomHight; k++)
+            int randomHight = rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2;
+            int centerHight = abs(i) + abs(j);
+            for (int k = 0; k < randomHight - centerHight; k++)
                 m_tilesDecor.push_back(
                     Tile {
                         .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * k, (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
@@ -123,7 +125,7 @@ void App::createScene() {
             for (const auto& [ressourceType, offset] : m_ressourceOffset) {
                 const glm::vec3 ressourcePosition = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_resourceHeight, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1])));
                 glm::vec3 ressourceRotation = glm::vec3(0, m_ressourcesRotation, 0);
-                m_ressourcesRotation += m_ressourcesRotationSpeed * static_cast<float>(m_speed);
+                m_ressourcesRotation += m_ressourcesRotationSpeed;
                 if (m_ressourcesRotation > 360)
                     m_ressourcesRotation = 0;
                 

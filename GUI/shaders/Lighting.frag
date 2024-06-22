@@ -82,6 +82,14 @@ void main() {
 
     vec3 fragPos = texture(positionMap, inTexCoords).xyz;
     vec3 albedo = pow(texture(albedoMap, inTexCoords).rgb, vec3(2.2));
+    if (fragPos == vec3(0.0)) {
+        vec3 color = albedo;
+        color = color / (color + vec3(1.0));    // HDR tonemapping
+        color = pow(color, vec3(1.0/2.2));      // gamma correct
+        FragColor = vec4(color, 1.0);
+        return;
+    }
+
     vec3 normal = normalize(texture(normalMap, inTexCoords).rgb);
     vec2 pbr = texture(pbrMap, inTexCoords).rg;
     float ssao = texture(ssaoMap, inTexCoords).r;
@@ -96,7 +104,7 @@ void main() {
     {
         vec3 L = normalize(-LIGHT_DIR);
         float NdotL = max(dot(normal, L), 0.0);
-        vec3 radiance = vec3(1) * NdotL;
+        vec3 radiance = LIGHT_COLOR * NdotL;
 
         // Specular lighting (Cook-Torrance model)
         vec3 halfwayDir = normalize(viewDir + L);

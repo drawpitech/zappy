@@ -38,12 +38,12 @@ App::App(int port) {
 
         m_ressourceMesh = {
             {FOOD, std::make_shared<StaticMesh>("assets/Ressources/Gonstre.obj")},
-            {LINEMATE, std::make_shared<StaticMesh>("assets/Ressources/pink.obj")},
-            {DERAUMERE, std::make_shared<StaticMesh>("assets/Ressources/orange.obj")},
-            {SIBUR, std::make_shared<StaticMesh>("assets/Ressources/blue.obj")},
-            {MENDIANE, std::make_shared<StaticMesh>("assets/Ressources/green.obj")},
-            {PHIRAS, std::make_shared<StaticMesh>("assets/Ressources/red.obj")},
-            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.obj")}
+            {LINEMATE, std::make_shared<StaticMesh>("assets/Ressources/pink.gltf")},
+            {DERAUMERE, std::make_shared<StaticMesh>("assets/Ressources/orange.gltf")},
+            {SIBUR, std::make_shared<StaticMesh>("assets/Ressources/blue.gltf")},
+            {MENDIANE, std::make_shared<StaticMesh>("assets/Ressources/green.gltf")},
+            {PHIRAS, std::make_shared<StaticMesh>("assets/Ressources/red.gltf")},
+            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.gltf")}
         };
 
         m_tilesMeshes["white"] = std::make_shared<StaticMesh>("assets/whiteRock.gltf");

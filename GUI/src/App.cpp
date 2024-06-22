@@ -311,7 +311,7 @@ void App::updatePlayersAnim() { // NOLINT
             }
             if (player.moveOrientation[0] > 0) {
                 if (player.visualPositionOffset[0] < 0)
-                    player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT
+                    player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed * m_frameTime; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -320,7 +320,7 @@ void App::updatePlayersAnim() { // NOLINT
             }
             if (player.moveOrientation[0] < 0) {
                 if (player.visualPositionOffset[0] > 0)
-                    player.visualPositionOffset[0] -= (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT
+                    player.visualPositionOffset[0] -= (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed * m_frameTime; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -330,7 +330,7 @@ void App::updatePlayersAnim() { // NOLINT
 
             if (player.moveOrientation[2] > 0) {
                 if (player.visualPositionOffset[2] < 0)
-                    player.visualPositionOffset[2] += (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed; // NOLINT
+                    player.visualPositionOffset[2] += (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed * m_frameTime; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -339,7 +339,7 @@ void App::updatePlayersAnim() { // NOLINT
             }
             if (player.moveOrientation[2] < 0) {
                 if (player.visualPositionOffset[2] > 0)
-                    player.visualPositionOffset[2] -= (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed; // NOLINT
+                    player.visualPositionOffset[2] -= (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed * m_frameTime; // NOLINT
                 else {
                     player.visualPositionOffset = {0, 0, 0};
                     player.currentAction = IDLE;
@@ -377,6 +377,7 @@ void App::run() {
     std::array<char, BUFFER_SIZE> buffer{};
 
     while (!m_renderer->shouldStop()) {
+        m_startFrameTime = std::chrono::high_resolution_clock::now();
         // Check if there is data to read from the server
         fd_set readfds;
         FD_ZERO(&readfds);
@@ -411,6 +412,8 @@ void App::run() {
         updatePlayersAnim();
         createScene();
         m_renderer->render(m_scene, static_cast<float>(m_speed));
+        m_endFrameTime = std::chrono::high_resolution_clock::now();
+        m_frameTime = std::chrono::duration<float, std::milli>(m_endFrameTime - m_startFrameTime).count();
     }
 
     // TODO: remove this

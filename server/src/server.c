@@ -45,7 +45,7 @@ const char *const r_name[R_COUNT] = {
     [PLAYER] = "player",
 };
 
-precise_time_t gettime(void)
+static precise_time_t gettime(void)
 {
     struct timeval tv = {0};
 
@@ -139,6 +139,7 @@ int server(int argc, char **argv)
         init_map(&server, &server.ctx) != RET_VALID)
         return RET_ERROR;
     for (int fd = -1;; fd = -1) {
+        server.now = gettime();
         fd = new_client(&server);
         if (fd != -1)
             add_client(&server, fd);

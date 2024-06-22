@@ -172,6 +172,7 @@ typedef struct server_s {
     ressource_t map_res[R_COUNT];
     precise_time_t last_refill;
     array_t incantations;
+    precise_time_t now;
 } server_t;
 
 int server(UNUSED int argc, UNUSED char **argv);
@@ -191,7 +192,6 @@ ATTR(format(printf, 2, 3))
 ssize_t gui_dprintf(gui_client_t *gui, const char *fmt, ...);
 ssize_t gui_write(gui_client_t *gui, const char *str, size_t n);
 
-precise_time_t gettime(void);
 void iterate_ai_clients(server_t *server);
 int init_ai_client(server_t *serv, int client_fd, char *team, size_t egg_idx);
 int remove_ai_client(server_t *server, size_t idx);

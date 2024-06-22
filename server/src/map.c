@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
 #include "gui_protocols/commands/commands.h"
 #include "server.h"
 
@@ -16,11 +17,11 @@ void refill_map(server_t *server, context_t *ctx)
     long spread = 0;
     size_t x = 0;
     size_t y = 0;
-    precise_time_t now = gettime();
 
-    if (ctx->freq <= 0 || now - server->last_refill <= 20. / (double)ctx->freq)
+    if (ctx->freq <= 0 ||
+        server->now - server->last_refill <= 20. / (double)ctx->freq)
         return;
-    server->last_refill = now;
+    server->last_refill = server->now;
     for (size_t i = 0; i < R_COUNT - 2; ++i) {
         spread = (long)((double)ctx->map_size * DENSITIES[i]);
         spread -= server->map_res[i].quantity;

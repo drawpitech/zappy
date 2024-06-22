@@ -70,7 +70,8 @@ static void exec_ai_cmd(server_t *server, ai_client_t *client)
         return;
     }
     queue_add_cmd(
-        client, &(queued_cmd_t){cmd->func, cmd->time, strdup(content)});
+        server, client,
+        &(queued_cmd_t){cmd->func, cmd->time, strdup(content)});
 }
 
 static bool process_ai_cmd(server_t *server, ai_client_t *client)

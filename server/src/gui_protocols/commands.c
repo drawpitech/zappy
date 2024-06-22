@@ -110,7 +110,6 @@ static void handle_gui(server_t *server)
     char *ptr = NULL;
     gui_client_t *gui = server->gui_client;
 
-    ERR("goofy");
     if (resize_buffer(gui, bufsiz) == RET_ERROR) {
         ERR("resize_buffer"), gui_write(gui, "ko\n", 3);
         return;

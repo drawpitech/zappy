@@ -80,6 +80,7 @@ class App {
 
         struct Team {
             std::pair<std::string, std::shared_ptr<SkeletalMesh>> mesh;
+            glm::vec3 teamColor;
         };
 
         struct Broadcast {
@@ -150,6 +151,7 @@ class App {
         std::map<std::string, std::shared_ptr<StaticMesh>> m_tilesMeshes;
         std::map<std::string, std::pair<std::shared_ptr<SkeletalMesh>, glm::vec3>> m_playerMeshes;
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
+        std::shared_ptr<StaticMesh> m_teamIndicatorMesh;
         std::shared_ptr<StaticMesh> m_broadcastMesh;
         std::vector<GLuint> m_resIcons;
         std::shared_ptr<StaticMesh> m_eggMesh;

@@ -170,9 +170,11 @@ class App {
         void updatePlayersAnim();
         void moveAnimation(Player &player);
         void loadPlayer(const std::string& playerName, glm::vec3 scale);
+        void loadAllPlayer();
         void createTiles();
         void drawUi() noexcept;
         void addEggs();
+
 
         void createScene();
         void createPlayers();

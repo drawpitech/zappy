@@ -11,22 +11,24 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "glm/common.hpp"
+#include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "imgui.h"
 
 #include <chrono>
 #include <cstdio>
+#include <iostream>
 #include <memory>
 #include <netinet/in.h>
+#include <filesystem>
+#include <fstream>
 
 App::App(int port) {
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
 
     {   // Load the meshes and animations
-        loadPlayer("Dan", glm::vec3(150, 150, 150));
-        loadPlayer("Quentin", glm::vec3(100, 100, 100));
-        loadPlayer("Steve", glm::vec3(0.35, 0.35, 0.35));
+        loadAllPlayer();
 
         m_teamIndicatorMesh = std::make_shared<StaticMesh>("assets/cone.obj");
 
@@ -70,6 +72,34 @@ App::App(int port) {
     connectToServer(port);
     parseConnectionResponse();
     createTiles();
+}
+
+void App::loadAllPlayer() {
+    std::string playerPath = "assets/Players/";
+    std::vector<std::string> folders;
+    for (const auto& entry : std::filesystem::directory_iterator(playerPath)) {
+        glm::vec3 scale;
+        if (entry.is_directory()) {
+            std::ifstream scaleFile(playerPath + entry.path().filename().string() + "/" + "scale.txt");
+            std::cout << playerPath + entry.path().filename().string() + "/" + "scale.txt" << std::endl;
+            if (scaleFile.is_open()) {
+                std::string line;
+                for (int i = 0; std::getline(scaleFile, line) && i < 3; i++) {
+                    std::istringstream iss(line);
+                    if (i == 0)
+                        iss >> scale.x;
+                    else if (i == 1)
+                        iss >> scale.y;
+                    else if (i == 2)
+                        iss >> scale.z;
+                }
+                loadPlayer(entry.path().filename().string(), scale);
+                scaleFile.close();
+            } else {
+                throw std::runtime_error("Failed to open scale.txt file");
+            }
+        }
+    }
 }
 
 void App::loadPlayer(const std::string& playerName, glm::vec3 scale) {

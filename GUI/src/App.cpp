@@ -49,8 +49,8 @@ App::App(int port) {
             {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.obj")}
         };
 
-        m_tilesMeshes["white"] = std::make_shared<StaticMesh>("assets/whiteRock.obj");
-        m_tilesMeshes["black"] = std::make_shared<StaticMesh>("assets/greyRock.obj");
+        m_tilesMeshes["white"] = std::make_shared<StaticMesh>("assets/whiteRock.gltf");
+        m_tilesMeshes["black"] = std::make_shared<StaticMesh>("assets/greyRock.gltf");
         m_broadcastMesh = std::make_shared<StaticMesh>("assets/broadcast.obj");
     }
 
@@ -77,7 +77,7 @@ void App::createTiles() {
             for (int k = 0; k < randomHight; k++)
                 m_tilesDecor.push_back(
                     Tile {
-                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * k, (static_cast<float>(j) * (m_tileSize[1] + m_tileSpacing[1]))),
+                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * k, (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
                         .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
                     }
                 );
@@ -285,6 +285,12 @@ void App::updatePlayersAnim() { // NOLINT
             }
         }
         if (player.currentAction == MOVE) {
+            if (player.moveOrientation.x + player.moveOrientation.z > m_tileSize[0] * 2 or player.moveOrientation.x + player.moveOrientation.z < -m_tileSize[0] * 2) {
+                player.visualPositionOffset = glm::vec3(0, 0, 0);
+                player.currentAction = IDLE;
+                player.currentAnim = IDLE;
+                createPlayers();
+            }
             if (player.moveOrientation[0] > 0) {
                 if (player.visualPositionOffset[0] < 0)
                     player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT

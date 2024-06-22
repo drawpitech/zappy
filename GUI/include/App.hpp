@@ -7,7 +7,10 @@
 
 #pragma once
 
+#include "Models/StaticMesh.hpp"
 #include "Renderer/Renderer.hpp"
+#include <memory>
+#include <vector>
 
 #define BUFFER_SIZE 1024000
 
@@ -50,6 +53,11 @@ class App {
             std::array<int, RESNUMBER> ressources = {0, 0, 0, 0, 0, 0, 0};
         };
 
+        struct Tile {
+            glm::vec3 position;
+            std::shared_ptr<StaticMesh> mesh;
+        };
+
         using inventory = TileContent;
 
         struct Player {
@@ -67,7 +75,7 @@ class App {
         };
 
         struct Egg {
-            glm::vec2 position;
+            glm::vec3 position;
         };
 
         struct Team {
@@ -115,11 +123,12 @@ class App {
         unsigned int m_speed = 0;
         int m_ressourceLayer = 4;
         std::vector<std::vector<TileContent>> m_map;
-        glm::vec3 m_tileSize = {4, 4, 4};
-        glm::vec2 m_tileSpacing = {0.5, 0.5};
-        float m_tileHeight = 0;
+        glm::vec3 m_tileSize = {2, 2, 2};
+        glm::vec2 m_tileSpacing = {0, 0};
+        float m_tileHeight = -1;
         float m_playerHeight = 0;
-        float m_resourceHeight = 0.5;
+        float m_resourceHeight = 0;
+        float m_moveSpeed = 0.005;
         glm::vec3 m_resourceSize = {0.5, 0.5, 0.5};
 
         std::unordered_map<std::string, Team> m_teams;
@@ -130,13 +139,15 @@ class App {
         // Dict of all the ressources meshes and offsets on the tiles
         std::map<RessourceType, glm::vec3> m_ressourceOffset;
         std::map<RessourceType, const std::shared_ptr<StaticMesh>> m_ressourceMesh;
+        std::vector<Tile> m_tilesDecor;
 
         // Dict of all the player meshes and animations
+        std::map<std::string, std::shared_ptr<StaticMesh>> m_tilesMeshes;
         std::map<std::string, std::shared_ptr<SkeletalMesh>> m_playerMeshes;
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
-        std::shared_ptr<StaticMesh> m_islandMesh;
         std::shared_ptr<StaticMesh> m_broadcastMesh;
         std::vector<GLuint> m_resIcons;
+        std::shared_ptr<StaticMesh> m_eggMesh;
 
         std::vector<LogMessage> m_logs;
 
@@ -150,7 +161,9 @@ class App {
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
         void updatePlayersAnim();
+        void createTiles();
         void drawUi() noexcept;
+        void addEggs();
 
         void createScene();
         void createPlayers();

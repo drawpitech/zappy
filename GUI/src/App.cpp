@@ -274,6 +274,7 @@ void App::drawUi() noexcept {   // NOLINT
     static int freq{};
     ImGui::Begin("Parameters");
     ImGui::InputInt("Frequency", &freq);
+    freq = std::clamp(freq, 1, 1000);
     if (ImGui::Button("Send request"))
     {
         dprintf(m_socket, "sst %d\n", freq);

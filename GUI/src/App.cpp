@@ -239,23 +239,35 @@ void App::drawUi() noexcept {   // NOLINT
 
     ImGui::End();
 
+    ImGui::Begin("Trantor");
+    for (std::size_t i = 0; i < RESNUMBER; ++i)
+    {
+        ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {60, 60}, ImVec2(0, 1), ImVec2(1, 0));   // NOLINT
+        ImGui::SameLine();
+        ImGui::Text("%d\n", _mapInventory.ressources[i]);
+    }
+    ImGui::End();
+
     ImGui::Begin("Trantorians");
     for (auto& [id, player] : m_players)
     {
-        ImGui::Text("%s", (std::to_string(id) + " Trantorian " + player.teamName).c_str());
-        ImGui::Text("LEVEL: %d\n", player.level);
-        if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
+        //ImGui::Text("%s", (std::to_string(id) + " Trantorian " + player.teamName).c_str());
+        if (ImGui::CollapsingHeader((std::to_string(id) + " Trantorian").c_str()))
         {
-            for (std::size_t i = 0; i < RESNUMBER; ++i)
+            ImGui::Text("LEVEL: %d\n", player.level);
+            if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
             {
-                ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {60, 60}, ImVec2(0, 1), ImVec2(1, 0));   // NOLINT
-                ImGui::SameLine();
-                ImGui::Text("%d", player.inv.ressources[i]);
-            }
+                for (std::size_t i = 0; i < RESNUMBER; ++i)
+                {
+                    ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {60, 60}, ImVec2(0, 1), ImVec2(1, 0));   // NOLINT
+                    ImGui::SameLine();
+                    ImGui::Text("%d", player.inv.ressources[i]);
+                }
 
-            ImGui::TreePop();
+                ImGui::TreePop();
+            }
+            ImGui::Separator();
         }
-        ImGui::Separator();
     }
     ImGui::End();
 
@@ -316,12 +328,12 @@ void App::createPlayers() {
 }
 
 void App::addBroadcasts() {
-    for (int i = 0; i < m_broadcasts.size(); i++) {
+    for (std::size_t i = 0; i < m_broadcasts.size(); i++) {
         std::chrono::high_resolution_clock::time_point currentTime = std::chrono::high_resolution_clock::now();
         float elapsedTime = std::chrono::duration<float, std::milli>(currentTime - m_broadcasts[i].startTime).count();
 
         if (elapsedTime > 2000)
-            m_broadcasts.erase(m_broadcasts.begin() + i);
+            m_broadcasts.erase(m_broadcasts.begin() + static_cast<int>(i));
         else {
             m_scene->staticActors.push_back({
                 m_broadcastMesh,

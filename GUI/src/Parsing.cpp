@@ -387,10 +387,15 @@ void App::updateMap(const std::string& bufferView) {
         for (int i = 0; i < 6; i++) {
             m_map[x][y].ressources[i] = PARSER_NEXT_INT(bufferView, pos);
         }
-        PARSER_LAST_INT(bufferView, pos);
+        m_map[x][y].ressources[6] = PARSER_LAST_INT(bufferView, pos);
 
         PARSER_NEXT_SYMBOL("bct");
     }
+    _mapInventory.ressources.fill(0);
+    for (int x = 0; x < m_mapSize[0]; ++x)
+        for (int y = 0; y < m_mapSize[1]; ++y)
+            for (std::size_t i = 0; i < RESNUMBER; ++i)
+                _mapInventory.ressources[i] += m_map[x][y].ressources[i];
 }
 
 glm::ivec2 App::parseMapSize(const std::string& bufferView) {

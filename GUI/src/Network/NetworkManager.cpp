@@ -12,7 +12,7 @@
 #include <sys/socket.h>
 
 NetworkManager::NetworkManager(const std::string &address, int port)
-    : _address(address), _socket(-1), _port(port), _addr(0)
+    : _address(address), _socket(-1), _port(port)
 {
     std::memset(&_addr, 0, sizeof(_addr));
     _addr.sin_family = AF_INET;
@@ -21,7 +21,7 @@ NetworkManager::NetworkManager(const std::string &address, int port)
 }
 
 NetworkManager::NetworkManager(int port)
-    : _address("localhost"), _socket(-1), _port(port), _addr(0)
+    : _address("localhost"), _socket(-1), _port(port)
 {
     std::memset(&_addr, 0, sizeof(_addr));
     _addr.sin_family = AF_INET;

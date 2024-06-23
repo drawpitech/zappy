@@ -7,7 +7,7 @@
 
 #include "Models/SkeletalMesh.hpp"
 
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 #include "Utils.hpp"
 
 #include "stb_image.h"
@@ -23,7 +23,7 @@ SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
     );
 
     if ((scene == nullptr) || ((scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0) || (scene->mRootNode == nullptr))
-        throw std::runtime_error("Failed to load model: " + std::string(importer.GetErrorString()));
+        throw std::runtime_error("Failed to load model: " + modelPath + " " + std::string(importer.GetErrorString()));
 
     loadMaterials(scene, modelPath);
     processNode(scene->mRootNode, scene);
@@ -32,7 +32,7 @@ SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
 SkeletalMesh::~SkeletalMesh() {
 }
 
-void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept {
+void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform, const glm::vec3& color) const noexcept {
     glEnable(GL_DEPTH_TEST);
 
     for (const auto& submesh : m_submeshes) {
@@ -64,6 +64,7 @@ void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, con
         }
 
         shaderProgram->setMat4("model", submesh.transform * transform);
+        shaderProgram->setVec3("color", color);
         glBindVertexArray(submesh.vao);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(submesh.indexCount), GL_UNSIGNED_INT, nullptr);
     }

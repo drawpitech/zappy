@@ -61,7 +61,7 @@ void App::moveAnimation(Player &player) {
     }
     player.visualPositionOffset += tempOffset;
     if (tempOffset.x + tempOffset.z > m_tileSize[0] * 2 or tempOffset.x + tempOffset.z < -m_tileSize[0] * 2) {
-        player.visualPositionOffset = glm::vec3(0, 0, 0);
+        player.visualPositionOffset = {0, 0, 0};
         player.currentAction = IDLE;
         player.currentAnim = IDLE;
     }
@@ -105,6 +105,8 @@ void App::updatePlayersAnim() { // NOLINT
         }
         if (player.currentAction == MOVE) {
             moveAnimation(player);
+        } else {
+            player.visualPositionOffset = glm::vec3(0, 0, 0);
         }
     }
 }

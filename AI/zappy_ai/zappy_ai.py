@@ -2,8 +2,9 @@
 """ Main """
 from time import sleep
 from multiprocessing import Process, Queue
-from args_handling import get_args
-from trentorian import Trantorian
+
+from zappy_ai.args_handling import get_args
+from zappy_ai.trentorian import Trantorian
 
 
 def burry_dead(pop: list[Process]) -> list[Process]:

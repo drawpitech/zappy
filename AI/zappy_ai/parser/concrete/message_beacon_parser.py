@@ -1,4 +1,4 @@
-from trentorian import Trantorian
+from zappy_ai.trentorian import Trantorian
 from parser.virtual import IParser
 from utils import determine_direction
 from .message_type_parser import MessageType

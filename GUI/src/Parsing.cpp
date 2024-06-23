@@ -288,7 +288,6 @@ void App::parseConnectionResponse() {
     }
 
     const std::string& bufferView(buffer.data());
-    std::cout << bufferView << std::endl;
 
 
     // Get the team names (tna teamName\n * n)

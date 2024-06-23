@@ -7,7 +7,10 @@
 
 #include "App.hpp"
 
+#include "Renderer/GlRenderer/GlRenderer.hpp"
+#include "Renderer/IRenderer.hpp"
 #include "Utils.hpp"
+
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "glm/common.hpp"
@@ -24,8 +27,8 @@
 #include <fstream>
 
 App::App(int port) {
-    m_renderer = std::make_unique<Renderer>();
-    m_scene = std::make_shared<Renderer::Scene>();
+    m_renderer = std::make_unique<GlRenderer>();
+    m_scene = std::make_shared<IRenderer::Scene>();
 
     {   // Load the meshes and animations
         loadAllPlayer();
@@ -81,7 +84,6 @@ void App::loadAllPlayer() {
         glm::vec3 scale;
         if (entry.is_directory()) {
             std::ifstream scaleFile(playerPath + entry.path().filename().string() + "/" + "scale.txt");
-            std::cout << playerPath + entry.path().filename().string() + "/" + "scale.txt" << std::endl;
             if (scaleFile.is_open()) {
                 std::string line;
                 for (int i = 0; std::getline(scaleFile, line) && i < 3; i++) {
@@ -137,7 +139,7 @@ void App::createScene() {
 
     // Island tiles creation
     for (const auto& tile : m_tilesDecor) {
-        m_scene->staticActors.push_back(Renderer::StaticActor({
+        m_scene->staticActors.push_back(IRenderer::StaticActor({
             .mesh = tile.mesh,
             .position = tile.position,
             .scale = m_tileSize,
@@ -148,7 +150,7 @@ void App::createScene() {
 
     // Eggs creation
     for (const auto& egg : m_eggs) {
-        m_scene->staticActors.push_back(Renderer::StaticActor({
+        m_scene->staticActors.push_back(IRenderer::StaticActor({
             .mesh = m_eggMesh,
             .position = egg.second.position,
             .scale = glm::vec3(0.1),
@@ -171,7 +173,7 @@ void App::createScene() {
 
                 for (int nb = 0; nb < tile.ressources[ressourceType]; nb++)
                     m_scene->staticActors.push_back(
-                        Renderer::StaticActor({
+                        IRenderer::StaticActor({
                             m_ressourceMesh.at(ressourceType),
                             ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb) / static_cast<float>(m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
                             m_resourceSize,

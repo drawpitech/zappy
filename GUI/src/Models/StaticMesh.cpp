@@ -7,7 +7,7 @@
 
 #include "Models/StaticMesh.hpp"
 
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

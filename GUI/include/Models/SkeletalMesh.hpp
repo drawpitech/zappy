@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"

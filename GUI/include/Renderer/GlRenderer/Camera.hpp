@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "Window.hpp"
+#include "Renderer/GlRenderer/Window.hpp"
 
 #include <memory>
 

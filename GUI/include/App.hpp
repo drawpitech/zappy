@@ -124,6 +124,7 @@ class App {
         unsigned int m_speed = 0;
         int m_ressourceLayer = 4;
         std::vector<std::vector<TileContent>> m_map;
+        inventory _mapInventory;
         glm::vec3 m_tileSize = {2, 2, 2};
         glm::vec2 m_tileSpacing = {0, 0};
         float m_tileHeight = -2;
@@ -136,7 +137,7 @@ class App {
 
         std::chrono::high_resolution_clock::time_point m_startFrameTime;
         std::chrono::high_resolution_clock::time_point m_endFrameTime;
-        float m_frameTime = 0.0f;
+        float m_frameTime = 0.0F;
         std::unordered_map<std::string, Team> m_teams;
         std::map<int, Egg> m_eggs;
         std::map<int, Player> m_players;

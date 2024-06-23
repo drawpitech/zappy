@@ -25,6 +25,8 @@ public:
     [[nodiscard]] ssize_t sendData(const std::string &data) const;
     [[nodiscard]] ssize_t receiveData(char *buffer, std::size_t size) const;
 
+    [[nodiscard]] int getSocket() const { return _socket; }
+
 private:
     std::string _address;
     int _socket;

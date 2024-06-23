@@ -271,15 +271,15 @@ void App::parseConnectionResponse() {
     // Wait for the reply
     fd_set readfds;
     FD_ZERO(&readfds);
-    FD_SET(m_socket, &readfds);
+    FD_SET(_networkManager.getSocket(), &readfds);
     timeval timeout { .tv_sec = 2, .tv_usec = 0 };
-    if (select(m_socket + 1, &readfds, nullptr, nullptr, &timeout) > 0) {
+    if (select(_networkManager.getSocket()+ 1, &readfds, nullptr, nullptr, &timeout) > 0) {
         // Wait for the multiple welcome messages to stack
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
         size_t readSize = 0;
         while (readSize < BUFFER_SIZE) {
-            readSize += read(m_socket, buffer.data() + readSize, BUFFER_SIZE - readSize);
+            readSize += read(_networkManager.getSocket(), buffer.data() + readSize, BUFFER_SIZE - readSize);
             if (buffer[readSize - 1] == '\n')
                 break;
         }
@@ -316,7 +316,6 @@ void App::parseConnectionResponse() {
         throw std::runtime_error("sgt not found in welcome bufferView");
 
     m_speed = PARSER_LAST_INT(bufferView, pos);
-
 
     m_mapSize = parseMapSize(bufferView);
     m_map.resize(m_mapSize[0], std::vector<TileContent>(m_mapSize[1]));

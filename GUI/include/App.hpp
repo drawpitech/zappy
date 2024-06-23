@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "Network/NetworkManager.hpp"
+#include "Network/ProtocolHandler.hpp"
+
 #include "Models/StaticMesh.hpp"
 #include "Renderer/IRenderer.hpp"
 
@@ -115,8 +118,8 @@ class App {
         App(const App&) = delete;
         App& operator=(const App&) = delete;
 
-        App(App&&) = default;
-        App& operator=(App&&) = default;
+        App(App&&) = delete;
+        App& operator=(App&&) = delete;
 
         void run();
 
@@ -163,8 +166,12 @@ class App {
 
         std::vector<LogMessage> m_logs;
 
-        int m_socket = 0;
-        void connectToServer(int port);
+        // Network part
+        //int m_socket = 0;
+        //void connectToServer(int port);
+        
+        NetworkManager _networkManager;
+        ProtocolHandler _protocolHandler;
 
         void updateMap(const std::string& bufferView);
         void updatePlayers(const std::string& bufferView);

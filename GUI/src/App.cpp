@@ -26,10 +26,11 @@
 #include <filesystem>
 #include <fstream>
 
-App::App(int port) {
+App::App(int port) 
+    : _networkManager(port), _protocolHandler(_networkManager)
+{
     m_renderer = std::make_unique<GlRenderer>();
     m_scene = std::make_shared<IRenderer::Scene>();
-
     {   // Load the meshes and animations
         loadAllPlayer();
 
@@ -72,7 +73,8 @@ App::App(int port) {
     };
 
     m_resIcons = Utils::Instance<Utils::ImageLoader, const std::vector<std::string>&>::Get(resIconsFilepaths)->getImages();
-    connectToServer(port);
+    _networkManager.connectToServer();
+    sleep(1);
     parseConnectionResponse();
     createTiles();
 }
@@ -130,7 +132,7 @@ void App::createTiles() {
 }
 
 App::~App() {
-    close(m_socket);
+    //close(m_socket);
 }
 
 void App::createScene() {
@@ -189,6 +191,7 @@ void App::createScene() {
     addBroadcasts();
 }
 
+/*
 void App::connectToServer(int port) {
     m_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (m_socket < 0)
@@ -216,6 +219,7 @@ void App::connectToServer(int port) {
 
     LOG("Connected to server", GREEN);
 }
+*/
 
 void App::drawUi() noexcept {   // NOLINT
     // Mesh selection
@@ -279,7 +283,7 @@ void App::drawUi() noexcept {   // NOLINT
     freq = std::clamp(freq, 1, 1000);
     if (ImGui::Button("Send request"))
     {
-        dprintf(m_socket, "sst %d\n", freq);
+        dprintf(_networkManager.getSocket(), "sst %d\n", freq);
         m_speed = freq;
     }
     ImGui::End();
@@ -353,11 +357,20 @@ void App::run() {
     ImGui::LoadIniSettingsFromDisk("../imgui.ini");
 
     // Buffer to store the data received from the server
-    std::array<char, BUFFER_SIZE> buffer{};
+    //std::array<char, BUFFER_SIZE> buffer{};
+    std::string serverData{};
 
     while (!m_renderer->shouldStop()) {
         m_startFrameTime = std::chrono::high_resolution_clock::now();
         // Check if there is data to read from the server
+        if (_protocolHandler.readDataFromServer(serverData))
+        {
+            const std::string &bufferView(serverData);
+            updateMap(bufferView);
+            updateEggs(bufferView);
+            updatePlayers(bufferView);
+        }
+        /*
         fd_set readfds;
         FD_ZERO(&readfds);
         FD_SET(m_socket, &readfds);
@@ -379,6 +392,7 @@ void App::run() {
             updateEggs(bufferView);
             updatePlayers(bufferView);
         }
+        */
 
         // Begin UI rendering
         ImGui_ImplOpenGL3_NewFrame();

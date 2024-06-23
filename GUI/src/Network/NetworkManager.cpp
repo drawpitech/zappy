@@ -6,13 +6,16 @@
 */
 
 #include "Network/NetworkManager.hpp"
+#include <array>
 #include <iostream>
 #include <arpa/inet.h>
 #include <cstring>
+#include <stdexcept>
 #include <sys/socket.h>
+#include <unistd.h>
 
 NetworkManager::NetworkManager(const std::string &address, int port)
-    : _address(address), _socket(-1), _port(port)
+    : _address(address), _socket(-1), _port(port), _addr()
 {
     std::memset(&_addr, 0, sizeof(_addr));
     _addr.sin_family = AF_INET;
@@ -21,7 +24,7 @@ NetworkManager::NetworkManager(const std::string &address, int port)
 }
 
 NetworkManager::NetworkManager(int port)
-    : _address("localhost"), _socket(-1), _port(port)
+    : _address("localhost"), _socket(-1), _port(port), _addr()
 {
     std::memset(&_addr, 0, sizeof(_addr));
     _addr.sin_family = AF_INET;
@@ -49,6 +52,17 @@ bool NetworkManager::connectToServer()
         close(_socket);
         return false;
     }
+
+    std::array<char, 1024> buffer{};
+    if (read(_socket, buffer.data(), 1024) < 0)
+        throw std::runtime_error("[-]Read failed.");
+
+    if (std::string(buffer.data()) != "WELCOME\n")
+        throw std::runtime_error("[-]Connection failed");
+
+    if (write(_socket, "GRAPHIC\n", 8) < 0)
+        throw std::runtime_error("[-]Write failed.");
+
     return true;
 }
 

@@ -1,7 +1,7 @@
-from trentorian.trentorian import Trantorian
-from parser.virtual.parser import IParser
-from utils import determine_direction
-from parser.concrete.message_type_parser import MessageType
+from zappy_ai.trentorian import Trantorian
+from zappy_ai.parser.virtual import IParser
+from zappy_ai.utils import determine_direction
+from .message_type_parser import MessageType
 
 from warnings import warn
 from enum import IntEnum

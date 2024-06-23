@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from trentorian.trentorian import Trantorian
+from zappy_ai.trentorian.trentorian import Trantorian
 
 class IParser:
     """Interface for the parsers

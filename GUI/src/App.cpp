@@ -116,13 +116,16 @@ void App::createTiles() {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
             int randomHight = rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2;
             int centerHight = abs(i) + abs(j);
-            for (int k = 0; k < randomHight - centerHight; k++)
+            for (int k = 0; k < randomHight - centerHight; k++) {
+                std::srand(std::rand() * std::time(nullptr));
                 m_tilesDecor.push_back(
                     Tile {
-                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * static_cast<float>(k), (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
+                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * static_cast<float>(k) + (0.001 * static_cast<float>(k)), (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
+                        .rotation = glm::vec3(std::rand() % 4 * 90, std::rand() % 4 * 90, std::rand() % 4 * 90),
                         .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
                     }
                 );
+            }
         }
     }
 }
@@ -141,7 +144,7 @@ void App::createScene() {
             .mesh = tile.mesh,
             .position = tile.position,
             .scale = m_tileSize,
-            .rotation = glm::vec3(0, 0, 0),
+            .rotation = tile.rotation,
             .color = glm::vec3(-glm::abs(tile.position[1]) / 100 + 1, -glm::abs(tile.position[1]) / 100 + 1, -glm::abs(tile.position[1]) / 100 + 1)
         }));
     }

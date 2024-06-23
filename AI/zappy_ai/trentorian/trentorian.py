@@ -8,18 +8,17 @@ import random
 from warnings import warn
 
 from multiprocessing import Queue
-from client.client import Client
+from zappy_ai.client import Client
 
-from parser.concrete.message_type_parser import MessageType
-from parser.concrete.message_type_parser import MessageTypeParser
-from trentorian.map import (
+from zappy_ai.parser.concrete import MessageType, MessageTypeParser
+from .map import (
     create_default_map,
     Map,
     MapTile,
     merge_maps
 )
 from string import ascii_lowercase
-from utils import (
+from zappy_ai.utils import (
     determine_direction,
     check_levelup,
     pack_infos,

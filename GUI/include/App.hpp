@@ -8,8 +8,12 @@
 #pragma once
 
 #include "Models/StaticMesh.hpp"
-#include "Renderer/Renderer.hpp"
+#include "Renderer/IRenderer.hpp"
+
+#include "imgui.h"
+
 #include <memory>
+#include <chrono>
 #include <vector>
 
 #define BUFFER_SIZE 1024000
@@ -118,8 +122,8 @@ class App {
         void run();
 
     private:
-        std::unique_ptr<Renderer> m_renderer;
-        std::shared_ptr<Renderer::Scene> m_scene;
+        std::unique_ptr<IRenderer> m_renderer;
+        std::shared_ptr<IRenderer::Scene> m_scene;
 
         glm::ivec2 m_mapSize = {0, 0};
         unsigned int m_speed = 0;

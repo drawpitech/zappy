@@ -5,8 +5,8 @@
 ** SSAOPass
 */
 
-#include "RenderPasses/SSAOPass.hpp"
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/RenderPasses/SSAOPass.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 
 #include <random>
 

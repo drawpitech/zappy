@@ -5,7 +5,7 @@
 ** ShaderProgram
 */
 
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 
 #include "glad/glad.h"
 #include "glm/gtc/type_ptr.hpp"

@@ -7,4 +7,13 @@ version = "0.1.0"
 zappy_ai = "zappy_ai:main_cli"
 
 [tool.setuptools]
-packages = ["zappy_ai"]
+packages = [
+    "zappy_ai",
+    "zappy_ai.args_handling",
+    "zappy_ai.client",
+    "zappy_ai.parser",
+    "zappy_ai.parser.concrete",
+    "zappy_ai.parser.virtual",
+    "zappy_ai.trentorian",
+    "zappy_ai.utils",
+]

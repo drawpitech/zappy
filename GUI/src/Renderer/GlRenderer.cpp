@@ -5,10 +5,10 @@
 ** Renderer
 */
 
-#include "Renderer/Renderer.hpp"
+#include "Renderer/GlRenderer/GlRenderer.hpp"
 
 #include "Models/Animations/Bone.hpp"
-#include "Renderer/Window.hpp"
+#include "Renderer/GlRenderer/Window.hpp"
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -17,7 +17,7 @@
 #include <memory>
 #include <stdexcept>
 
-Renderer::Renderer() {
+GlRenderer::GlRenderer() {
     m_window = std::make_shared<Window>(1280, 720, "Zappy");
     m_camera = std::make_unique<Camera>(m_window);
 
@@ -47,10 +47,10 @@ Renderer::Renderer() {
     }
 }
 
-Renderer::~Renderer() {
+GlRenderer::~GlRenderer() {
 }
 
-void Renderer::handleUserInput() noexcept {
+void GlRenderer::handleUserInput() noexcept {
     m_window->pollEvents();
 
     if (m_lightingPass->wasResized) {
@@ -74,7 +74,7 @@ void Renderer::handleUserInput() noexcept {
     m_camera->update(m_deltaTime);
 }
 
-void Renderer::drawUi() noexcept {
+void GlRenderer::drawUi() noexcept {
     ImGui::SetNextWindowBgAlpha(0);
     // ImGui::SetNextWindowPos(ImVec2(0, 0));
     // ImGui::SetNextWindowSize(ImVec2(300, 300));
@@ -103,13 +103,13 @@ void Renderer::drawUi() noexcept {
     ImGui::End();
 }
 
-void Renderer::updateDeltaTime() noexcept {
+void GlRenderer::updateDeltaTime() noexcept {
     m_frameEndTime = std::chrono::high_resolution_clock::now();
     m_deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(m_frameEndTime - m_frameStartTime).count();
     m_frameStartTime = m_frameEndTime;
 }
 
-void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) noexcept {
+void GlRenderer::render(std::shared_ptr<IRenderer::Scene>& scene, float gameSpeed) noexcept {
     updateDeltaTime();
     handleUserInput();
 

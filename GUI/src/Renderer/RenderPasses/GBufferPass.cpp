@@ -5,9 +5,9 @@
 ** GBufferPass
 */
 
-#include "RenderPasses/GBufferPass.hpp"
-#include "Renderer/ShaderProgram.hpp"
-#include "Renderer/Window.hpp"
+#include "Renderer/GlRenderer/RenderPasses/GBufferPass.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/Window.hpp"
 
 GBufferPass::GBufferPass(std::shared_ptr<Window>& window) : m_window(window) {
     m_staticShaderProgram = std::make_shared<ShaderProgram>("GUI/shaders/GBufferStatic.vert", "GUI/shaders/GBuffer.frag");

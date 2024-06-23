@@ -5,8 +5,8 @@
 ** LightingPass
 */
 
-#include "RenderPasses/LightingPass.hpp"
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/RenderPasses/LightingPass.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 
 #include "imgui.h"
 #include "stb_image.h"

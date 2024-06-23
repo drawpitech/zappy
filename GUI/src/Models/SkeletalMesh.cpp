@@ -7,7 +7,7 @@
 
 #include "Models/SkeletalMesh.hpp"
 
-#include "Renderer/ShaderProgram.hpp"
+#include "Renderer/GlRenderer/ShaderProgram.hpp"
 #include "Utils.hpp"
 
 #include "stb_image.h"

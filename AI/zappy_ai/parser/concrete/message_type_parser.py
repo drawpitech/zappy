@@ -1,3 +1,5 @@
+"""Handling of the messages parsing"""
+
 import importlib
 from enum import IntEnum
 
@@ -21,12 +23,12 @@ MESSAGE_PARSER: dict = {
 }
 
 MODULE_NAME: dict = {
-    "MessageBirthInfoParser": "parser.concrete.message_birth_parser",
-    "MessageAskBirthParser": "parser.concrete.message_birth_parser",
-    "MessageBeaconParser": "parser.concrete.message_beacon_parser",
-    "MessageRitualParser": "parser.concrete.message_ritual_parser",
-    "MessageRitualFinishParser": "parser.concrete.message_ritual_parser",
-    "MessageRitualFailedParser": "parser.concrete.message_ritual_parser"
+    "MessageBirthInfoParser": "zappy_ai.parser.concrete.message_birth_parser",
+    "MessageAskBirthParser": "zappy_ai.parser.concrete.message_birth_parser",
+    "MessageBeaconParser": "zappy_ai.parser.concrete.message_beacon_parser",
+    "MessageRitualParser": "zappy_ai.parser.concrete.message_ritual_parser",
+    "MessageRitualFinishParser": "zappy_ai.parser.concrete.message_ritual_parser",
+    "MessageRitualFailedParser": "zappy_ai.parser.concrete.message_ritual_parser"
 }
 
 class MessageTypeParser():

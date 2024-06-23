@@ -6,7 +6,7 @@ those function are member of the trentorian class
 
 from time import time
 
-from trentorian.commands import (
+from zappy_ai.trentorian.commands import (
     start_incantation,
     broadcast,
     drop_object,
@@ -14,16 +14,14 @@ from trentorian.commands import (
     left,
     forward
 )
-from trentorian.broadcast import (
-    get_answer,
-    wait_answer
-)
+from zappy_ai.trentorian.broadcast import get_answer
 
-from parser.concrete.message_type_parser import (
+from zappy_ai.parser.concrete.message_type_parser import (
     MessageType,
     MessageTypeParser
 )
-from utils import LEVELS
+
+from zappy_ai.utils import LEVELS
 
 def be_the_shaman(self, can_do_incant: list) -> bool:
     """call the others and do the incantation process

@@ -4,26 +4,18 @@ File containing the trentorian basic commands,
 those function are member of the trentorian class
 """
 
-from trentorian.enums import (
-    TrantorianDirection,
-    OtherIndex,
-    SoundDirection
-)
-
-from utils import (
-    determine_direction,
-    check_levelup,
-    pack_infos,
-    unpack_infos,
-    split_list,
-    LEVELS,
-    get_incantation_team
-)
-
-from trentorian.broadcast import wait_answer
-
 from time import time
 from multiprocessing import Queue
+
+from zappy_ai.trentorian.enums import TrantorianDirection
+
+from zappy_ai.utils import (
+    pack_infos,
+    split_list,
+)
+
+from zappy_ai.trentorian.broadcast import wait_answer
+
 
 def forward(self) -> bool:
     """try to go forward, update the position if success

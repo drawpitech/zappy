@@ -2,12 +2,11 @@
 """
 Module providing the trantorian class
 """
-from enum import IntEnum
 from time import time
 import random
-from warnings import warn
-
+from string import ascii_lowercase
 from multiprocessing import Queue
+
 from zappy_ai.client import Client
 
 from zappy_ai.parser.concrete.message_type_parser import MessageType
@@ -16,29 +15,21 @@ from zappy_ai.parser.concrete.message_type_parser import MessageTypeParser
 from zappy_ai.trentorian.enums import (
     TrantorianDirection,
     OtherIndex,
-    SoundDirection
-)
-from zappy_ai.trentorian.map import (
-    create_default_map,
-    Map,
-    MapTile,
-    merge_maps
 )
 
-from string import ascii_lowercase
+from zappy_ai.trentorian.map import (
+    create_default_map,
+    MapTile,
+)
+
 from zappy_ai.utils import (
-    determine_direction,
     check_levelup,
-    pack_infos,
-    unpack_infos,
-    split_list,
-    LEVELS,
     get_incantation_team
 )
 
 ################################# REST OF THE TRENTORIAN CLASS #################################
 
-from trentorian.commands import (
+from zappy_ai.trentorian.commands import (
     forward,
     right,
     left,
@@ -46,20 +37,16 @@ from trentorian.commands import (
     start_incantation,
     look_around,
     asexual_multiplication,
-    eject,
     take_object,
-    drop_object,
     get_unused_slot,
     get_inventory
 )
-from trentorian.ritual import (
+
+from zappy_ai.trentorian.ritual import (
     be_the_shaman,
     follow_the_leader,
     wait_incant
 )
-from trentorian.broadcast import get_answer
-
-# TODO use init file for the module
 
 #-----------------------------------------------------------------------------#
 ############################### THE CLASS #####################################

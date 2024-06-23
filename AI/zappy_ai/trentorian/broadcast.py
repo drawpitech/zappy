@@ -4,12 +4,9 @@ File containing the trentorian broadcasts receptions functions,
 those function are member of the trentorian class
 """
 
-from parser.concrete.message_type_parser import (
-    MessageType,
-    MessageTypeParser
-)
+from zappy_ai.parser.concrete.message_type_parser import MessageTypeParser
 
-from utils import unpack_infos
+from zappy_ai.utils import unpack_infos
 
 def wait_answer(self) -> str:
     """wait for an answer, handle the message, eject and current level

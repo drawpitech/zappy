@@ -62,6 +62,7 @@ class App {
 
         struct Tile {
             glm::vec3 position;
+            glm::vec3 rotation;
             std::shared_ptr<StaticMesh> mesh;
         };
 
@@ -133,7 +134,7 @@ class App {
         std::vector<std::vector<TileContent>> m_map;
         inventory _mapInventory;
         glm::vec3 m_tileSize = {2, 2, 2};
-        glm::vec2 m_tileSpacing = {0, 0};
+        glm::vec2 m_tileSpacing = {0.001, 0.001};
         float m_tileHeight = -2;
         float m_playerHeight = 0;
         float m_resourceHeight = 0;

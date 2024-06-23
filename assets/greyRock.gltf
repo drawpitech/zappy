@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube",
+			"name":"Cube.001",
 			"scale":[
 				0.5,
 				0.5,
@@ -26,17 +26,18 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.001",
+			"name":"Material.003",
 			"normalTexture":{
-				"index":0,
-				"scale":2.1999998092651367
+				"index":0
 			},
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":1
 				},
 				"metallicFactor":0,
-				"roughnessFactor":0.5
+				"metallicRoughnessTexture":{
+					"index":2
+				}
 			}
 		}
 	],
@@ -64,18 +65,27 @@
 		{
 			"sampler":0,
 			"source":1
+		},
+		{
+			"sampler":0,
+			"source":2
 		}
 	],
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"seaside_rock_nor_gl_4k",
-			"uri":"seaside_rock_nor_gl_4k.png"
+			"name":"marble_0012_normal_opengl_2k",
+			"uri":"marble_0012_normal_opengl_2k.png"
 		},
 		{
 			"mimeType":"image/jpeg",
-			"name":"seaside_rock_diff_4k",
-			"uri":"seaside_rock_diff_4k.jpg"
+			"name":"marble_0012_color_2k",
+			"uri":"marble_0012_color_2k.jpg"
+		},
+		{
+			"mimeType":"image/png",
+			"name":"marble_0012_roughness_2k",
+			"uri":"marble_0012_roughness_2k.png"
 		}
 	],
 	"accessors":[

@@ -47,17 +47,13 @@ class Client:
         """
         while '\n' not in self.buffer:
             try:
-                new = self.socket.recv(1024).decode() # TODO use select to ensure not blocking
+                new = self.socket.recv(1024).decode()
             except (ConnectionResetError, socket.timeout):
                 new = ''
             if new == '':
                 self.buffer = "dead\n"
             self.buffer += new
         last_answer, self.buffer = self.buffer.split('\n', maxsplit=1)
-        # if last_answer.startswith('message'):
-            # print('######## message')
-        # else:
-            # print('#######', last_answer)
         return last_answer
 
     def send_cmd(self, cmd: str) -> None:
@@ -68,10 +64,6 @@ class Client:
         """
         if cmd[-1] != '\n':
             cmd += '\n'
-        # if cmd.startswith('Broad'):
-            # print('---------- broadcast')
-        # else:
-            # print('----------', cmd)
         self.socket.send(cmd.encode())
 
 if __name__ == "__main__":

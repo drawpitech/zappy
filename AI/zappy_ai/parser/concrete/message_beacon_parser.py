@@ -1,10 +1,11 @@
-from zappy_ai.trentorian import Trantorian
-from parser.virtual import IParser
-from utils import determine_direction
-from .message_type_parser import MessageType
+"""parsing for the beacon's messages
+"""
+
 from time import time
 from warnings import warn
 from enum import IntEnum
+from zappy_ai.trentorian import Trantorian
+from zappy_ai.parser.virtual import IParser
 
 class ParamsType(IntEnum):
     """Sound direction enum

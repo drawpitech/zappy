@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """ Main """
-from time import sleep
 from multiprocessing import Process, Queue
 
 from zappy_ai.args_handling import get_args
@@ -50,11 +49,9 @@ def main(host: str, port: int, team: str):
     return
 
 def main_cli():
+    """main
+    """
     args = get_args()
-
-    # print(args.p)
-    # print(args.n)
-    # print(args.he)
 
     try:
         main(args.he, args.p, args.n)

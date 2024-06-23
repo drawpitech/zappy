@@ -112,6 +112,7 @@ static int add_client(server_t *serv)
     return 0;
 }
 
+// TODO: close_server(&serv); // gui_msg_seg
 int server(int argc, char **argv)
 {
     server_t server = {0};
@@ -132,6 +133,5 @@ int server(int argc, char **argv)
         iterate_gui(&server);
         iterate_waitlist(&server);
     }
-    // close_server(&serv); // gui_msg_seg
     return RET_VALID;
 }

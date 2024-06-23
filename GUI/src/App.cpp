@@ -11,24 +11,26 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "glm/common.hpp"
+#include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "imgui.h"
 
 #include <chrono>
+#include <cstdio>
+#include <iostream>
 #include <memory>
 #include <netinet/in.h>
+#include <filesystem>
+#include <fstream>
 
 App::App(int port) {
     m_renderer = std::make_unique<Renderer>();
     m_scene = std::make_shared<Renderer::Scene>();
 
     {   // Load the meshes and animations
-        m_playerMeshes["Dan"] = std::make_shared<SkeletalMesh>("assets/Dan/Dan.dae");
-        m_playerAnims["DanIdle"] = std::make_shared<Animation>("assets/Dan/Idle/Idle.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanEat"] = std::make_shared<Animation>("assets/Dan/Eat/Drinking.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanMove"] = std::make_shared<Animation>("assets/Dan/Move/Fast Run.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanRitual"] = std::make_shared<Animation>("assets/Dan/Ritual/Tut Hip Hop Dance.dae", m_playerMeshes["Dan"]);
-        m_playerAnims["DanBirth"] = std::make_shared<Animation>("assets/Dan/Birth/Standing Taunt Battlecry.dae", m_playerMeshes["Dan"]);
+        loadAllPlayer();
+
+        m_teamIndicatorMesh = std::make_shared<StaticMesh>("assets/cone.obj");
 
         m_ressourceOffset = {
             {FOOD, {0.2, 0.3, m_tileSize[2] * 1/8}},
@@ -42,12 +44,12 @@ App::App(int port) {
 
         m_ressourceMesh = {
             {FOOD, std::make_shared<StaticMesh>("assets/Ressources/Gonstre.obj")},
-            {LINEMATE, std::make_shared<StaticMesh>("assets/Ressources/pink.obj")},
-            {DERAUMERE, std::make_shared<StaticMesh>("assets/Ressources/orange.obj")},
-            {SIBUR, std::make_shared<StaticMesh>("assets/Ressources/blue.obj")},
-            {MENDIANE, std::make_shared<StaticMesh>("assets/Ressources/green.obj")},
-            {PHIRAS, std::make_shared<StaticMesh>("assets/Ressources/red.obj")},
-            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.obj")}
+            {LINEMATE, std::make_shared<StaticMesh>("assets/Ressources/pink.gltf")},
+            {DERAUMERE, std::make_shared<StaticMesh>("assets/Ressources/orange.gltf")},
+            {SIBUR, std::make_shared<StaticMesh>("assets/Ressources/blue.gltf")},
+            {MENDIANE, std::make_shared<StaticMesh>("assets/Ressources/green.gltf")},
+            {PHIRAS, std::make_shared<StaticMesh>("assets/Ressources/red.gltf")},
+            {THYSTAME, std::make_shared<StaticMesh>("assets/Ressources/purple.gltf")}
         };
 
         m_tilesMeshes["white"] = std::make_shared<StaticMesh>("assets/whiteRock.gltf");
@@ -72,6 +74,43 @@ App::App(int port) {
     createTiles();
 }
 
+void App::loadAllPlayer() {
+    std::string playerPath = "assets/Players/";
+    std::vector<std::string> folders;
+    for (const auto& entry : std::filesystem::directory_iterator(playerPath)) {
+        glm::vec3 scale;
+        if (entry.is_directory()) {
+            std::ifstream scaleFile(playerPath + entry.path().filename().string() + "/" + "scale.txt");
+            std::cout << playerPath + entry.path().filename().string() + "/" + "scale.txt" << std::endl;
+            if (scaleFile.is_open()) {
+                std::string line;
+                for (int i = 0; std::getline(scaleFile, line) && i < 3; i++) {
+                    std::istringstream iss(line);
+                    if (i == 0)
+                        iss >> scale.x;
+                    else if (i == 1)
+                        iss >> scale.y;
+                    else if (i == 2)
+                        iss >> scale.z;
+                }
+                loadPlayer(entry.path().filename().string(), scale);
+                scaleFile.close();
+            } else {
+                throw std::runtime_error("Failed to open scale.txt file");
+            }
+        }
+    }
+}
+
+void App::loadPlayer(const std::string& playerName, glm::vec3 scale) {
+    m_playerMeshes[playerName].first = std::make_shared<SkeletalMesh>("assets/Players/" + playerName + "/" + playerName + ".dae");
+    m_playerMeshes[playerName].second = scale;
+    m_playerAnims[playerName + "Idle"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Idle.dae", m_playerMeshes[playerName].first);
+    m_playerAnims[playerName + "Move"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Move.dae", m_playerMeshes[playerName].first);
+    m_playerAnims[playerName + "Ritual"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Ritual.dae", m_playerMeshes[playerName].first);
+    m_playerAnims[playerName + "Birth"] = std::make_shared<Animation>("assets/Players/" + playerName + "/Birth.dae", m_playerMeshes[playerName].first);
+}
+
 void App::createTiles() {
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
@@ -80,7 +119,7 @@ void App::createTiles() {
             for (int k = 0; k < randomHight - centerHight; k++)
                 m_tilesDecor.push_back(
                     Tile {
-                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * k, (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
+                        .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * static_cast<float>(k), (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
                         .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
                     }
                 );
@@ -102,7 +141,8 @@ void App::createScene() {
             .mesh = tile.mesh,
             .position = tile.position,
             .scale = m_tileSize,
-            .rotation = glm::vec3(0, 0, 0)
+            .rotation = glm::vec3(0, 0, 0),
+            .color = glm::vec3(-glm::abs(tile.position.y) / 100 + 1, -glm::abs(tile.position.y) / 100 + 1, -glm::abs(tile.position.y) / 100 + 1)
         }));
     }
 
@@ -128,14 +168,15 @@ void App::createScene() {
                 m_ressourcesRotation += m_ressourcesRotationSpeed;
                 if (m_ressourcesRotation > 360)
                     m_ressourcesRotation = 0;
-                
+
                 for (int nb = 0; nb < tile.ressources[ressourceType]; nb++)
                     m_scene->staticActors.push_back(
                         Renderer::StaticActor({
                             m_ressourceMesh.at(ressourceType),
                             ressourcePosition + glm::vec3(static_cast<float>(nb % m_ressourceLayer) * offset[0] - m_tileSize[2] / 2 + m_tileSize[2] * 1/8, glm::floor(static_cast<float>(nb) / static_cast<float>(m_ressourceLayer)) * offset[1], offset[2] - m_tileSize[2] / 2),
                             m_resourceSize,
-                            ressourceRotation
+                            ressourceRotation,
+                            glm::vec3(1, 1, 1)
                         })
                     );
             }
@@ -176,27 +217,27 @@ void App::connectToServer(int port) {
 
 void App::drawUi() noexcept {   // NOLINT
     // Mesh selection
-    if (ImGui::Begin("Mesh and Animation Selection")) {
-        for (auto& [teamName, team] : m_teams) {
-            ImGui::Text("%s", teamName.c_str());
-            const char* currentMesh = team.mesh.first.c_str();
-            if (ImGui::BeginCombo("Mesh", currentMesh)) {
-                for (auto& [playerName, playerMesh] : m_playerMeshes) {
-                    bool isSelected = (team.mesh.second == playerMesh);
-                    if (ImGui::Selectable(playerName.c_str(), isSelected)) {
-                        team.mesh.second = playerMesh;
-                        team.mesh.first = playerName;
-                        createScene();
-                    }
-                    if (isSelected)
-                        ImGui::SetItemDefaultFocus();
+    ImGui::Begin("Mesh and Animation Selection");
+    for (auto& [teamName, team] : m_teams) {
+        ImGui::TextColored(ImVec4(team.teamColor.x, team.teamColor.y, team.teamColor.z, 1.0f), "%s", teamName.c_str());
+        const char* currentMesh = team.mesh.first.c_str();
+        if (ImGui::BeginCombo(("Mesh##" + teamName).c_str(), currentMesh)) {
+            for (auto& [playerName, playerMesh] : m_playerMeshes) {
+                bool isSelected = (team.mesh.second == playerMesh.first);
+                if (ImGui::Selectable(playerName.c_str(), isSelected)) {
+                    team.mesh.second = playerMesh.first;
+                    team.mesh.first = playerName;
+                    updatePlayersAnim();
+                    createScene();
                 }
-                ImGui::EndCombo();
+                if (isSelected)
+                    ImGui::SetItemDefaultFocus();
             }
+            ImGui::EndCombo();
         }
-
-        ImGui::End();
     }
+
+    ImGui::End();
 
     ImGui::Begin("Trantorians");
     for (auto& [id, player] : m_players)
@@ -245,7 +286,6 @@ void App::drawUi() noexcept {   // NOLINT
 void App::createPlayers() {
     m_scene->animatedActors.clear();
     for (auto& [playerNumber, player] : m_players) {
-        static constexpr glm::vec3 playerScale = glm::vec3(100, 100, 100);
         int newOrientation = 1;
         if (player.orientation == 1)
             newOrientation = 3;
@@ -256,91 +296,22 @@ void App::createPlayers() {
         else if (player.orientation == 4)
             newOrientation = 0;
         const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
-        m_scene->animatedActors.push_back({m_teams[player.teamName].mesh.second, player.animator, player.position + player.visualPositionOffset, playerScale, playerRotation});
-    }
-}
-
-void App::updatePlayersAnim() { // NOLINT
-    for (auto& [playerNumber, player] : m_players) {
-        std::string meshName = m_teams[player.teamName].mesh.first;
-        if (player.currentAnim == IDLE) {
-            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Idle"]);
-            player.currentAnim = DEFAULT;
-            createPlayers();
-        }
-        if (player.currentAnim == RITUAL) {
-            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Ritual"]);
-            player.currentAnim = DEFAULT;
-            player.currentAction = RITUAL;
-            player.visualPositionOffset = glm::vec3(0, 0, 0);
-            createPlayers();
-        }
-        if (player.currentAnim == BIRTH) {
-            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Birth"]);
-            player.currentAnim = DEFAULT;
-            player.currentAction = BIRTH;
-            createPlayers();
-        }
-        if (player.currentAnim == MOVE) {
-            player.animator = std::make_shared<Animator>(m_playerAnims[meshName + "Move"]);
-            player.currentAnim = DEFAULT;
-            player.currentAction = MOVE;
-            player.visualPositionOffset = -player.moveOrientation;
-            createPlayers();
-        }
-        if (player.currentAction == BIRTH) {
-            if (player.animator->isAnimationDone()) {
-                player.currentAction = IDLE;
-                player.currentAnim = IDLE;
-                createPlayers();
-            }
-        }
-        if (player.currentAction == MOVE) {
-            if (player.moveOrientation.x + player.moveOrientation.z > m_tileSize[0] * 2 or player.moveOrientation.x + player.moveOrientation.z < -m_tileSize[0] * 2) {
-                player.visualPositionOffset = glm::vec3(0, 0, 0);
-                player.currentAction = IDLE;
-                player.currentAnim = IDLE;
-                createPlayers();
-            }
-            if (player.moveOrientation[0] > 0) {
-                if (player.visualPositionOffset[0] < 0)
-                    player.visualPositionOffset[0] += (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT
-                else {
-                    player.visualPositionOffset = {0, 0, 0};
-                    player.currentAction = IDLE;
-                    player.currentAnim = IDLE;
-                }
-            }
-            if (player.moveOrientation[0] < 0) {
-                if (player.visualPositionOffset[0] > 0)
-                    player.visualPositionOffset[0] -= (m_tileSpacing[0] + m_tileSize[0]) * m_moveSpeed * m_speed; // NOLINT
-                else {
-                    player.visualPositionOffset = {0, 0, 0};
-                    player.currentAction = IDLE;
-                    player.currentAnim = IDLE;
-                }
-            }
-
-            if (player.moveOrientation[2] > 0) {
-                if (player.visualPositionOffset[2] < 0)
-                    player.visualPositionOffset[2] += (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed; // NOLINT
-                else {
-                    player.visualPositionOffset = {0, 0, 0};
-                    player.currentAction = IDLE;
-                    player.currentAnim = IDLE;
-                }
-            }
-            if (player.moveOrientation[2] < 0) {
-                if (player.visualPositionOffset[2] > 0)
-                    player.visualPositionOffset[2] -= (m_tileSpacing[1] + m_tileSize[2]) * m_moveSpeed * m_speed; // NOLINT
-                else {
-                    player.visualPositionOffset = {0, 0, 0};
-                    player.currentAction = IDLE;
-                    player.currentAnim = IDLE;
-                }
-            }
-            createPlayers();
-        }
+        
+        m_scene->animatedActors.push_back({
+            m_teams[player.teamName].mesh.second,
+            player.animator,
+            player.position + player.visualPositionOffset,
+            m_playerMeshes[m_teams[player.teamName].mesh.first].second,
+            playerRotation,
+            glm::vec3(1, 1, 1)
+        });
+        m_scene->staticActors.push_back({
+            .mesh = m_teamIndicatorMesh,
+            .position = player.position + player.visualPositionOffset + glm::vec3(0, 3.5, 0),
+            .scale = glm::vec3(1, 1, 1),
+            .rotation = glm::vec3(0, 0, 0),
+            .color = m_teams[player.teamName].teamColor
+        });
     }
 }
 
@@ -354,8 +325,8 @@ void App::addBroadcasts() {
         else {
             m_scene->staticActors.push_back({
                 m_broadcastMesh,
-                glm::vec3(m_broadcasts[i].position),
-                glm::vec3(elapsedTime / 50, 1, elapsedTime / 50),
+                glm::vec3(m_broadcasts[i].position) + glm::vec3(0, 0.5, 0),
+                glm::vec3(elapsedTime / 50, 1.5, elapsedTime / 50),
                 glm::vec3(0, 0, 0)
             });
         }
@@ -370,6 +341,7 @@ void App::run() {
     std::array<char, BUFFER_SIZE> buffer{};
 
     while (!m_renderer->shouldStop()) {
+        m_startFrameTime = std::chrono::high_resolution_clock::now();
         // Check if there is data to read from the server
         fd_set readfds;
         FD_ZERO(&readfds);
@@ -404,6 +376,8 @@ void App::run() {
         updatePlayersAnim();
         createScene();
         m_renderer->render(m_scene, static_cast<float>(m_speed));
+        m_endFrameTime = std::chrono::high_resolution_clock::now();
+        m_frameTime = std::chrono::duration<float, std::milli>(m_endFrameTime - m_startFrameTime).count();
     }
 
     // TODO: remove this

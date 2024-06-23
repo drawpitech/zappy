@@ -80,6 +80,7 @@ class App {
 
         struct Team {
             std::pair<std::string, std::shared_ptr<SkeletalMesh>> mesh;
+            glm::vec3 teamColor;
         };
 
         struct Broadcast {
@@ -128,10 +129,14 @@ class App {
         float m_tileHeight = -2;
         float m_playerHeight = 0;
         float m_resourceHeight = 0;
-        float m_moveSpeed = 0.015;
+        float m_moveSpeed = 0.0015;
         glm::vec3 m_resourceSize = {0.35, 0.35, 0.35};
         float m_ressourcesRotation = 0;
         float m_ressourcesRotationSpeed = 0.0001;
+
+        std::chrono::high_resolution_clock::time_point m_startFrameTime;
+        std::chrono::high_resolution_clock::time_point m_endFrameTime;
+        float m_frameTime = 0.0f;
         std::unordered_map<std::string, Team> m_teams;
         std::map<int, Egg> m_eggs;
         std::map<int, Player> m_players;
@@ -144,8 +149,9 @@ class App {
 
         // Dict of all the player meshes and animations
         std::map<std::string, std::shared_ptr<StaticMesh>> m_tilesMeshes;
-        std::map<std::string, std::shared_ptr<SkeletalMesh>> m_playerMeshes;
+        std::map<std::string, std::pair<std::shared_ptr<SkeletalMesh>, glm::vec3>> m_playerMeshes;
         std::map<std::string, std::shared_ptr<Animation>> m_playerAnims;
+        std::shared_ptr<StaticMesh> m_teamIndicatorMesh;
         std::shared_ptr<StaticMesh> m_broadcastMesh;
         std::vector<GLuint> m_resIcons;
         std::shared_ptr<StaticMesh> m_eggMesh;
@@ -162,9 +168,13 @@ class App {
         static glm::ivec2 parseMapSize(const std::string& bufferView);
         void parseConnectionResponse();
         void updatePlayersAnim();
+        void moveAnimation(Player &player);
+        void loadPlayer(const std::string& playerName, glm::vec3 scale);
+        void loadAllPlayer();
         void createTiles();
         void drawUi() noexcept;
         void addEggs();
+
 
         void createScene();
         void createPlayers();

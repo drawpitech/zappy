@@ -7,10 +7,13 @@
 
 #include "App.hpp"
 
+#include <ctime>
 #include <stdexcept>
 #include <thread>
 #include <chrono>
 #include <algorithm>
+#include <iostream>
+#include <ctime>
 
 #define PARSER_INIT() \
     size_t pos = 0;
@@ -267,6 +270,7 @@ void App::parseConnectionResponse() {
     }
 
     const std::string& bufferView(buffer.data());
+    std::cout << bufferView << std::endl;
 
 
     // Get the team names (tna teamName\n * n)
@@ -279,8 +283,12 @@ void App::parseConnectionResponse() {
         const std::string teamName = PARSER_LAST_STRING(bufferView, pos);
 
         m_teams[teamName].mesh.first = "Dan";
-        m_teams[teamName].mesh.second = m_playerMeshes[m_teams[teamName].mesh.first];
-
+        m_teams[teamName].mesh.second = m_playerMeshes[m_teams[teamName].mesh.first].first;
+        std::srand(std::rand() * std::time(nullptr));
+        float r = static_cast<float>(std::rand()) / RAND_MAX;
+        float g = static_cast<float>(std::rand()) / RAND_MAX;
+        float b = static_cast<float>(std::rand()) / RAND_MAX;
+        m_teams[teamName].teamColor = glm::vec3(r, g, b);
         PARSER_NEXT_SYMBOL("tna");
     }
 

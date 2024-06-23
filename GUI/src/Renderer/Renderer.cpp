@@ -128,7 +128,7 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
             transform = glm::rotate(transform, glm::radians(actor.rotation[1]), glm::vec3(0, 1, 0));
             transform = glm::rotate(transform, glm::radians(actor.rotation[2]), glm::vec3(0, 0, 1));
 
-            actor.mesh->draw(m_gBufferPass->getStaticShaderProgram(), transform);
+            actor.mesh->draw(m_gBufferPass->getStaticShaderProgram(), transform, actor.color);
         }
     }
 
@@ -150,7 +150,7 @@ void Renderer::render(std::shared_ptr<Renderer::Scene>& scene, float gameSpeed) 
             transform = glm::rotate(transform, glm::radians(actor.rotation[1]), glm::vec3(0, 1, 0));
             transform = glm::rotate(transform, glm::radians(actor.rotation[2]), glm::vec3(0, 0, 1));
 
-            actor.mesh->draw(m_gBufferPass->getSkinnedShaderProgram(), transform);
+            actor.mesh->draw(m_gBufferPass->getSkinnedShaderProgram(), transform, actor.color);
         }
     }
 

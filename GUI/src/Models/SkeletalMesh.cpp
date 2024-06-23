@@ -32,7 +32,7 @@ SkeletalMesh::SkeletalMesh(const std::string& modelPath) {
 SkeletalMesh::~SkeletalMesh() {
 }
 
-void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform) const noexcept {
+void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, const glm::mat4& transform, const glm::vec3& color) const noexcept {
     glEnable(GL_DEPTH_TEST);
 
     for (const auto& submesh : m_submeshes) {
@@ -64,6 +64,7 @@ void SkeletalMesh::draw(const std::shared_ptr<ShaderProgram>& shaderProgram, con
         }
 
         shaderProgram->setMat4("model", submesh.transform * transform);
+        shaderProgram->setVec3("color", color);
         glBindVertexArray(submesh.vao);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(submesh.indexCount), GL_UNSIGNED_INT, nullptr);
     }

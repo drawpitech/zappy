@@ -16,6 +16,7 @@ uniform sampler2D normalMap;
 uniform bool useAlbedoMap;
 uniform bool useMetallicRoughnessMap;
 uniform bool useNormalMap;
+uniform vec3 color;
 
 vec3 getNormalFromMap() {
     vec3 tangentNormal = texture(normalMap, inTexCoords).xyz * 2.0 - 1.0;
@@ -34,7 +35,7 @@ vec3 getNormalFromMap() {
 }
 
 void main() {
-    vec4 albedo = useAlbedoMap ? texture(albedoMap, inTexCoords) : vec4(1.0);
+    vec4 albedo = useAlbedoMap ? texture(albedoMap, inTexCoords) * vec4(color, 1) : vec4(color, 1);
     if (albedo.a < 0.1)
         discard;
 

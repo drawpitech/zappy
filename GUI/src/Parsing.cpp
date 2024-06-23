@@ -244,6 +244,24 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         m_players.erase(playerNumber);
         PARSER_NEXT_SYMBOL("pdi");
     }
+
+    PARSER_NEXT_SYMBOL("pex");
+    while (pos != std::string::npos) {
+        const int playerNumber = PARSER_LAST_INT(bufferView, pos);
+        if (m_players.find(playerNumber) == m_players.end())
+            throw std::runtime_error("pex: player [" + std::to_string(playerNumber) + "] not found");
+        LOG("Player [" + std::to_string(playerNumber) + "] expulsed", GREEN);
+        PARSER_NEXT_SYMBOL("pex");
+    }
+
+    PARSER_NEXT_SYMBOL("pfk");
+    while (pos != std::string::npos) {
+        const int playerNumber = PARSER_LAST_INT(bufferView, pos);
+        if (m_players.find(playerNumber) == m_players.end())
+            throw std::runtime_error("pfk: player [" + std::to_string(playerNumber) + "] not found");
+        LOG("Player [" + std::to_string(playerNumber) + "] just layed an egg !", BLUE);
+        PARSER_NEXT_SYMBOL("pfk");
+    }
 }
 
 void App::parseConnectionResponse() {

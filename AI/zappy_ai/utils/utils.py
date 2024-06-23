@@ -49,8 +49,7 @@ def shortest_path_diff(a: int, b: int, size: int) -> int:
     return direct_diff if abs(direct_diff) <= size // 2 else wrap_diff
 
 def determine_direction(p1, p2, grid_size) -> SoundDirection:
-    # TODO: fix this shit
-    """g
+    """compute the direction of the message depending on where it was received
     """
     dx: int = shortest_path_diff(p1[0], p2[0], grid_size[0])
     dy: int = shortest_path_diff(p1[1], p2[1], grid_size[1])
@@ -112,7 +111,8 @@ def check_levelup(inventory: dict, level: int, current_players: dict) -> bool:
     return all(a >= b for a, b in zip(global_val, materials))
 
 
-def pack_infos(players: dict, uid: float, inventory: dict, lvl: int, x: int, y: int, incant: bool) -> str:
+def pack_infos(players: dict, uid: float, inventory: dict,
+                lvl: int, x: int, y: int, incant: bool) -> str:
     """convert the playrs infos to a string
 
     Args:
@@ -176,7 +176,7 @@ def unpack_infos(msg: str, uid: str) -> dict:
     for players in content:
         infos = players.strip().split('-')
         if len(infos) != 7:
-            continue              # TODO raise an error
+            continue
         uuid, inv, lvl, x, y, last_u, incant = infos
         if uuid == uid:
             continue

@@ -139,7 +139,7 @@ class App {
         float m_playerHeight = 0;
         float m_resourceHeight = 0;
         float m_moveSpeed = 0.0015;
-        glm::vec3 m_resourceSize = {0.35, 0.35, 0.35};
+        glm::vec3 m_resourceSize = {0.3, 0.3, 0.3};
         float m_ressourcesRotation = 0;
         float m_ressourcesRotationSpeed = 0.0001;
 

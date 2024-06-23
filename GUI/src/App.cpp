@@ -116,11 +116,13 @@ void App::loadPlayer(const std::string& playerName, glm::vec3 scale) {
 }
 
 void App::createTiles() {
-    for (float i = -m_mapSize[0] / 2.0; i < m_mapSize[0] / 2.0; i++) {
-        for (float j = -m_mapSize[1] / 2.0; j < m_mapSize[1] / 2.0; j++) {
-            int randomHight = rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2;
-            int centerHight = abs(i) + abs(j);
-            for (int k = 0; k < randomHight - centerHight; k++) {
+    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2.0; i++) {
+        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2.0; j++) {
+            float randomHight = std::rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2;
+            float centerHight = std::abs(i) + std::abs(j);
+            if (centerHight < 1)
+                centerHight = 1;
+            for (float k = 0; k < randomHight - centerHight; k++) {
                 std::srand(std::rand() * std::time(nullptr));
                 m_tilesDecor.push_back(
                     Tile {
@@ -164,8 +166,8 @@ void App::createScene() {
     }
 
     // Create all island tiles and ressources
-    for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
-        for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
+    for (float i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
+        for (float j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
             const TileContent& tile = m_map[i + m_mapSize[0] / 2][j + m_mapSize[1] / 2];
 
             // Display the ressources

@@ -56,6 +56,7 @@ int arg_parse(int argc, char *argv[], context_t *ctx)
                 cringe.f_values[HEIGHT] = optarg;
                 break;
             case 'n':
+                add_elt_to_array(&ctx->names, optarg);
                 while (optind < argc && argv[optind][0] != '-')
                     add_elt_to_array(&ctx->names, argv[optind++]);
                 break;

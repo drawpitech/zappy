@@ -108,14 +108,15 @@ typedef struct context_s {
     long freq;
 } context_t;
 
+enum {
+    PORT = 0,
+    WIDTH = 1,
+    HEIGHT = 2,
+    CLIENTS = 3,
+    FREQ = 4,
+};
+
 typedef struct arg_parse_s {
-    enum {
-        PORT = 0,
-        WIDTH = 1,
-        HEIGHT = 2,
-        CLIENTS = 3,
-        FREQ = 4,
-    };
     int opt;
     int n_count;
     char *f_values[5];

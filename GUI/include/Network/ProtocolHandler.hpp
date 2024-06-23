@@ -16,11 +16,12 @@ public:
     ProtocolHandler(const ProtocolHandler &) = delete;
     ProtocolHandler &operator=(ProtocolHandler &&) = delete;
     ProtocolHandler &operator=(const ProtocolHandler &) = delete;
-    ~ProtocolHandler();
+    ~ProtocolHandler() = default;
 
-    void run();
+    bool readDataFromServer(std::string &outData);
 
 private:
     NetworkManager &_networkManager;
-    void handleCommand(const std::string &command);
+    std::string _buffer;
+    [[nodiscard]] bool waitForData() const;
 };

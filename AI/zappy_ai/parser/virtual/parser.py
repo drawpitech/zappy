@@ -1,4 +1,5 @@
-from abc import ABC, abstractmethod
+"""Abstract methods for serialization"""
+from abc import abstractmethod
 from zappy_ai.trentorian.trentorian import Trantorian
 
 class IParser:

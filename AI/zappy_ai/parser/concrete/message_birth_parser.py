@@ -1,10 +1,11 @@
-from zappy_ai.trentorian import Trantorian
-from zappy_ai.parser.virtual import IParser
-from zappy_ai.utils import determine_direction
-from .message_type_parser import MessageType
+"""Parsing of the birth info messages"""
 
 from warnings import warn
 from enum import IntEnum
+
+from zappy_ai.trentorian import Trantorian
+from zappy_ai.parser.virtual import IParser
+from zappy_ai.utils import determine_direction
 
 class ParamsType(IntEnum):
     """Sound direction enum
@@ -49,7 +50,7 @@ class MessageBirthInfoParser(IParser):
 
         trentorian.x = params[ParamsType.REICEIVERX]
         trentorian.y = params[ParamsType.REICEIVERY]
-        self.state = "adult"
+        trentorian.state = "adult"
 
         return trentorian
 

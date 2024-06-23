@@ -49,6 +49,6 @@ class GlRenderer : public IRenderer {
         std::unique_ptr<SSRPass> m_ssrPass;
 
         int m_debugView = 0;
-        bool m_useSSAO = false;
+        bool m_useSSAO = true;
         bool m_useSSR = false;
 };

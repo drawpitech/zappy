@@ -45,7 +45,7 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
     PARSER_INIT();
     PARSER_FIRST_SYMBOL("pnw");
     while (pos != std::string::npos) {
-        glm::ivec2 position;
+        glm::vec2 position;
 
         const int playerNumber = PARSER_NEXT_INT(bufferView, pos);
         position[0] = PARSER_NEXT_INT(bufferView, pos);
@@ -54,7 +54,7 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
         const int level = PARSER_NEXT_INT(bufferView, pos);
         const std::string teamName = PARSER_LAST_STRING(bufferView, pos);
 
-        position = (position - m_mapSize / 2);
+        position = (position - m_mapSize / glm::vec2(2));
 
         // Player creation
         m_players[playerNumber] = Player {
@@ -80,14 +80,14 @@ void App::updatePlayers(const std::string& bufferView) {    // NOLINT
             throw std::runtime_error("ppo: player [" + std::to_string(playerNumber) + "] not found");
 
         {   // Get the new position
-            glm::ivec2 position;
+            glm::vec2 position;
             position[0] = PARSER_NEXT_INT(bufferView, pos);
             position[1] = PARSER_NEXT_INT(bufferView, pos);
-            position = (position - m_mapSize / 2);
+            position = (position - m_mapSize / glm::vec2(2));
 
             // Add to to the logs if the player moved
             glm::vec3 oldPos = m_players[playerNumber].position / glm::vec3(m_tileSpacing[0] + m_tileSize[0], 0, m_tileSpacing[1] + m_tileSize[1]);
-            glm::ivec2 oldPosI = {static_cast<int>(oldPos[0]), static_cast<int>(oldPos[2])};
+            glm::vec2 oldPosI = {static_cast<int>(oldPos[0]), static_cast<int>(oldPos[2])};
             if (oldPosI != position) {
                 LOG("Player [" + std::to_string(playerNumber) + "] moved forward", BLUE);
                 m_players[playerNumber].currentAnim = MOVE;
@@ -330,13 +330,13 @@ void App::updateEggs(const std::string& bufferView) {
     // A new egg is "enw eggNumber playerId x y\n"
     PARSER_FIRST_SYMBOL("enw");
     while (pos != std::string::npos) {
-        glm::ivec2 position;
+        glm::vec2 position;
 
         const int eggNumber = PARSER_NEXT_INT(bufferView, pos);
         const int playerId = PARSER_NEXT_INT(bufferView, pos);
         position[0] = PARSER_NEXT_INT(bufferView, pos);
         position[1] = PARSER_LAST_INT(bufferView, pos);
-        position = (position - m_mapSize / 2);
+        position = (position - m_mapSize / glm::vec2(2));
 
         m_eggs[eggNumber] = Egg{
             .position = glm::vec3(static_cast<float>(position[0]) * (m_tileSpacing[0] + m_tileSize[0]), m_playerHeight, static_cast<float>(position[1]) * (m_tileSpacing[1] + m_tileSize[1]))

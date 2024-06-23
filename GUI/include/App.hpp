@@ -128,7 +128,7 @@ class App {
         std::unique_ptr<IRenderer> m_renderer;
         std::shared_ptr<IRenderer::Scene> m_scene;
 
-        glm::ivec2 m_mapSize = {0, 0};
+        glm::vec2 m_mapSize = {0, 0};
         unsigned int m_speed = 0;
         int m_ressourceLayer = 4;
         std::vector<std::vector<TileContent>> m_map;
@@ -170,7 +170,7 @@ class App {
         // Network part
         //int m_socket = 0;
         //void connectToServer(int port);
-        
+
         NetworkManager _networkManager;
         ProtocolHandler _protocolHandler;
 

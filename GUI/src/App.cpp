@@ -26,7 +26,7 @@
 #include <filesystem>
 #include <fstream>
 
-App::App(int port) 
+App::App(int port)
     : _networkManager(port), _protocolHandler(_networkManager)
 {
     m_renderer = std::make_unique<GlRenderer>();
@@ -116,8 +116,8 @@ void App::loadPlayer(const std::string& playerName, glm::vec3 scale) {
 }
 
 void App::createTiles() {
-    for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
-        for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
+    for (float i = -m_mapSize[0] / 2.0; i < m_mapSize[0] / 2.0; i++) {
+        for (float j = -m_mapSize[1] / 2.0; j < m_mapSize[1] / 2.0; j++) {
             int randomHight = rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2;
             int centerHight = abs(i) + abs(j);
             for (int k = 0; k < randomHight - centerHight; k++) {
@@ -126,7 +126,7 @@ void App::createTiles() {
                     Tile {
                         .position = glm::vec3((static_cast<float>(i) * (m_tileSize[0] * 2 + m_tileSpacing[0])), m_tileHeight - m_tileSize[0] * 2 * static_cast<float>(k) + (0.001 * static_cast<float>(k)), (static_cast<float>(j) * (m_tileSize[1] * 2 + m_tileSpacing[1]))),
                         .rotation = glm::vec3(std::rand() % 4 * 90, std::rand() % 4 * 90, std::rand() % 4 * 90),
-                        .mesh = m_tilesMeshes[(i + j) % 2 == 0 ? "white" : "black"]
+                        .mesh = m_tilesMeshes[static_cast<int>(i + j) % 2 == 0 ? "white" : "black"]
                     }
                 );
             }

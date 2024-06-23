@@ -259,12 +259,22 @@ void App::drawUi() noexcept {   // NOLINT
     }
     ImGui::End();
 
+
+    // Sort players by level
+    std::vector<std::pair<int, Player>> players;
+    for (auto& [id, player] : m_players)
+        players.push_back({id, player});
+
+    std::sort(players.begin(), players.end(), [](const auto& a, const auto& b) {
+        return a.second.level > b.second.level;
+    });
+
     ImGui::Begin("Trantorians");
     for (auto& [teamName, teamInfo] : m_teams)
     {
         if (ImGui::CollapsingHeader(teamName.c_str()))
         {
-            for (auto& [id, player] : m_players)
+            for (auto& [id, player] : players)
             {
                 if (player.teamName == teamName)
                 {

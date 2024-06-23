@@ -108,6 +108,20 @@ typedef struct context_s {
     long freq;
 } context_t;
 
+typedef struct arg_parse_s {
+    enum {
+        PORT = 0,
+        WIDTH = 1,
+        HEIGHT = 2,
+        CLIENTS = 3,
+        FREQ = 4,
+    };
+    int opt;
+    int n_count;
+    char *f_values[5];
+    char *n_values[256];
+} arg_parse_t;
+
 typedef struct queued_cmd_s queued_cmd_t;
 
 typedef struct ai_client_s {

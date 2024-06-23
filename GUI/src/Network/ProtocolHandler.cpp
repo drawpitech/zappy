@@ -45,11 +45,8 @@ bool ProtocolHandler::readDataFromServer(std::string &outData)
             if (bytesRead <= 0)
             {
                 if (bytesRead == 0)
-                {
-                    std::cerr << "[-]Server closed the connection?" << std::endl;
-                } else {
-                    throw std::runtime_error("[-]Read failed.");
-                }
+                    throw std::runtime_error("[-]Server closed the connection?");
+                throw std::runtime_error("[-]Read failed.");
             }
             readSize += bytesRead;
             if (readBuffer[readSize - 1] == '\n')

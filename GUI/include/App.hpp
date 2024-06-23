@@ -113,7 +113,7 @@ class App {
         };
 
     public:
-        App(int port);
+        App(int port, const std::string& host);
         ~App();
 
         App(const App&) = delete;

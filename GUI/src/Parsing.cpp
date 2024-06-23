@@ -12,8 +12,6 @@
 #include <thread>
 #include <chrono>
 #include <algorithm>
-#include <iostream>
-#include <ctime>
 
 #define PARSER_INIT() \
     size_t pos = 0;
@@ -318,7 +316,7 @@ void App::parseConnectionResponse() {
     m_speed = PARSER_LAST_INT(bufferView, pos);
 
     m_mapSize = parseMapSize(bufferView);
-    m_map.resize(m_mapSize[0], std::vector<TileContent>(m_mapSize[1]));
+    m_map.resize(static_cast<size_t>(m_mapSize[0]), std::vector<TileContent>(static_cast<size_t>(m_mapSize[1])));
     updateMap(bufferView);
     updatePlayers(bufferView);
     updateEggs(bufferView);
@@ -390,8 +388,8 @@ void App::updateMap(const std::string& bufferView) {
         PARSER_NEXT_SYMBOL("bct");
     }
     _mapInventory.ressources.fill(0);
-    for (int x = 0; x < m_mapSize[0]; ++x)
-        for (int y = 0; y < m_mapSize[1]; ++y)
+    for (int x = 0; x < static_cast<int>(m_mapSize[0]); ++x)
+        for (int y = 0; y < static_cast<int>(m_mapSize[1]); ++y)
             for (std::size_t i = 0; i < RESNUMBER; ++i)
                 _mapInventory.ressources[i] += m_map[x][y].ressources[i];
 }

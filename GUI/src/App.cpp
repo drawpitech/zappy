@@ -26,8 +26,8 @@
 #include <filesystem>
 #include <fstream>
 
-App::App(int port)
-    : _networkManager(port), _protocolHandler(_networkManager)
+App::App(int port, const std::string& host)
+    : _networkManager(host, port), _protocolHandler(_networkManager)
 {
     m_renderer = std::make_unique<GlRenderer>();
     m_scene = std::make_shared<IRenderer::Scene>();

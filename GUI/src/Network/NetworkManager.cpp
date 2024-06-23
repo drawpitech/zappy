@@ -20,7 +20,8 @@ NetworkManager::NetworkManager(const std::string &address, int port)
     std::memset(&_addr, 0, sizeof(_addr));
     _addr.sin_family = AF_INET;
     _addr.sin_port = htons(_port);
-    inet_pton(AF_INET, _address.c_str(), &_addr.sin_addr);
+    if (inet_pton(AF_INET, _address.c_str(), &_addr.sin_addr) <= 0)
+        throw std::runtime_error("[-]Invalid address");
 }
 
 NetworkManager::NetworkManager(int port)

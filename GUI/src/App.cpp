@@ -260,24 +260,29 @@ void App::drawUi() noexcept {   // NOLINT
     ImGui::End();
 
     ImGui::Begin("Trantorians");
-    for (auto& [id, player] : m_players)
+    for (auto& [teamName, teamInfo] : m_teams)
     {
-        //ImGui::Text("%s", (std::to_string(id) + " Trantorian " + player.teamName).c_str());
-        if (ImGui::CollapsingHeader((std::to_string(id) + " Trantorian").c_str()))
+        if (ImGui::CollapsingHeader(teamName.c_str()))
         {
-            ImGui::Text("LEVEL: %d\n", player.level);
-            if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
+            for (auto& [id, player] : m_players)
             {
-                for (std::size_t i = 0; i < RESNUMBER; ++i)
+                if (player.teamName == teamName)
                 {
-                    ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {60, 60}, ImVec2(0, 1), ImVec2(1, 0));   // NOLINT
-                    ImGui::SameLine();
-                    ImGui::Text("%d", player.inv.ressources[i]);
-                }
+                    ImGui::Text("Trantorian id: %d, level: %d\n", id, player.level);
+                    if (ImGui::TreeNode((std::to_string(id) + " Inventory").c_str()))
+                    {
+                        for (std::size_t i = 0; i < RESNUMBER; ++i)
+                        {
+                            ImGui::Image(reinterpret_cast<ImTextureID>(m_resIcons[i]), {60, 60}, ImVec2(0, 1), ImVec2(1, 0));   // NOLINT
+                            ImGui::SameLine();
+                            ImGui::Text("%d", player.inv.ressources[i]);
+                        }
 
-                ImGui::TreePop();
+                        ImGui::TreePop();
+                    }
+                    ImGui::Separator();
+                }
             }
-            ImGui::Separator();
         }
     }
     ImGui::End();

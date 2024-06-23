@@ -116,8 +116,10 @@ void App::loadPlayer(const std::string& playerName, glm::vec3 scale) {
 void App::createTiles() {
     for (int i = -m_mapSize[0] / 2; i < m_mapSize[0] / 2; i++) {
         for (int j = -m_mapSize[1] / 2; j < m_mapSize[1] / 2; j++) {
-            int randomHight = rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2;
+            int randomHight = rand() % 10 + m_mapSize[0] / 2 + m_mapSize[1] / 2 + 1;
             int centerHight = abs(i) + abs(j);
+            if (centerHight < 1)
+                centerHight = 1;
             for (int k = 0; k < randomHight - centerHight; k++) {
                 std::srand(std::rand() * std::time(nullptr));
                 m_tilesDecor.push_back(

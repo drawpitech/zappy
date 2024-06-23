@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """ Main """
 from multiprocessing import Process, Queue
+import typer
+from typing_extensions import Annotated
 
 from zappy_ai.args_handling import get_args
 from zappy_ai.trentorian import Trantorian
@@ -18,8 +20,8 @@ def burry_dead(pop: list[Process]) -> list[Process]:
     return list(filter(lambda trant:trant.is_alive(), pop))
 
 
-def main(host: str, port: int, team: str):
-    """main for the ai
+def launch_ai(host: str, port: int, team: str):
+    """start the first ai
 
     Args:
         host (str): machine hosting serv
@@ -48,16 +50,24 @@ def main(host: str, port: int, team: str):
             threads[-1].start()
     return
 
-def main_cli():
-    """main
+def main_typer(port: int = typer.Option(..., '--port', '-p', help="The port to connect to"),
+         name: str = typer.Option(..., '--name', '-n', help="name of the team"),
+         machine: str = typer.Option("localhost", '--host', '-h', help="name of the machine; localhost by default")):
+    """cli for zappy_ai
     """
-    args = get_args()
+    if (port < 0 or port > 10000):
+        print("invalid port")
+        exit(84)
+    launch_ai(machine, port, name)
 
+def main_cli():
+    """main to call the cli handling
+    """
     try:
-        main(args.he, args.p, args.n)
-    except RuntimeError as err:
+        typer.run(main_typer)
+    except Exception as err:
         print(err.args[0])
         exit(84)
 
 if __name__ == "__main__":
-    main_cli()
+    typer.run(main_cli)

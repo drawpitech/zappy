@@ -4,7 +4,7 @@ Module providing the trantorian class
 """
 from time import time
 import random
-from string import ascii_lowercase
+from string import ascii_letters, punctuation
 from multiprocessing import Queue
 
 from zappy_ai.client import Client
@@ -288,7 +288,7 @@ class Trantorian:
             broadcast(self, '.', [])
         if tt == 2:
             length = random.randint(50, 200)
-            broadcast(self, [random.choice(ascii_lowercase) for _ in range(length)], ["all"])
+            broadcast(self, [random.choice(ascii_letters + punctuation) for _ in range(length)], ["all"])
         elif tt == 4:
             idx = random.randint(0, len(self.received_messages))
             broadcast(self, self.received_messages.pop(idx), [])

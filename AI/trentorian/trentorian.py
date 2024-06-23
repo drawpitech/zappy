@@ -53,6 +53,7 @@ from trentorian.commands import (
     get_inventory
 )
 
+from trentorian.broadcast import get_answer
 
 # TODO use init file for the module
 
@@ -327,7 +328,7 @@ class Trantorian:
             forward(self)
             self.state = "wait"
             while not self.dead and self.state == "wait":
-                self.get_answer()
+                get_answer(self)
         return not self.dead and self.state == "ritual_prep"
 
     def beacon(self, receivers: list) -> None:
@@ -373,7 +374,7 @@ class Trantorian:
         """
         answer = ""
         while not self.dead and not answer.startswith("Current level: "): # TODO do that better
-            answer = self.get_answer()
+            answer = get_answer(self)
             if self.state == "wander":
                 self.dprint("wander", time())#, answer)
                 return False
@@ -457,66 +458,6 @@ class Trantorian:
             if diff > self.consider_dead * self.tick_time:
                 self.others.pop(uid)
         return
-
-    def wait_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
-        """wait for an answer, handle the message, eject and current level
-
-        Returns:
-            str: last server answer
-        """
-        answer: str = self.get_answer()
-        while answer.startswith('message') or answer.startswith('eject') or answer.startswith("Current level: "):
-            answer = self.get_answer()
-        if answer.startswith("dead"):
-            self.dead = True
-        return answer
-
-    def get_answer(self) -> str: # TODO, receive "Current level" from an incantation ?"
-        """wait for an answer, handle the message and eject
-
-        Returns:
-            str: last server answer
-        """
-        answer: str = self.client.get_answer()
-        if answer.startswith('message'):
-            self.receive_message(answer)
-        if answer.startswith('eject'):
-            self.handle_eject(answer)
-        if answer.startswith("dead") or answer == '':
-            self.dead = True
-        return answer
-
-    def receive_message(self, msg: str) -> None:
-        """handle the broadcast reception
-            our messages are composed of :
-            "sender_uuid$receiver_uuid$type$content$infos$map"
-
-        Args:
-            msg (str): message sent by the server
-        """
-        msg = msg[8:]
-        direct, msg = msg.split(',')
-        direct: int = int(direct)
-        msg = msg.strip()
-        if not msg.startswith(self.team):
-            if msg.count("$") < 3:
-                self.received_messages.append(msg)
-            return
-        msg = msg[len(self.team):]
-        parts = msg.strip().split("$")
-        if len(parts) != 5:
-            return
-        sender, receivers, msg_type, content, infos = parts
-        info_unpacked = unpack_infos(infos, self.uid)
-        self.merge_others(info_unpacked)
-        if receivers != "all" and self.uid not in receivers.split('|'):
-            return
-        try:
-            MessageTypeParser().deserialize(self, int(msg_type), content, direct)
-        except (KeyError, ValueError):
-            return
-        return
-
 
     def handle_eject(self, msg: str) -> None:
         """handle an ejection

@@ -20,6 +20,8 @@ from utils import (
     get_incantation_team
 )
 
+from trentorian.broadcast import wait_answer
+
 from time import time
 from multiprocessing import Queue
 
@@ -34,7 +36,7 @@ def forward(self) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Forward")
-    answer = self.wait_answer()
+    answer = wait_answer(self)
     if answer != 'ok':
         return False
     x, y = self.direction.get_offset()
@@ -55,7 +57,7 @@ def right(self) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Right")
-    answer = self.wait_answer()
+    answer = wait_answer(self)
     if answer != 'ok':
         return False
     self.direction = TrantorianDirection((self.direction - 1) % 4)
@@ -72,7 +74,7 @@ def left(self) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Left")
-    answer = self.wait_answer()
+    answer = wait_answer(self)
     if answer != 'ok':
         return False
     self.direction = TrantorianDirection((self.direction + 1) % 4)
@@ -90,7 +92,7 @@ def look_around(self) -> bool:
     self.ticks += 7
     self.client.send_cmd("Look")
 
-    cases = split_list(self.wait_answer())
+    cases = split_list(wait_answer(self))
     if cases == []:
         self.dprint('look parse failed')
         return False
@@ -123,7 +125,7 @@ def get_inventory(self) -> bool:
     self.ticks += 1
     t1 = time()
     self.client.send_cmd("Inventory")
-    answer = self.wait_answer()
+    answer = wait_answer(self)
     t2 = time()
     if self.dead:
         return False
@@ -166,7 +168,7 @@ def broadcast(self, content: str, receivers: list[str]) -> bool:
     self.kill_others()
     if receivers == []:
         self.client.send_cmd("Broadcast " + content)
-        return self.wait_answer() == 'ok'
+        return wait_answer(self) == 'ok'
     msg = f'{self.team}'
     msg += f'{self.uid}$'
     msg += '|'.join(receivers) + '$'
@@ -174,7 +176,7 @@ def broadcast(self, content: str, receivers: list[str]) -> bool:
     msg += f'{pack_infos(
         self.others, self.uid, self.inventory, self.level, self.x, self.y, self.dispo_incant)}'
     self.client.send_cmd("Broadcast " + msg)
-    return self.wait_answer() == 'ok'
+    return wait_answer(self) == 'ok'
 
 def get_unused_slot(self) -> bool:
     """update the unused_slot
@@ -187,7 +189,7 @@ def get_unused_slot(self) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Connect_nbr")
-    answer = self.wait_answer()
+    answer = wait_answer(self)
     try:
         self.unused_slot = int(answer)
     except ValueError:
@@ -211,7 +213,7 @@ def asexual_multiplication(self, queue: Queue, place: str='no-info') -> bool:
     self.last_birth = self.ticks
     self.ticks += 7
     self.client.send_cmd("Fork")
-    if self.wait_answer() != 'ok':
+    if wait_answer(self) != 'ok':
         return False
     queue.put(f"birth {place}")
     self.dprint("birth baby")
@@ -228,7 +230,7 @@ def eject(self) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Eject")
-    return self.wait_answer() == 'ok'
+    return wait_answer(self) == 'ok'
 
 def take_object(self, obj: str) -> bool:
     """take object on the same case
@@ -244,7 +246,7 @@ def take_object(self, obj: str) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Take " + obj)
-    if self.wait_answer() != 'ok':
+    if wait_answer(self) != 'ok':
         return False
     self.inventory[obj] += 1
     return True
@@ -263,7 +265,7 @@ def drop_object(self, obj: str) -> bool:
         return False
     self.ticks += 7
     self.client.send_cmd("Set " + obj)
-    ans = self.wait_answer()
+    ans = wait_answer(self)
     if ans != 'ok':
         return False
     if obj not in self.inventory:
@@ -282,7 +284,7 @@ def start_incantation(self) -> bool:
         return False
     self.ticks += 300
     self.client.send_cmd("Incantation")
-    answer = self.wait_answer()
+    answer = wait_answer(self)
     if answer != "Elevation underway":
         self.dprint("elev failed", answer)
         return False

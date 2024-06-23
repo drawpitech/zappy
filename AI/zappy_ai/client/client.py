@@ -37,7 +37,10 @@ class Client:
             raise RuntimeError("Server answer did't match expectation") from exc
 
     def __del__(self):
-        self.socket.close()
+        try:
+            self.socket.close()
+        except AttributeError:
+            return # because of typer
 
     def get_answer(self) -> bytes:
         """get the last str answer from server

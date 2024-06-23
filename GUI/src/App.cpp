@@ -87,11 +87,11 @@ void App::loadAllPlayer() {
                 for (int i = 0; std::getline(scaleFile, line) && i < 3; i++) {
                     std::istringstream iss(line);
                     if (i == 0)
-                        iss >> scale.x;
+                        iss >> scale[0];
                     else if (i == 1)
-                        iss >> scale.y;
+                        iss >> scale[1];
                     else if (i == 2)
-                        iss >> scale.z;
+                        iss >> scale[2];
                 }
                 loadPlayer(entry.path().filename().string(), scale);
                 scaleFile.close();
@@ -142,7 +142,7 @@ void App::createScene() {
             .position = tile.position,
             .scale = m_tileSize,
             .rotation = glm::vec3(0, 0, 0),
-            .color = glm::vec3(-glm::abs(tile.position.y) / 100 + 1, -glm::abs(tile.position.y) / 100 + 1, -glm::abs(tile.position.y) / 100 + 1)
+            .color = glm::vec3(-glm::abs(tile.position[1]) / 100 + 1, -glm::abs(tile.position[1]) / 100 + 1, -glm::abs(tile.position[1]) / 100 + 1)
         }));
     }
 
@@ -219,7 +219,7 @@ void App::drawUi() noexcept {   // NOLINT
     // Mesh selection
     ImGui::Begin("Mesh and Animation Selection");
     for (auto& [teamName, team] : m_teams) {
-        ImGui::TextColored(ImVec4(team.teamColor.x, team.teamColor.y, team.teamColor.z, 1.0f), "%s", teamName.c_str());
+        ImGui::TextColored(ImVec4(team.teamColor[0], team.teamColor[1], team.teamColor[2], 1), "%s", teamName.c_str());
         const char* currentMesh = team.mesh.first.c_str();
         if (ImGui::BeginCombo(("Mesh##" + teamName).c_str(), currentMesh)) {
             for (auto& [playerName, playerMesh] : m_playerMeshes) {
@@ -296,7 +296,7 @@ void App::createPlayers() {
         else if (player.orientation == 4)
             newOrientation = 0;
         const glm::vec3 playerRotation = glm::vec3(0, (newOrientation - 1) * 90, 0);
-        
+
         m_scene->animatedActors.push_back({
             m_teams[player.teamName].mesh.second,
             player.animator,

@@ -52,7 +52,11 @@ from trentorian.commands import (
     get_unused_slot,
     get_inventory
 )
-
+from trentorian.ritual import (
+    be_the_shaman,
+    follow_the_leader,
+    wait_incant
+)
 from trentorian.broadcast import get_answer
 
 # TODO use init file for the module
@@ -122,16 +126,16 @@ class Trantorian:
 
                 if self.state == "shaman":
                     self.dprint("start incant with:", can_level_up)
-                    success = self.be_the_shaman(can_level_up)
+                    success = be_the_shaman(self, can_level_up)
                     if not success:
                         broadcast(self, MessageTypeParser().serialize(
                             MessageType.RITUAL_FAILED, self), can_level_up)
 
                 if self.state == 'going somewhere':
-                    success = self.follow_the_leader()
+                    success = follow_the_leader(self)
 
                 if success:
-                    success = self.wait_incant()
+                    success = wait_incant(self)
                 self.dprint("incantation end", success)
                 self.dispo_incant = True
                 broadcast(self, "just$update", ["all"])
@@ -140,40 +144,6 @@ class Trantorian:
             self.dead = True
         self.dprint("died")
         return
-
-    def be_the_shaman(self, can_do_incant: list) -> bool:
-        """call the others and do the incantation process
-
-        Args:
-            can_do_incant (list): trants to do the incantation with
-
-        Returns:
-            bool: incantation's success
-        """
-        self.dispo_incant = False
-        self.beacon(can_do_incant)
-        if self.state != "ready": # in case an other one calls him
-            return False
-        self.drop_stuff()
-        return start_incantation(self)
-
-
-    def follow_the_leader(self) -> bool:
-        """go and do the incantation whit the one who called
-
-        Returns:
-            bool: incantation's succes
-        """
-        self.dprint('Follow leader', self.last_beacon_uid)
-        self.dispo_incant = False
-        broadcast(self, "just$update", ["all"])
-        if not self.follow_beacon():
-            self.dprint("didnt go to beacon")
-            return False
-        self.drop_stuff()
-        broadcast(self, MessageTypeParser().serialize(
-            MessageType.RITUAL_READY, self), [self.last_beacon_uid])
-        return True
 
     def first_level(self) -> None:
         """script to fastly go to level 2 and acquire some food
@@ -194,7 +164,7 @@ class Trantorian:
             return
         if start_incantation(self) is False:
             self.first_level()
-        if self.wait_incant() is False:
+        if wait_incant(self) is False:
             self.first_level()
         return
 
@@ -305,51 +275,6 @@ class Trantorian:
             self.state = "shaman"
         return can_level_up
 
-    def follow_beacon(self) -> bool:
-        """follow the beacon to make a ritual
-
-        Returns:
-            bool: true if we are on the same case at the end
-        """
-        while self.iter() and self.state == "going somewhere":
-            if self.last_beacon_direction == 0:
-                self.state = "ritual_prep"
-                self.dprint(" I am ready with", self.last_beacon_uid)
-                break
-
-            if self.last_beacon_direction < 5 and self.last_beacon_direction != 1:
-                left(self)
-            elif self.last_beacon_direction == 5:
-                left(self)
-                left(self)
-            elif self.last_beacon_direction > 5:
-                right(self)
-
-            forward(self)
-            self.state = "wait"
-            while not self.dead and self.state == "wait":
-                get_answer(self)
-        return not self.dead and self.state == "ritual_prep"
-
-    def beacon(self, receivers: list) -> None:
-        """set ourselves as a beacon to atract the others
-
-        Args:
-            receivers (list): people to regroup
-        """
-        self.state = "beacon"
-        self.number_of_ritual_ready = 0
-        while self.iter() and self.state == "beacon":
-            self.kill_others()
-            if not all(e in self.others for e in receivers):
-                self.state = "wander"
-                return
-            broadcast(self, MessageTypeParser().serialize(MessageType.BEACON, self), receivers)
-            if self.number_of_ritual_ready >= LEVELS[self.level + 1][0] - 1:
-                self.dprint("we are ready", receivers)
-                self.state = "ready"
-        return
-
     def start_living(self, queue: Queue) -> None:
         """ First step of the life (reproduction)
 
@@ -365,32 +290,6 @@ class Trantorian:
         for _ in range(10): # use to set a first value for tick_time
             get_inventory(self)
         return
-
-    def wait_incant(self) -> bool:
-        """wait for the end of an incantation (level change or broadcast)
-
-        Returns:
-            bool: incantation failed or not
-        """
-        answer = ""
-        while not self.dead and not answer.startswith("Current level: "): # TODO do that better
-            answer = get_answer(self)
-            if self.state == "wander":
-                self.dprint("wander", time())#, answer)
-                return False
-            if answer == "incantation end":
-                return False
-        if self.dead or not answer.startswith("Current level: "):
-            self.dprint("incant failed", answer)
-            return False
-        try:
-            self.level = int(answer[15])
-        except ValueError:
-            self.dprint("incant failed", answer)
-            return False
-        broadcast(self, MessageTypeParser().serialize(MessageType.RITUAL_FINISH, self), "all")
-        self.dprint("lvl:", self.level)
-        return True
 
     def troll_broadcasts(self)-> None:
         """send weird broadcast to troll
@@ -472,22 +371,6 @@ class Trantorian:
         self.x = (self.x - off_x) % self.client.size_x
         self.y = (self.y - off_y) % self.client.size_y
         return
-
-
-    def drop_stuff(self) -> None:
-        """drops all our stuff
-        """
-        needed = LEVELS[self.level + 1][1]
-        idx: int = 0
-        for obj, val in self.inventory.items():
-            if obj == 'food':
-                continue
-            to_drop = min(val, needed[idx])
-            for _ in range(to_drop):
-                drop_object(self, obj)
-            idx += 1
-        return
-
 
 if __name__ == "__main__":
     trantorien = Trantorian("localhost", 8000, "dan")

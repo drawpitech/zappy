@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 project(zappy_gui)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 file(GLOB_RECURSE SOURCES src/**.cpp)
@@ -39,4 +40,4 @@ add_executable(zappy_gui ${SOURCES} ${IMGUI_SOURCES})
 target_link_libraries(zappy_gui glfw glm glad assimp)
 
 # Copy zappy_gui to build
-add_custom_command(TARGET zappy_gui POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:zappy_gui> ../..)
+install(TARGETS zappy_gui DESTINATION ${CMAKE_INSTALL_BINDIR})
